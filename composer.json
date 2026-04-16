@@ -1,10 +1,12 @@
 {
+    "name": "markus-michalski/leaveflow",
+    "description": "Modern open-source leave management for SMBs — built with Symfony",
     "type": "project",
-    "license": "proprietary",
+    "license": "MIT",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.3",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "doctrine/doctrine-bundle": "^2.18",
