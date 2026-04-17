@@ -5,6 +5,11 @@ framework:
         #auto_mapping:
         #    App\Entity\: []
 
+        # Keep all user-facing strings (labels, flashes, constraint errors)
+        # in a single translation file instead of splitting across
+        # messages.*.yaml and validators.*.yaml.
+        translation_domain: messages
+
 when@test:
     framework:
         validation:

@@ -12,6 +12,14 @@ if [ "$APP_ENV" != "prod" ] && [ "$1" = "frankenphp" ]; then
 
 		# Standard Symfony cache/log layout
 		mkdir -p var/cache var/log var/share
+
+		# Build Tailwind stylesheet on first boot so templates render
+		# correctly without a manual `make tailwind` step. Safe to
+		# re-run; symfonycasts/tailwind-bundle caches intermediate
+		# state in var/tailwind.
+		if [ -f bin/console ]; then
+			php bin/console tailwind:build || true
+		fi
 	fi
 fi
 

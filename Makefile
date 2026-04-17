@@ -108,6 +108,14 @@ console: ## Run a Symfony console command: make console CMD="about"
 cache-clear: ## Clear Symfony cache
 	$(EXEC) bin/console cache:clear
 
+.PHONY: tailwind
+tailwind: ## Build Tailwind stylesheet once (dev)
+	$(EXEC) bin/console tailwind:build
+
+.PHONY: tailwind-watch
+tailwind-watch: ## Run Tailwind in watch mode (keep open in a second terminal)
+	$(EXEC) bin/console tailwind:build --watch
+
 .PHONY: db-reset
 db-reset: ## Drop, create, migrate the database (DEV ONLY)
 	$(EXEC) bin/console doctrine:database:drop --force --if-exists
