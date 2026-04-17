@@ -129,6 +129,9 @@ jobs:
           php bin/console doctrine:database:create --if-not-exists --no-interaction
           php bin/console doctrine:migrations:migrate --no-interaction
 
+      - name: Build Tailwind stylesheet
+        run: php bin/console tailwind:build --minify
+
       - name: PHPUnit
         run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
 
