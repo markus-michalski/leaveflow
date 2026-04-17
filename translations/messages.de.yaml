@@ -71,7 +71,8 @@ admin:
         title: Benutzer
         heading: Benutzerverwaltung
         create: Neuen Benutzer anlegen
-        edit: Benutzer bearbeiten
+        edit: Bearbeiten
+        edit_heading: Benutzer bearbeiten
         email: E-Mail
         role: Rolle
         status: Status
@@ -81,7 +82,7 @@ admin:
         save: Speichern
         deactivate: Deaktivieren
         activate: Reaktivieren
-        send_reset_link: Passwort-Reset senden
+        send_reset_link: Reset senden
         flash:
             created: Benutzer %email% wurde angelegt und per E-Mail eingeladen.
             updated: Benutzer %email% wurde aktualisiert.

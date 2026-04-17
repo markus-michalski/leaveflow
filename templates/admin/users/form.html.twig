@@ -6,7 +6,7 @@
 <div class="mx-auto max-w-xl p-6">
     <header class="mb-6 flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-gray-900">
-            {{ (is_new ? 'admin.users.create' : 'admin.users.edit')|trans }}
+            {{ (is_new ? 'admin.users.create' : 'admin.users.edit_heading')|trans }}
         </h1>
         <a href="{{ path('app_admin_user_index') }}" class="text-sm text-gray-600 hover:underline">
             {{ 'nav.admin.users'|trans }}
