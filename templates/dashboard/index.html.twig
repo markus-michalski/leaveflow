@@ -9,15 +9,17 @@
             <h1 class="text-2xl font-semibold text-gray-900">{{ 'dashboard.heading'|trans }}</h1>
             <p class="text-sm text-gray-500">{{ 'dashboard.welcome'|trans({ '%name%': app.user.email }) }}</p>
         </div>
-        <nav class="flex items-center gap-4 text-sm">
+        <nav class="flex items-center gap-3">
             {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('app_admin_user_index') }}" class="text-blue-600 hover:underline">
+                <a href="{{ path('app_admin_user_index') }}"
+                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
                     {{ 'nav.admin.users'|trans }}
                 </a>
             {% endif %}
             <form action="{{ path('app_logout') }}" method="post" class="inline">
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-                <button type="submit" class="text-gray-600 hover:underline">
+                <button type="submit"
+                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                     {{ 'nav.logout'|trans }}
                 </button>
             </form>
