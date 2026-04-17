@@ -1,0 +1,14 @@
+{# Admin invitation email — first-time password setup via reset token. #}
+<p>{{ 'admin.users.invitation.greeting'|trans({ '%email%': user.email }) }}</p>
+
+<p>{{ 'admin.users.invitation.body'|trans }}</p>
+
+<p>
+    <a href="{{ url('app_reset_password', { token: resetToken.token }) }}">
+        {{ 'admin.users.invitation.cta'|trans }}
+    </a>
+</p>
+
+<p>{{ 'admin.users.invitation.expires_in_one_hour'|trans }}</p>
+
+<p>{{ 'security.reset_password.email.signature'|trans }}</p>

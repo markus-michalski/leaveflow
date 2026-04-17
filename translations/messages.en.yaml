@@ -44,6 +44,23 @@ security:
             password: New password
             repeat_password: Repeat password
             submit: Save password
+        email:
+            subject: Reset your LeaveFlow password
+            greeting: Hello,
+            body: someone (hopefully you) requested to reset your LeaveFlow password.
+            cta: Reset my password
+            expires_in_one_hour: This link is valid for one hour. If you did not request this, please ignore this email.
+            signature: The LeaveFlow team
+        flash:
+            updated: Your password has been updated. You can now sign in.
+        error:
+            email_required: Please enter an email address.
+            email_invalid: Please enter a valid email address.
+            password_required: Please enter a password.
+            password_too_short: "Your password must be at least {{ limit }} characters long."
+            password_compromised: This password has been found in data breaches. Please choose a different one.
+            passwords_must_match: The passwords must match.
+            token_invalid: "The reset link is invalid: %reason%"
 user:
     role:
         admin: Administrator
@@ -66,7 +83,14 @@ admin:
         activate: Reactivate
         send_reset_link: Send password reset
         flash:
-            created: User %email% has been created.
+            created: User %email% has been created and invited via email.
             updated: User %email% has been updated.
             activated: User %email% has been reactivated.
             deactivated: User %email% has been deactivated.
+            reset_sent: Password reset link has been sent to %email%.
+        invitation:
+            subject: Your LeaveFlow access
+            greeting: "Hello %email%,"
+            body: an administrator has created a LeaveFlow account for you. Click the link below to set your password and sign in.
+            cta: Set password and sign in
+            expires_in_one_hour: This link is valid for one hour. Request a new one if it expires.

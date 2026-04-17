@@ -10,7 +10,11 @@
             <p class="text-sm text-gray-500">{{ 'dashboard.welcome'|trans({ '%name%': app.user.email }) }}</p>
         </div>
         <nav class="flex items-center gap-4 text-sm">
-            {# TODO(phase-1): link to app_admin_user_index once the admin user controller lands #}
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('app_admin_user_index') }}" class="text-blue-600 hover:underline">
+                    {{ 'nav.admin.users'|trans }}
+                </a>
+            {% endif %}
             <form action="{{ path('app_logout') }}" method="post" class="inline">
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
                 <button type="submit" class="text-gray-600 hover:underline">

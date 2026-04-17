@@ -12,11 +12,11 @@ enum UserRole: string
 
     public function asSymfonyRole(): string
     {
-        return 'ROLE_' . strtoupper($this->value);
+        return 'ROLE_'.strtoupper($this->value);
     }
 
     public function label(): string
     {
-        return 'user.role.' . $this->value;
+        return 'user.role.'.$this->value;
     }
 }

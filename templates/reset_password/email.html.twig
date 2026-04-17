@@ -1,0 +1,14 @@
+{# Password reset email — plain Twig, no extends. Keep it simple for email clients. #}
+<p>{{ 'security.reset_password.email.greeting'|trans }}</p>
+
+<p>{{ 'security.reset_password.email.body'|trans }}</p>
+
+<p>
+    <a href="{{ url('app_reset_password', { token: resetToken.token }) }}">
+        {{ 'security.reset_password.email.cta'|trans }}
+    </a>
+</p>
+
+<p>{{ 'security.reset_password.email.expires_in_one_hour'|trans }}</p>
+
+<p>{{ 'security.reset_password.email.signature'|trans }}</p>

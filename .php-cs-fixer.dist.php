@@ -21,7 +21,7 @@ return (new PhpCsFixer\Config())
         '@Symfony' => true,
         '@Symfony:risky' => true,
         '@PHP84Migration' => true,
-        '@PHP83Migration:risky' => true,
+        '@PHP82Migration:risky' => true,
         '@PHPUnit100Migration:risky' => true,
         'declare_strict_types' => true,
         'strict_param' => true,

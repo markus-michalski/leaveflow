@@ -18,8 +18,8 @@ final class UserRoleTest extends TestCase
      */
     public static function symfonyRoleProvider(): iterable
     {
-        yield 'admin'    => [UserRole::Admin, 'ROLE_ADMIN'];
-        yield 'manager'  => [UserRole::Manager, 'ROLE_MANAGER'];
+        yield 'admin' => [UserRole::Admin, 'ROLE_ADMIN'];
+        yield 'manager' => [UserRole::Manager, 'ROLE_MANAGER'];
         yield 'employee' => [UserRole::Employee, 'ROLE_EMPLOYEE'];
     }
 
@@ -35,8 +35,8 @@ final class UserRoleTest extends TestCase
      */
     public static function labelProvider(): iterable
     {
-        yield 'admin'    => [UserRole::Admin, 'user.role.admin'];
-        yield 'manager'  => [UserRole::Manager, 'user.role.manager'];
+        yield 'admin' => [UserRole::Admin, 'user.role.admin'];
+        yield 'manager' => [UserRole::Manager, 'user.role.manager'];
         yield 'employee' => [UserRole::Employee, 'user.role.employee'];
     }
 

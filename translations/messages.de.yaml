@@ -44,6 +44,23 @@ security:
             password: Neues Passwort
             repeat_password: Passwort wiederholen
             submit: Passwort speichern
+        email:
+            subject: Passwort zurücksetzen bei LeaveFlow
+            greeting: Hallo,
+            body: jemand (hoffentlich du) hat angefordert, dein Passwort für LeaveFlow zurückzusetzen.
+            cta: Passwort jetzt zurücksetzen
+            expires_in_one_hour: Dieser Link ist eine Stunde gültig. Falls du die Anfrage nicht ausgelöst hast, ignoriere diese E-Mail.
+            signature: Dein LeaveFlow-System
+        flash:
+            updated: Dein Passwort wurde aktualisiert. Du kannst dich jetzt anmelden.
+        error:
+            email_required: Bitte gib eine E-Mail-Adresse an.
+            email_invalid: Bitte gib eine gültige E-Mail-Adresse an.
+            password_required: Bitte gib ein Passwort an.
+            password_too_short: "Das Passwort muss mindestens {{ limit }} Zeichen lang sein."
+            password_compromised: Dieses Passwort wurde in Datenlecks gefunden. Bitte wähle ein anderes.
+            passwords_must_match: Die Passwörter müssen übereinstimmen.
+            token_invalid: "Der Zurücksetz-Link ist ungültig: %reason%"
 user:
     role:
         admin: Administrator
@@ -66,7 +83,14 @@ admin:
         activate: Reaktivieren
         send_reset_link: Passwort-Reset senden
         flash:
-            created: Benutzer %email% wurde angelegt.
+            created: Benutzer %email% wurde angelegt und per E-Mail eingeladen.
             updated: Benutzer %email% wurde aktualisiert.
             activated: Benutzer %email% wurde reaktiviert.
             deactivated: Benutzer %email% wurde deaktiviert.
+            reset_sent: Passwort-Reset-Link wurde an %email% gesendet.
+        invitation:
+            subject: Dein LeaveFlow-Zugang
+            greeting: "Hallo %email%,"
+            body: ein Administrator hat dir einen LeaveFlow-Zugang angelegt. Klick den folgenden Link, um dein Passwort festzulegen und dich anzumelden.
+            cta: Passwort setzen und anmelden
+            expires_in_one_hour: Dieser Link ist eine Stunde gültig. Fordere einen neuen an, falls er abläuft.
