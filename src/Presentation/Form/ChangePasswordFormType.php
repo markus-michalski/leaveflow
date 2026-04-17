@@ -23,6 +23,7 @@ final class ChangePasswordFormType extends AbstractType
             'type' => PasswordType::class,
             'first_options' => [
                 'label' => 'security.reset_password.reset.password',
+                'help' => 'security.reset_password.reset.password_help',
                 'attr' => ['autocomplete' => 'new-password'],
                 'constraints' => [
                     new NotBlank(['message' => 'security.reset_password.error.password_required']),

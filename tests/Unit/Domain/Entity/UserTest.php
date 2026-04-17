@@ -101,7 +101,7 @@ final class UserTest extends TestCase
     public function roleCanBeChanged(): void
     {
         $user = new User($this->makeCompany(), 'jane@example.com', UserRole::Employee);
-        $user->changeRole(UserRole::Manager);
+        $user->setRole(UserRole::Manager);
 
         self::assertSame(UserRole::Manager, $user->getRole());
         self::assertContains('ROLE_MANAGER', $user->getRoles());

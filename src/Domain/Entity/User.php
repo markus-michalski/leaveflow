@@ -106,7 +106,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->active = false;
     }
 
-    public function changeRole(UserRole $role): void
+    public function setRole(UserRole $role): void
     {
         $this->role = $role;
     }

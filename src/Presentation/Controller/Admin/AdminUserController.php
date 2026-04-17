@@ -8,6 +8,7 @@ use App\Domain\Entity\Company;
 use App\Domain\Entity\User;
 use App\Domain\Enum\UserRole;
 use App\Domain\Repository\CompanyRepository;
+use App\Domain\Repository\ResetPasswordRequestRepository;
 use App\Domain\Repository\UserRepository;
 use App\Presentation\Form\AdminUserType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,7 +20,6 @@ use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 
 #[Route('/admin/users', name: 'app_admin_user_')]
@@ -29,6 +29,7 @@ final class AdminUserController extends AbstractController
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly CompanyRepository $companyRepository,
+        private readonly ResetPasswordRequestRepository $resetPasswordRequestRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly ResetPasswordHelperInterface $resetPasswordHelper,
         private readonly MailerInterface $mailer,
@@ -153,11 +154,11 @@ final class AdminUserController extends AbstractController
 
     private function sendInvitationEmail(User $user): void
     {
-        try {
-            $resetToken = $this->resetPasswordHelper->generateResetToken($user);
-        } catch (ResetPasswordExceptionInterface) {
-            return;
-        }
+        // Admin-triggered invitations must override any pending reset request
+        // so the admin can re-send without waiting out the bundle throttle.
+        $this->resetPasswordRequestRepository->removeRequests($user);
+
+        $resetToken = $this->resetPasswordHelper->generateResetToken($user);
 
         $email = new \Symfony\Bridge\Twig\Mime\TemplatedEmail()
             ->from(new Address('no-reply@leaveflow.test', 'LeaveFlow'))

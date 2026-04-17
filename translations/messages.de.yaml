@@ -42,6 +42,7 @@ security:
             title: Neues Passwort festlegen
             heading: Neues Passwort festlegen
             password: Neues Passwort
+            password_help: "Mindestens 10 Zeichen. Das Passwort darf nicht in bekannten Datenlecks vorgekommen sein."
             repeat_password: Passwort wiederholen
             submit: Passwort speichern
         email:
@@ -80,6 +81,7 @@ admin:
         inactive: Inaktiv
         actions: Aktionen
         save: Speichern
+        back: Zurück
         deactivate: Deaktivieren
         activate: Reaktivieren
         send_reset_link: Reset senden

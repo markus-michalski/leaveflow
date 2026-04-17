@@ -42,6 +42,7 @@ security:
             title: Set a new password
             heading: Set a new password
             password: New password
+            password_help: "At least 10 characters. The password must not appear in known data breaches."
             repeat_password: Repeat password
             submit: Save password
         email:
@@ -80,6 +81,7 @@ admin:
         inactive: Inactive
         actions: Actions
         save: Save
+        back: Back
         deactivate: Deactivate
         activate: Reactivate
         send_reset_link: Send reset

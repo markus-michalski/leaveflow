@@ -13,7 +13,8 @@
             {{ form_row(resetForm.plainPassword.first, {
                 row_attr: { class: 'space-y-1' },
                 label_attr: { class: 'block text-sm font-medium text-gray-700' },
-                attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500' }
+                attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500' },
+                help_attr: { class: 'mt-1 text-xs text-gray-500' }
             }) }}
 
             {{ form_row(resetForm.plainPassword.second, {

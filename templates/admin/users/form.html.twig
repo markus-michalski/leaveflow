@@ -8,8 +8,12 @@
         <h1 class="text-2xl font-semibold text-gray-900">
             {{ (is_new ? 'admin.users.create' : 'admin.users.edit_heading')|trans }}
         </h1>
-        <a href="{{ path('app_admin_user_index') }}" class="text-sm text-gray-600 hover:underline">
-            {{ 'nav.admin.users'|trans }}
+        <a href="{{ path('app_admin_user_index') }}"
+           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0L3.586 10l4.707-4.707a1 1 0 011.414 1.414L7.414 9H16a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            {{ 'admin.users.back'|trans }}
         </a>
     </header>
 
@@ -28,8 +32,9 @@
             }) }}
 
             <div class="flex items-center justify-end gap-3 pt-2">
-                <a href="{{ path('app_admin_user_index') }}" class="text-sm text-gray-600 hover:underline">
-                    {{ 'nav.admin.users'|trans }}
+                <a href="{{ path('app_admin_user_index') }}"
+                   class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ 'admin.users.back'|trans }}
                 </a>
                 <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
                     {{ 'admin.users.save'|trans }}
