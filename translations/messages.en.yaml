@@ -3,11 +3,14 @@ app:
     tagline: Modern leave management
 nav:
     home: Home
+    profile: My profile
     calendar: Calendar
     requests: Requests
     employees: Employees
     admin:
-        users: User management
+        users: Users
+        locations: Locations
+        employees: Employees
     logout: Log out
 welcome:
     title: Welcome to LeaveFlow
@@ -97,3 +100,72 @@ admin:
             body: an administrator has created a LeaveFlow account for you. Click the link below to set your password and sign in.
             cta: Set password and sign in
             expires_in_one_hour: This link is valid for one hour. Request a new one if it expires.
+    locations:
+        title: Locations
+        heading: Locations
+        create: Add location
+        edit: Edit
+        edit_heading: Edit location
+        name: Name
+        country: Country (ISO)
+        country_help: "Two-letter ISO code, e.g. DE, AT, CH."
+        federal_state: Federal state
+        federal_state_help: "ISO 3166-2, e.g. DE-BY for Bavaria. Drives public-holiday rules."
+        city: City
+        actions: Actions
+        save: Save
+        back: Back
+        empty: No locations yet.
+        flash:
+            created: Location %name% has been created.
+            updated: Location %name% has been updated.
+    employees:
+        title: Employees
+        heading: Employees
+        create: Add employee
+        edit: Edit
+        edit_heading: Edit employee
+        full_name: Full name
+        employee_number: Employee number
+        location: Location
+        location_placeholder: "— Select location —"
+        schedule: Work schedule
+        weekly_hours: Weekly hours
+        working_days: Working days
+        joined_at: Joined
+        left_at: Left (optional)
+        period: Period
+        user: Linked user
+        user_help: Optional. Only set if this employee should be able to sign in.
+        user_placeholder: "— No login —"
+        linked_user: Login
+        no_user: no login
+        days_suffix: " days"
+        actions: Actions
+        save: Save
+        back: Back
+        empty: No employees yet.
+        flash:
+            created: Employee %name% has been created.
+            updated: Employee %name% has been updated.
+profile:
+    title: My profile
+    heading: My profile
+    email: Email
+    role: Role
+    full_name: Full name
+    employee_number: Employee number
+    location: Location
+    weekly_hours: Weekly hours
+    working_days: Working days
+    joined_at: Joined
+    left_at: Left
+    no_employee_record: No employee record is linked to your account. Please contact your administrator.
+weekday:
+    monday: Monday
+    tuesday: Tuesday
+    wednesday: Wednesday
+    thursday: Thursday
+    friday: Friday
+    saturday: Saturday
+    sunday: Sunday

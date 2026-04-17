@@ -157,22 +157,25 @@ A phase is **done** only when:
 
 ---
 
-### Phase 2 — Employee Profile
+### Phase 2 — Employee Profile ✅ (v0.3.0)
 
 **Entities:**
-- `Employee` (1:1 with User, fullName, employeeNumber, joinedAt, leftAt nullable)
-- `Location` (country, federalState, city — part of Company)
-- `WorkSchedule` value object: weeklyHours, workingDays (Mo-Fr bitmask), hoursPerDay (auto or manual distribution)
+- `Employee` (0..1 to User — nullable, optional for imports/archived ex-employees; fullName, employeeNumber unique-per-company, joinedAt, leftAt nullable)
+- `Location` (country ISO-2, federalState ISO 3166-2, city — part of Company)
+- `WorkSchedule` embeddable value object: weeklyHours, per-weekday hours map (auto + manual distribution, both tested)
 
-**Features:**
-- Admin: create employee with work schedule + home/work location
-- "Pre-existing approved absences" on creation (imports before go-live)
-- Employee self-service: view own profile (read-only)
+**Features delivered:**
+- `/admin/employees` CRUD with work schedule (auto-distribution UI) + location + optional user link
+- `/admin/locations` CRUD
+- `/profile` self-service view with graceful fallback when no employee record is linked
 
-**Tests (strict TDD for `WorkSchedule`):**
-- Auto-distribution of weekly hours
-- Manual hour distribution validation (sum must equal weekly)
-- Non-working days correctly identified
+**Deferred (with rationale):**
+- "Pre-existing approved absences" on creation → Phase 5 (LeaveRequest) — nothing to import without LeaveRequest entity
+- Manual per-day schedule distribution UI → Phase 9 admin polish (VO supports it, just no form widget yet)
+
+**Tests (strict TDD for `WorkSchedule`, Location, Employee):**
+- Auto + manual distribution, sum epsilon tolerance, invalid weekday rejection, equality
+- Employee ↔ User cross-company rejection, joinedAt/leftAt invariants, activeOn window
 
 ---
 
