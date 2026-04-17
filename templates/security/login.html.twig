@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'security.login.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div class="w-full max-w-md space-y-6 rounded-xl bg-white p-8 shadow-sm">
+        <div class="text-center">
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'security.login.heading'|trans }}</h1>
+            <p class="mt-1 text-sm text-gray-500">{{ 'app.name'|trans }}</p>
+        </div>
+
+        {% if error %}
+            <div class="rounded-md bg-red-50 p-3 text-sm text-red-800" role="alert">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            </div>
+        {% endif %}
+
+        <form method="post" class="space-y-4" data-testid="login-form">
+            <div>
+                <label for="inputEmail" class="block text-sm font-medium text-gray-700">
+                    {{ 'security.login.email'|trans }}
+                </label>
+                <input
+                    type="email"
+                    id="inputEmail"
+                    name="_username"
+                    value="{{ last_username }}"
+                    autocomplete="email"
+                    required
+                    autofocus
+                    class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                >
+            </div>
+
+            <div>
+                <label for="inputPassword" class="block text-sm font-medium text-gray-700">
+                    {{ 'security.login.password'|trans }}
+                </label>
+                <input
+                    type="password"
+                    id="inputPassword"
+                    name="_password"
+                    autocomplete="current-password"
+                    required
+                    class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                >
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+                <label class="inline-flex items-center gap-2 text-gray-700">
+                    <input type="checkbox" name="_remember_me" class="rounded border-gray-300">
+                    {{ 'security.login.remember_me'|trans }}
+                </label>
+                <a href="{{ path('app_forgot_password_request') }}" class="text-blue-600 hover:underline">
+                    {{ 'security.login.forgot_password'|trans }}
+                </a>
+            </div>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <button type="submit" class="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                {{ 'security.login.submit'|trans }}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

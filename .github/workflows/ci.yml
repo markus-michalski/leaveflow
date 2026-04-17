@@ -26,7 +26,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           extensions: mbstring, intl, pdo_mysql, zip, pcntl, opcache, apcu, pcov
           coverage: pcov
           ini-values: |
@@ -72,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.3', '8.4']
+        php: ['8.4']
 
     services:
       mariadb:
@@ -124,11 +124,19 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
+      - name: Create test database schema
+        run: |
+          php bin/console doctrine:database:create --if-not-exists --no-interaction
+          php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Build Tailwind stylesheet
+        run: php bin/console tailwind:build --minify
+
       - name: PHPUnit
         run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
 
       - name: Upload coverage to artifacts
-        if: matrix.php == '8.3'
+        if: matrix.php == '8.4'
         uses: actions/upload-artifact@v4
         with:
           name: coverage

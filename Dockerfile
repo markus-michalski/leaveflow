@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.9
 
 # --- Base stage ---------------------------------------------------------
-# FrankenPHP (Caddy + PHP in one image). Pinned to 1.x on PHP 8.3.
-FROM dunglas/frankenphp:1-php8.3 AS base
+# FrankenPHP (Caddy + PHP in one image). Pinned to 1.x on PHP 8.4.
+FROM dunglas/frankenphp:1-php8.4 AS base
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000

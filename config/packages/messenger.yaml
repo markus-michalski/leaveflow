@@ -9,8 +9,8 @@ framework:
                 retry_strategy:
                     max_retries: 3
                     multiplier: 2
+            sync: 'sync://'
             failed: 'doctrine://default?queue_name=failed'
-            # sync: 'sync://'
 
         default_bus: messenger.bus.default
 
@@ -24,3 +24,20 @@ framework:
 
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
+
+when@dev:
+    framework:
+        messenger:
+            # Dev UX: mails go out immediately so developers see Mailpit
+            # without having to run a messenger worker. Production keeps
+            # them async for back-pressure resilience.
+            routing:
+                Symfony\Component\Mailer\Messenger\SendEmailMessage: sync
+
+when@test:
+    framework:
+        messenger:
+            transports:
+                async: 'in-memory://'
+            routing:
+                Symfony\Component\Mailer\Messenger\SendEmailMessage: sync

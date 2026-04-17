@@ -6,8 +6,94 @@ nav:
     calendar: Kalender
     requests: Anträge
     employees: Mitarbeiter
-    admin: Verwaltung
+    admin:
+        users: Benutzerverwaltung
     logout: Abmelden
 welcome:
     title: Willkommen bei LeaveFlow
     subtitle: Das Foundation-Setup steht. Phase 1 beginnt mit Auth & Tenant-Modell.
+dashboard:
+    title: Dashboard
+    heading: Dashboard
+    welcome: Angemeldet als %name%
+    placeholder: Hier erscheint bald deine Urlaubsübersicht.
+security:
+    login:
+        title: Anmelden
+        heading: Bei LeaveFlow anmelden
+        email: E-Mail-Adresse
+        password: Passwort
+        remember_me: Angemeldet bleiben
+        forgot_password: Passwort vergessen?
+        submit: Anmelden
+    reset_password:
+        request:
+            title: Passwort zurücksetzen
+            heading: Passwort zurücksetzen
+            intro: Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen.
+            email: E-Mail-Adresse
+            submit: Zurücksetz-Link anfordern
+            back_to_login: Zurück zur Anmeldung
+        check_email:
+            title: E-Mail gesendet
+            heading: Prüfe dein Postfach
+            description: Wenn ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen des Passworts versendet. Der Link ist eine Stunde gültig.
+        reset:
+            title: Neues Passwort festlegen
+            heading: Neues Passwort festlegen
+            password: Neues Passwort
+            password_help: "Mindestens 10 Zeichen. Das Passwort darf nicht in bekannten Datenlecks vorgekommen sein."
+            repeat_password: Passwort wiederholen
+            submit: Passwort speichern
+        email:
+            subject: Passwort zurücksetzen bei LeaveFlow
+            greeting: Hallo,
+            body: jemand (hoffentlich du) hat angefordert, dein Passwort für LeaveFlow zurückzusetzen.
+            cta: Passwort jetzt zurücksetzen
+            expires_in_one_hour: Dieser Link ist eine Stunde gültig. Falls du die Anfrage nicht ausgelöst hast, ignoriere diese E-Mail.
+            signature: Dein LeaveFlow-System
+        flash:
+            updated: Dein Passwort wurde aktualisiert. Du kannst dich jetzt anmelden.
+        error:
+            email_required: Bitte gib eine E-Mail-Adresse an.
+            email_invalid: Bitte gib eine gültige E-Mail-Adresse an.
+            password_required: Bitte gib ein Passwort an.
+            password_too_short: "Das Passwort muss mindestens {{ limit }} Zeichen lang sein."
+            password_compromised: Dieses Passwort wurde in Datenlecks gefunden. Bitte wähle ein anderes.
+            passwords_must_match: Die Passwörter müssen übereinstimmen.
+            token_invalid: "Der Zurücksetz-Link ist ungültig: %reason%"
+user:
+    role:
+        admin: Administrator
+        manager: Manager
+        employee: Mitarbeiter
+admin:
+    users:
+        title: Benutzer
+        heading: Benutzerverwaltung
+        create: Neuen Benutzer anlegen
+        edit: Bearbeiten
+        edit_heading: Benutzer bearbeiten
+        email: E-Mail
+        role: Rolle
+        status: Status
+        active: Aktiv
+        inactive: Inaktiv
+        actions: Aktionen
+        save: Speichern
+        back: Zurück
+        deactivate: Deaktivieren
+        activate: Reaktivieren
+        send_reset_link: Reset senden
+        flash:
+            created: Benutzer %email% wurde angelegt und per E-Mail eingeladen.
+            updated: Benutzer %email% wurde aktualisiert.
+            activated: Benutzer %email% wurde reaktiviert.
+            deactivated: Benutzer %email% wurde deaktiviert.
+            reset_sent: Passwort-Reset-Link wurde an %email% gesendet.
+        invitation:
+            subject: Dein LeaveFlow-Zugang
+            greeting: "Hallo %email%,"
+            body: ein Administrator hat dir einen LeaveFlow-Zugang angelegt. Klick den folgenden Link, um dein Passwort festzulegen und dich anzumelden.
+            cta: Passwort setzen und anmelden
+            expires_in_one_hour: Dieser Link ist eine Stunde gültig. Fordere einen neuen an, falls er abläuft.

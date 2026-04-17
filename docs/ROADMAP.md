@@ -8,7 +8,7 @@ Modern open-source leave management for SMBs, built with Symfony 7.4.
 
 ## Tech Stack
 
-- **Backend:** Symfony 7.4 LTS, PHP 8.3+
+- **Backend:** Symfony 7.4 LTS, PHP 8.4+
 - **Frontend:** Twig + Turbo + Stimulus, Tailwind CSS + Flowbite via Asset Mapper
 - **Database:** MariaDB 11 (Doctrine ORM 3)
 - **Calendar:** FullCalendar.js via Stimulus controller
@@ -59,7 +59,7 @@ Modern open-source leave management for SMBs, built with Symfony 7.4.
 
 ### GitHub Actions Workflow (`.github/workflows/ci.yml`)
 
-**Matrix:** PHP 8.3, 8.4
+**Matrix:** PHP 8.4 (PHP 8.3 end-of-active-support Nov 2025)
 **Services:** MariaDB 11 (identical to local), Mailpit
 **Env:** Timezone `Europe/Berlin`, Locale `de_DE.UTF-8`
 
