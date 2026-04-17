@@ -20,8 +20,8 @@ return (new PhpCsFixer\Config())
     ->setRules([
         '@Symfony' => true,
         '@Symfony:risky' => true,
-        '@PHP83Migration' => true,
-        '@PHP82Migration:risky' => true,
+        '@PHP84Migration' => true,
+        '@PHP83Migration:risky' => true,
         '@PHPUnit100Migration:risky' => true,
         'declare_strict_types' => true,
         'strict_param' => true,

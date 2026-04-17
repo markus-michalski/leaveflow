@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'dashboard.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-6xl p-6">
+    <header class="mb-8 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'dashboard.heading'|trans }}</h1>
+            <p class="text-sm text-gray-500">{{ 'dashboard.welcome'|trans({ '%name%': app.user.email }) }}</p>
+        </div>
+        <nav class="flex items-center gap-4 text-sm">
+            {# TODO(phase-1): link to app_admin_user_index once the admin user controller lands #}
+            <form action="{{ path('app_logout') }}" method="post" class="inline">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                <button type="submit" class="text-gray-600 hover:underline">
+                    {{ 'nav.logout'|trans }}
+                </button>
+            </form>
+        </nav>
+    </header>
+
+    <section class="rounded-xl bg-white p-6 shadow-sm">
+        <p class="text-gray-700">{{ 'dashboard.placeholder'|trans }}</p>
+    </section>
+</div>
+{% endblock %}

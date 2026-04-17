@@ -6,8 +6,67 @@ nav:
     calendar: Kalender
     requests: Anträge
     employees: Mitarbeiter
-    admin: Verwaltung
+    admin:
+        users: Benutzerverwaltung
     logout: Abmelden
 welcome:
     title: Willkommen bei LeaveFlow
     subtitle: Das Foundation-Setup steht. Phase 1 beginnt mit Auth & Tenant-Modell.
+dashboard:
+    title: Dashboard
+    heading: Dashboard
+    welcome: Angemeldet als %name%
+    placeholder: Hier erscheint bald deine Urlaubsübersicht.
+security:
+    login:
+        title: Anmelden
+        heading: Bei LeaveFlow anmelden
+        email: E-Mail-Adresse
+        password: Passwort
+        remember_me: Angemeldet bleiben
+        forgot_password: Passwort vergessen?
+        submit: Anmelden
+    reset_password:
+        request:
+            title: Passwort zurücksetzen
+            heading: Passwort zurücksetzen
+            intro: Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen.
+            email: E-Mail-Adresse
+            submit: Zurücksetz-Link anfordern
+            back_to_login: Zurück zur Anmeldung
+        check_email:
+            title: E-Mail gesendet
+            heading: Prüfe dein Postfach
+            description: Wenn ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen des Passworts versendet. Der Link ist eine Stunde gültig.
+        reset:
+            title: Neues Passwort festlegen
+            heading: Neues Passwort festlegen
+            password: Neues Passwort
+            repeat_password: Passwort wiederholen
+            submit: Passwort speichern
+user:
+    role:
+        admin: Administrator
+        manager: Manager
+        employee: Mitarbeiter
+admin:
+    users:
+        title: Benutzer
+        heading: Benutzerverwaltung
+        create: Neuen Benutzer anlegen
+        edit: Benutzer bearbeiten
+        email: E-Mail
+        role: Rolle
+        status: Status
+        active: Aktiv
+        inactive: Inaktiv
+        actions: Aktionen
+        save: Speichern
+        deactivate: Deaktivieren
+        activate: Reaktivieren
+        send_reset_link: Passwort-Reset senden
+        flash:
+            created: Benutzer %email% wurde angelegt.
+            updated: Benutzer %email% wurde aktualisiert.
+            activated: Benutzer %email% wurde reaktiviert.
+            deactivated: Benutzer %email% wurde deaktiviert.
