@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Pre-commit hook for LeaveFlow.
+# Runs PHPStan + PHP-CS-Fixer + PHPUnit on staged PHP files via Docker.
+#
+# Activate with:  make install-hooks
+# Bypass with:    git commit --no-verify (don't)
+
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+if ! docker compose ps --status running --services 2>/dev/null | grep -q '^app$'; then
+    echo "pre-commit: app container not running; skipping (run 'make up' to enable hooks)"
+    exit 0
+fi
+
+STAGED_PHP=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.php$' || true)
+if [ -z "$STAGED_PHP" ]; then
+    echo "pre-commit: no staged PHP files, skipping"
+    exit 0
+fi
+
+echo "pre-commit: PHP-CS-Fixer (changed files)..."
+# shellcheck disable=SC2086
+docker compose exec -T -u app app vendor/bin/php-cs-fixer fix --dry-run --diff $STAGED_PHP
+
+echo "pre-commit: PHPStan (full project)..."
+docker compose exec -T -u app app vendor/bin/phpstan analyse --memory-limit=1G --no-progress -q
+
+echo "pre-commit: OK"

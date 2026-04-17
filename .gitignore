@@ -22,3 +22,15 @@
 # Local Claude Code context (not shared in repo)
 /CLAUDE.md
 /.claude/
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.php
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
+
+# Deptrac cache
+/.deptrac.cache
+
+# Coverage artifacts
+/coverage.xml
+/coverage/

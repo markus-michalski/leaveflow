@@ -1,0 +1,51 @@
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Local Claude context (never into image)
+CLAUDE.md
+.claude/
+
+# IDE / editor
+.idea
+.vscode
+*.swp
+*.swo
+
+# Symfony runtime dirs
+var/cache/*
+var/log/*
+var/share/*
+!var/cache/.gitkeep
+!var/log/.gitkeep
+
+# Dependencies (installed inside container)
+vendor
+node_modules
+
+# Asset Mapper build output
+public/assets
+assets/vendor
+
+# Test artifacts
+.phpunit.cache
+coverage
+.phpunit.result.cache
+
+# PHPStan cache
+var/phpstan
+
+# Env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs (stay out of prod image)
+docs
+
+# PHP-CS-Fixer cache
+.php-cs-fixer.cache

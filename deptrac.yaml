@@ -1,0 +1,75 @@
+# Deptrac — architecture boundaries
+# Enforces a layered architecture across LeaveFlow's src/.
+#
+# Layers (inside-out):
+#   Domain          — pure business logic, no framework deps
+#   Application     — use cases, orchestration
+#   Infrastructure  — Symfony/Doctrine integration
+#   Presentation    — controllers, forms, Twig extensions
+#   Vendor          — catch-all for framework/library code (Symfony, Doctrine, etc.)
+#
+# Dependencies point inward: Presentation → Application → Domain.
+# Infrastructure is allowed to implement Domain ports (Dependency Inversion).
+
+parameters:
+    paths:
+        - src
+
+    exclude_files:
+        - '#.*\.gitkeep$#'
+
+    layers:
+        - name: Domain
+          collectors:
+              - type: directory
+                value: src/Domain/.*
+
+        - name: Application
+          collectors:
+              - type: directory
+                value: src/Application/.*
+
+        - name: Infrastructure
+          collectors:
+              - type: bool
+                must:
+                    - type: directory
+                      value: src/Infrastructure/.*
+
+        - name: Presentation
+          collectors:
+              - type: directory
+                value: src/Presentation/.*
+
+        - name: Kernel
+          collectors:
+              - type: classLike
+                value: App\\Kernel
+
+        - name: Vendor
+          collectors:
+              - type: bool
+                must:
+                    - type: classLike
+                      value: ^(Symfony|Doctrine|Psr|Twig|Composer|Monolog|Dama)\\.*
+
+    ruleset:
+        Domain:
+            - Vendor
+        Application:
+            - Domain
+            - Vendor
+        Infrastructure:
+            - Domain
+            - Application
+            - Vendor
+        Presentation:
+            - Domain
+            - Application
+            - Vendor
+        Kernel:
+            - Domain
+            - Application
+            - Infrastructure
+            - Presentation
+            - Vendor

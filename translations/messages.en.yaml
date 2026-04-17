@@ -1,0 +1,13 @@
+app:
+    name: LeaveFlow
+    tagline: Modern leave management
+nav:
+    home: Home
+    calendar: Calendar
+    requests: Requests
+    employees: Employees
+    admin: Admin
+    logout: Log out
+welcome:
+    title: Welcome to LeaveFlow
+    subtitle: Foundation setup complete. Phase 1 begins with Auth & Tenant model.
