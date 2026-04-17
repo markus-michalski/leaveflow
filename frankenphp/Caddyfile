@@ -1,0 +1,33 @@
+# FrankenPHP Caddyfile for LeaveFlow
+# https://frankenphp.dev/docs/config/
+
+{
+	{$CADDY_GLOBAL_OPTIONS}
+
+	frankenphp
+	order php_server before file_server
+}
+
+{$CADDY_EXTRA_CONFIG}
+
+{$SERVER_NAME:localhost} {
+	log {
+		output stdout
+		format filter {
+			wrap console
+			fields {
+				common_log delete
+				request>headers delete
+				resp_headers delete
+				tls delete
+			}
+		}
+	}
+
+	root /app/public
+	encode zstd br gzip
+
+	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+	php_server
+}

@@ -1,18 +1,16 @@
-
+# Dev-only overrides. Applied automatically by `docker compose`.
 services:
-###> doctrine/doctrine-bundle ###
+  app:
+    ports:
+      - "8080:80"
+      - "8443:443"
+      - "8443:443/udp"
+
   database:
     ports:
-      - "5432"
-###< doctrine/doctrine-bundle ###
+      - "3306:3306"
 
-###> symfony/mailer ###
   mailer:
-    image: axllent/mailpit
     ports:
-      - "1025"
-      - "8025"
-    environment:
-      MP_SMTP_AUTH_ACCEPT_ANY: 1
-      MP_SMTP_AUTH_ALLOW_INSECURE: 1
-###< symfony/mailer ###
+      - "1025:1025"
+      - "8025:8025"

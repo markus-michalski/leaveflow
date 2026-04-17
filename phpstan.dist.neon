@@ -1,0 +1,15 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    excludePaths:
+        analyseAndScan:
+            - src/Kernel.php
+            - vendor
+            - var
+            - public/bundles (?)
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    treatPhpDocTypesAsCertain: true
+    reportUnmatchedIgnoredErrors: true

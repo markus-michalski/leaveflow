@@ -1,0 +1,13 @@
+app:
+    name: LeaveFlow
+    tagline: Moderne Urlaubsverwaltung
+nav:
+    home: Start
+    calendar: Kalender
+    requests: Anträge
+    employees: Mitarbeiter
+    admin: Verwaltung
+    logout: Abmelden
+welcome:
+    title: Willkommen bei LeaveFlow
+    subtitle: Das Foundation-Setup steht. Phase 1 beginnt mit Auth & Tenant-Modell.

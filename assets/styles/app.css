@@ -1,3 +1,18 @@
-body {
-    background-color: skyblue;
+@import "tailwindcss";
+
+/* Tell Tailwind where to look for class names. */
+@source "../../templates/**/*.{html,twig}";
+@source "../controllers/**/*.js";
+
+/*
+ * Flowbite JS components are included via importmap (see assets/app.js).
+ * Flowbite's Tailwind plugin is not wired here because it needs a Node
+ * build — we rely on Flowbite's default class conventions instead.
+ */
+
+/* Brand tokens */
+@theme {
+    --color-brand-50: oklch(0.97 0.02 230);
+    --color-brand-500: oklch(0.55 0.18 240);
+    --color-brand-700: oklch(0.40 0.18 240);
 }
