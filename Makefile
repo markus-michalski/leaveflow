@@ -78,8 +78,8 @@ stan: ## Run PHPStan (Level 8)
 	$(EXEC) vendor/bin/phpstan analyse --memory-limit=1G
 
 .PHONY: cs
-cs: ## PHP-CS-Fixer dry-run
-	$(EXEC) vendor/bin/php-cs-fixer fix --dry-run --diff
+cs: ## PHP-CS-Fixer dry-run (no cache — matches CI)
+	$(EXEC) vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no
 
 .PHONY: cs-fix
 cs-fix: ## PHP-CS-Fixer apply fixes
