@@ -49,14 +49,14 @@
                         <td class="px-6 py-3 text-right">
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ path('app_admin_user_edit', { id: user.id }) }}"
-                                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-100">
                                     {{ 'admin.users.edit'|trans }}
                                 </a>
 
                                 <form action="{{ path('app_admin_user_send_reset', { id: user.id }) }}" method="post" class="inline">
                                     <input type="hidden" name="_token" value="{{ csrf_token('send-reset-' ~ user.id) }}">
                                     <button type="submit"
-                                            class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                                            class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50">
                                         {{ 'admin.users.send_reset_link'|trans }}
                                     </button>
                                 </form>
@@ -65,12 +65,12 @@
                                     <input type="hidden" name="_token" value="{{ csrf_token('toggle-active-' ~ user.id) }}">
                                     {% if user.active %}
                                         <button type="submit"
-                                                class="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100">
+                                                class="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100">
                                             {{ 'admin.users.deactivate'|trans }}
                                         </button>
                                     {% else %}
                                         <button type="submit"
-                                                class="inline-flex items-center rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100">
+                                                class="inline-flex items-center rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium text-green-700 hover:bg-green-100">
                                             {{ 'admin.users.activate'|trans }}
                                         </button>
                                     {% endif %}
