@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'profile.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-2xl p-6">
+    <header class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'profile.heading'|trans }}</h1>
+        <a href="{{ path('app_dashboard') }}"
+           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ 'nav.home'|trans }}
+        </a>
+    </header>
+
+    <section class="rounded-xl bg-white p-6 shadow-sm space-y-4">
+        <dl class="grid grid-cols-3 gap-y-3 text-sm">
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.email'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900" data-testid="profile-email">{{ user.email }}</dd>
+
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.role'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900">{{ user.role.label|trans }}</dd>
+
+            {% if employee %}
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.full_name'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900" data-testid="profile-full-name">{{ employee.fullName }}</dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.employee_number'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">{{ employee.employeeNumber }}</dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.location'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">
+                    {{ employee.location.name }}
+                    <span class="text-xs text-gray-500">({{ employee.location.city }}, {{ employee.location.federalState }})</span>
+                </dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.weekly_hours'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">{{ employee.workSchedule.weeklyHours }} h</dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.working_days'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">
+                    {% for day in employee.workSchedule.workingDays %}
+                        <span class="inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">{{ ('weekday.' ~ day.name|lower)|trans }}</span>
+                    {% endfor %}
+                </dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.joined_at'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">{{ employee.joinedAt|date('Y-m-d') }}</dd>
+
+                {% if employee.leftAt %}
+                    <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.left_at'|trans }}</dt>
+                    <dd class="col-span-2 text-gray-900">{{ employee.leftAt|date('Y-m-d') }}</dd>
+                {% endif %}
+            {% else %}
+                <dt class="col-span-3 mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid="profile-no-employee">
+                    {{ 'profile.no_employee_record'|trans }}
+                </dt>
+            {% endif %}
+        </dl>
+    </section>
+</div>
+{% endblock %}

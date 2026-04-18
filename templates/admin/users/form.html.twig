@@ -19,6 +19,7 @@
 
     <div class="rounded-xl bg-white p-6 shadow-sm">
         {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'admin-user-form' } }) }}
+            <p class="text-xs text-gray-500">{{ 'form.required_legend'|trans }}</p>
             {% if form.email is defined %}
                 {{ form_row(form.email, {
                     label_attr: { class: 'block text-sm font-medium text-gray-700' },

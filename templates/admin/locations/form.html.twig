@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ (is_new ? 'admin.locations.create' : 'admin.locations.edit')|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-xl p-6">
+    <header class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-900">
+            {{ (is_new ? 'admin.locations.create' : 'admin.locations.edit_heading')|trans }}
+        </h1>
+        <a href="{{ path('app_admin_location_index') }}"
+           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ 'admin.locations.back'|trans }}
+        </a>
+    </header>
+
+    <div class="rounded-xl bg-white p-6 shadow-sm">
+        {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'admin-location-form' } }) }}
+            <p class="text-xs text-gray-500">{{ 'form.required_legend'|trans }}</p>
+            {{ form_row(form.name, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+            {{ form_row(form.city, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+            <div>
+                {{ form_label(form.federalState, null, { label_attr: { class: 'block text-sm font-medium text-gray-700' } }) }}
+                {{ form_widget(form.federalState, { attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 uppercase' } }) }}
+                <p class="mt-1 text-xs text-gray-500">{{ 'admin.locations.federal_state_help'|trans|raw }}</p>
+                {{ form_errors(form.federalState) }}
+            </div>
+            {{ form_row(form.country, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 uppercase' } }) }}
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <a href="{{ path('app_admin_location_index') }}"
+                   class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ 'admin.locations.back'|trans }}
+                </a>
+                <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    {{ 'admin.locations.save'|trans }}
+                </button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.locations.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-6xl p-6">
+    <header class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.locations.heading'|trans }}</h1>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+            <a href="{{ path('app_admin_location_new') }}"
+               class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ 'admin.locations.create'|trans }}
+            </a>
+        </div>
+    </header>
+
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th class="px-6 py-3">{{ 'admin.locations.name'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.locations.city'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.locations.federal_state'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.locations.country'|trans }}</th>
+                    <th class="px-6 py-3 text-right">{{ 'admin.locations.actions'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
+                {% for location in locations %}
+                    <tr data-testid="location-row-{{ location.id }}">
+                        <td class="px-6 py-3 font-medium text-gray-900">{{ location.name }}</td>
+                        <td class="px-6 py-3">{{ location.city }}</td>
+                        <td class="px-6 py-3"><code class="rounded bg-gray-100 px-1 py-0.5 text-xs">{{ location.federalState }}</code></td>
+                        <td class="px-6 py-3">{{ location.country }}</td>
+                        <td class="px-6 py-3 text-right">
+                            <a href="{{ path('app_admin_location_edit', { id: location.id }) }}"
+                               class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                {{ 'admin.locations.edit'|trans }}
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-6 text-center text-gray-500">{{ 'admin.locations.empty'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

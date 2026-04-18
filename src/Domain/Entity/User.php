@@ -28,6 +28,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => true])]
     private bool $active = true;
 
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Employee::class)]
+    private ?Employee $employee = null;
+
     public function __construct(
         #[ORM\ManyToOne]
         #[ORM\JoinColumn(name: 'company_id', nullable: false)]
@@ -109,6 +112,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRole(UserRole $role): void
     {
         $this->role = $role;
+    }
+
+    public function getEmployee(): ?Employee
+    {
+        return $this->employee;
+    }
+
+    public function hasEmployee(): bool
+    {
+        return null !== $this->employee;
     }
 
     public function eraseCredentials(): void

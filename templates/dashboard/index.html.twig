@@ -10,10 +10,22 @@
             <p class="text-sm text-gray-500">{{ 'dashboard.welcome'|trans({ '%name%': app.user.email }) }}</p>
         </div>
         <nav class="flex items-center gap-3">
+            <a href="{{ path('app_profile') }}"
+               class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.profile'|trans }}
+            </a>
             {% if is_granted('ROLE_ADMIN') %}
                 <a href="{{ path('app_admin_user_index') }}"
                    class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
                     {{ 'nav.admin.users'|trans }}
+                </a>
+                <a href="{{ path('app_admin_location_index') }}"
+                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
+                    {{ 'nav.admin.locations'|trans }}
+                </a>
+                <a href="{{ path('app_admin_employee_index') }}"
+                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
+                    {{ 'nav.admin.employees'|trans }}
                 </a>
             {% endif %}
             <form action="{{ path('app_logout') }}" method="post" class="inline">

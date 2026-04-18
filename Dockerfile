@@ -52,7 +52,10 @@ FROM base AS dev
 RUN install-php-extensions pcov xdebug \
     && echo "xdebug.mode=off" > $PHP_INI_DIR/conf.d/99-xdebug-default.ini
 
-COPY --chown=app:app frankenphp/conf.d/app.dev.ini $PHP_INI_DIR/conf.d/
+# Load-order: PHP scans conf.d/ alphabetically. `zz-` prefix ensures
+# dev overrides win over base `app.ini` (without this, validate_timestamps=0
+# from the base config clobbers validate_timestamps=1 → stale opcache).
+COPY --chown=app:app frankenphp/conf.d/zz-app.dev.ini $PHP_INI_DIR/conf.d/
 
 # APP_ENV is set via compose.yaml, not baked into the image,
 # so PHPUnit's phpunit.dist.xml <server> override works.

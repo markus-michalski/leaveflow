@@ -16,3 +16,19 @@
     --color-brand-500: oklch(0.55 0.18 240);
     --color-brand-700: oklch(0.40 0.18 240);
 }
+
+/* Highlight form inputs flagged by Symfony as invalid.
+   Symfony sets aria-invalid="true" on any field that has errors. */
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+    border-color: var(--color-red-500);
+    background-color: var(--color-red-50);
+}
+
+input[aria-invalid="true"]:focus,
+select[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus {
+    outline: 2px solid var(--color-red-500);
+    outline-offset: 1px;
+}
