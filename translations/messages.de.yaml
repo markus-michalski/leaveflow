@@ -1,6 +1,25 @@
 app:
     name: LeaveFlow
     tagline: Moderne Urlaubsverwaltung
+form:
+    required_legend: "Mit * markierte Felder sind Pflichtfelder."
+flash:
+    dismiss: Meldung schließen
+error:
+    generic:
+        title: Fehler
+        heading: Etwas ist schiefgelaufen
+        message: Ein unerwarteter Fehler ist aufgetreten. Wenn das Problem bestehen bleibt, wende dich an deinen Administrator.
+        back: Zurück
+        back_home: Zum Dashboard
+    403:
+        title: Zugriff verweigert
+        heading: Zugriff verweigert
+        message: Du hast keine Berechtigung, diese Seite aufzurufen. Falls das ein Versehen ist, wende dich an deinen Administrator.
+    404:
+        title: Seite nicht gefunden
+        heading: Diese Seite existiert nicht
+        message: Die angeforderte Seite konnte nicht gefunden werden. Vielleicht wurde der Link verändert oder der Inhalt entfernt.
 nav:
     home: Start
     profile: Mein Profil
@@ -110,7 +129,7 @@ admin:
         country: Land (ISO)
         country_help: "Zweistelliger ISO-Code, z.B. DE, AT, CH."
         federal_state: Bundesland
-        federal_state_help: "ISO 3166-2, z.B. DE-BY für Bayern. Bestimmt die Feiertage."
+        federal_state_help: 'ISO 3166-2, z.B. <code>DE-BY</code> für Bayern. Bestimmt die Feiertage. <a href="https://de.wikipedia.org/wiki/ISO_3166-2:DE" target="_blank" rel="noopener" class="text-blue-600 underline">Deutsche Codes</a> · <a href="https://de.wikipedia.org/wiki/ISO_3166-2" target="_blank" rel="noopener" class="text-blue-600 underline">alle Länder</a>'
         city: Stadt
         actions: Aktionen
         save: Speichern
@@ -148,6 +167,8 @@ admin:
         flash:
             created: Mitarbeiter %name% wurde angelegt.
             updated: Mitarbeiter %name% wurde aktualisiert.
+        error:
+            duplicate_number: "Personalnummer %number% ist im Unternehmen bereits vergeben."
 profile:
     title: Mein Profil
     heading: Mein Profil

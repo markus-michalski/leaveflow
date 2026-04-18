@@ -55,29 +55,37 @@ final class AdminEmployeeController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $employee = new Employee(
-                    $company,
-                    (string) $form->get('fullName')->getData(),
-                    (string) $form->get('employeeNumber')->getData(),
-                    $this->requireLocation($form),
-                    $this->buildSchedule($form),
-                    $this->requireDate($form, 'joinedAt'),
-                    $this->optionalUser($form),
-                    $this->optionalDate($form, 'leftAt'),
-                );
+            $employeeNumber = trim((string) $form->get('employeeNumber')->getData());
 
-                $this->entityManager->persist($employee);
-                $this->entityManager->flush();
-
-                $this->addFlash('success', $this->translator->trans(
-                    'admin.employees.flash.created',
-                    ['%name%' => $employee->getFullName()],
+            if (null !== $this->employeeRepository->findOneByEmployeeNumber($company, $employeeNumber)) {
+                $form->get('employeeNumber')->addError(new \Symfony\Component\Form\FormError(
+                    $this->translator->trans('admin.employees.error.duplicate_number', ['%number%' => $employeeNumber]),
                 ));
+            } else {
+                try {
+                    $employee = new Employee(
+                        $company,
+                        (string) $form->get('fullName')->getData(),
+                        $employeeNumber,
+                        $this->requireLocation($form),
+                        $this->buildSchedule($form),
+                        $this->requireDate($form, 'joinedAt'),
+                        $this->optionalUser($form),
+                        $this->optionalDate($form, 'leftAt'),
+                    );
 
-                return $this->redirectToRoute('app_admin_employee_index');
-            } catch (\InvalidArgumentException $e) {
-                $form->addError(new \Symfony\Component\Form\FormError($e->getMessage()));
+                    $this->entityManager->persist($employee);
+                    $this->entityManager->flush();
+
+                    $this->addFlash('success', $this->translator->trans(
+                        'admin.employees.flash.created',
+                        ['%name%' => $employee->getFullName()],
+                    ));
+
+                    return $this->redirectToRoute('app_admin_employee_index');
+                } catch (\InvalidArgumentException $e) {
+                    $form->addError(new \Symfony\Component\Form\FormError($e->getMessage()));
+                }
             }
         }
 
@@ -96,38 +104,48 @@ final class AdminEmployeeController extends AbstractController
         $form = $this->createForm(\App\Presentation\Form\EmployeeType::class, null, [
             'company' => $company,
             'is_edit' => true,
+            'current_employee' => $employee,
         ]);
         $this->prefillForm($form, $employee);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            try {
-                $employee->rename((string) $form->get('fullName')->getData());
-                $employee->reassignLocation($this->requireLocation($form));
-                $employee->updateSchedule($this->buildSchedule($form));
+            $newNumber = trim((string) $form->get('employeeNumber')->getData());
+            $collision = $this->employeeRepository->findOneByEmployeeNumber($company, $newNumber);
 
-                $leftAt = $this->optionalDate($form, 'leftAt');
-                if (null !== $leftAt) {
-                    $employee->markLeft($leftAt);
-                }
-
-                $user = $this->optionalUser($form);
-                if (null === $user && $employee->hasUser()) {
-                    $employee->unlinkUser();
-                } elseif (null !== $user && $user !== $employee->getUser()) {
-                    $employee->linkUser($user);
-                }
-
-                $this->entityManager->flush();
-
-                $this->addFlash('success', $this->translator->trans(
-                    'admin.employees.flash.updated',
-                    ['%name%' => $employee->getFullName()],
+            if (null !== $collision && $collision !== $employee) {
+                $form->get('employeeNumber')->addError(new \Symfony\Component\Form\FormError(
+                    $this->translator->trans('admin.employees.error.duplicate_number', ['%number%' => $newNumber]),
                 ));
+            } else {
+                try {
+                    $employee->rename((string) $form->get('fullName')->getData());
+                    $employee->reassignLocation($this->requireLocation($form));
+                    $employee->updateSchedule($this->buildSchedule($form));
 
-                return $this->redirectToRoute('app_admin_employee_index');
-            } catch (\InvalidArgumentException $e) {
-                $form->addError(new \Symfony\Component\Form\FormError($e->getMessage()));
+                    $leftAt = $this->optionalDate($form, 'leftAt');
+                    if (null !== $leftAt) {
+                        $employee->markLeft($leftAt);
+                    }
+
+                    $user = $this->optionalUser($form);
+                    if (null === $user && $employee->hasUser()) {
+                        $employee->unlinkUser();
+                    } elseif (null !== $user && $user !== $employee->getUser()) {
+                        $employee->linkUser($user);
+                    }
+
+                    $this->entityManager->flush();
+
+                    $this->addFlash('success', $this->translator->trans(
+                        'admin.employees.flash.updated',
+                        ['%name%' => $employee->getFullName()],
+                    ));
+
+                    return $this->redirectToRoute('app_admin_employee_index');
+                } catch (\InvalidArgumentException $e) {
+                    $form->addError(new \Symfony\Component\Form\FormError($e->getMessage()));
+                }
             }
         }
 

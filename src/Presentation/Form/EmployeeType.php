@@ -36,6 +36,8 @@ final class EmployeeType extends AbstractType
         /** @var Company $company */
         $company = $options['company'];
         $isEdit = (bool) $options['is_edit'];
+        /** @var Employee|null $currentEmployee */
+        $currentEmployee = $options['current_employee'];
 
         $builder
             ->add('fullName', TextType::class, [
@@ -89,12 +91,20 @@ final class EmployeeType extends AbstractType
                 'label' => 'admin.employees.joined_at',
                 'mapped' => false,
                 'widget' => 'single_text',
+                'html5' => false,
+                'format' => 'dd.MM.yyyy',
+                'input' => 'datetime_immutable',
+                'attr' => ['placeholder' => 'TT.MM.JJJJ', 'inputmode' => 'numeric'],
                 'constraints' => [new NotBlank()],
             ])
             ->add('leftAt', DateType::class, [
                 'label' => 'admin.employees.left_at',
                 'mapped' => false,
                 'widget' => 'single_text',
+                'html5' => false,
+                'format' => 'dd.MM.yyyy',
+                'input' => 'datetime_immutable',
+                'attr' => ['placeholder' => 'TT.MM.JJJJ', 'inputmode' => 'numeric'],
                 'required' => false,
             ])
             ->add('user', EntityType::class, [
@@ -102,10 +112,26 @@ final class EmployeeType extends AbstractType
                 'help' => 'admin.employees.user_help',
                 'mapped' => false,
                 'class' => User::class,
-                'query_builder' => static fn ($repo) => $repo->createQueryBuilder('u')
-                    ->andWhere('u.company = :company')
-                    ->setParameter('company', $company)
-                    ->orderBy('u.email', 'ASC'),
+                // Only offer users that are active AND not already linked to another
+                // employee. In edit mode, the currently-linked user stays visible
+                // (otherwise the form would drop the existing link on re-submit).
+                'query_builder' => static function ($repo) use ($company, $currentEmployee) {
+                    $qb = $repo->createQueryBuilder('u')
+                        ->leftJoin('u.employee', 'e')
+                        ->andWhere('u.company = :company')
+                        ->andWhere('u.active = true')
+                        ->setParameter('company', $company)
+                        ->orderBy('u.email', 'ASC');
+
+                    if (null !== $currentEmployee && null !== $currentEmployee->getId()) {
+                        $qb->andWhere('e.id IS NULL OR e.id = :currentEmployeeId')
+                            ->setParameter('currentEmployeeId', $currentEmployee->getId());
+                    } else {
+                        $qb->andWhere('e.id IS NULL');
+                    }
+
+                    return $qb;
+                },
                 'choice_label' => 'email',
                 'placeholder' => 'admin.employees.user_placeholder',
                 'required' => false,
@@ -119,10 +145,12 @@ final class EmployeeType extends AbstractType
         $resolver->setDefaults([
             'data_class' => null,
             'is_edit' => false,
+            'current_employee' => null,
         ]);
 
         $resolver->setRequired(['company']);
         $resolver->setAllowedTypes('company', Company::class);
         $resolver->setAllowedTypes('is_edit', 'bool');
+        $resolver->setAllowedTypes('current_employee', [Employee::class, 'null']);
     }
 }

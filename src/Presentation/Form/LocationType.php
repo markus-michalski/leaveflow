@@ -33,7 +33,9 @@ final class LocationType extends AbstractType
             ])
             ->add('federalState', TextType::class, [
                 'label' => 'admin.locations.federal_state',
-                'help' => 'admin.locations.federal_state_help',
+                // Help text rendered manually in the Twig template (see form.html.twig)
+                // so we can embed a link to the ISO 3166-2 reference without fighting
+                // Symfony's help_html escaping.
                 'mapped' => false,
                 'constraints' => [new NotBlank(), new Length(max: 10)],
             ])

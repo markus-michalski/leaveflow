@@ -16,7 +16,8 @@
 
     <div class="rounded-xl bg-white p-6 shadow-sm">
         {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'admin-employee-form' } }) }}
-            {% if not form.vars.valid %}
+            <p class="text-xs text-gray-500">{{ 'form.required_legend'|trans }}</p>
+            {% if form.vars.errors|length > 0 %}
                 <div class="rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-800">
                     {{ form_errors(form) }}
                 </div>

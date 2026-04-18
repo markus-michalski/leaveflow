@@ -57,7 +57,7 @@ final class AdminEmployeeControllerTest extends WebTestCase
             $formName.'[location]' => (string) $this->hq->getId(),
             $formName.'[weeklyHours]' => '40',
             $formName.'[workingDays]' => ['1', '2', '3', '4', '5'],
-            $formName.'[joinedAt]' => '2026-01-01',
+            $formName.'[joinedAt]' => '01.01.2026',
         ]);
 
         self::assertResponseRedirects('/admin/employees');
@@ -72,17 +72,22 @@ final class AdminEmployeeControllerTest extends WebTestCase
     }
 
     #[Test]
-    public function duplicateEmployeeNumberWithinSameCompanyIsRejectedAtDbLevel(): void
+    public function duplicateEmployeeNumberShowsFormErrorNotCrash(): void
     {
         $this->loginAs('admin@leaveflow.test');
-        $this->client->catchExceptions(false);
 
         $this->submitEmployeeForm('First Jane', 'EMP-0001');
         self::assertResponseRedirects('/admin/employees');
-
-        $this->expectException(\Doctrine\DBAL\Exception\UniqueConstraintViolationException::class);
+        $this->client->followRedirect();
 
         $this->submitEmployeeForm('Duplicate Jane', 'EMP-0001');
+
+        // 422 Unprocessable Content is Symfony's standard response for form validation errors.
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+        self::assertStringContainsString(
+            'EMP-0001 ist im Unternehmen bereits vergeben',
+            (string) $this->client->getResponse()->getContent(),
+        );
     }
 
     private function submitEmployeeForm(string $fullName, string $employeeNumber): void
@@ -97,7 +102,7 @@ final class AdminEmployeeControllerTest extends WebTestCase
             $formName.'[location]' => (string) $this->hq->getId(),
             $formName.'[weeklyHours]' => '40',
             $formName.'[workingDays]' => ['1', '2', '3', '4', '5'],
-            $formName.'[joinedAt]' => '2026-01-01',
+            $formName.'[joinedAt]' => '01.01.2026',
         ]);
     }
 

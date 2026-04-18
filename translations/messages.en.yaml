@@ -1,6 +1,25 @@
 app:
     name: LeaveFlow
     tagline: Modern leave management
+form:
+    required_legend: "Fields marked with * are required."
+flash:
+    dismiss: Dismiss message
+error:
+    generic:
+        title: Error
+        heading: Something went wrong
+        message: An unexpected error occurred. If the problem persists, please contact your administrator.
+        back: Back
+        back_home: Go to dashboard
+    403:
+        title: Access denied
+        heading: Access denied
+        message: You don't have permission to view this page. If you think this is a mistake, contact your administrator.
+    404:
+        title: Page not found
+        heading: This page doesn't exist
+        message: The requested page could not be found. Maybe the link has changed or the content has been removed.
 nav:
     home: Home
     profile: My profile
@@ -110,7 +129,7 @@ admin:
         country: Country (ISO)
         country_help: "Two-letter ISO code, e.g. DE, AT, CH."
         federal_state: Federal state
-        federal_state_help: "ISO 3166-2, e.g. DE-BY for Bavaria. Drives public-holiday rules."
+        federal_state_help: 'ISO 3166-2, e.g. <code>DE-BY</code> for Bavaria. Drives public-holiday rules. <a href="https://en.wikipedia.org/wiki/ISO_3166-2:DE" target="_blank" rel="noopener" class="text-blue-600 underline">German codes</a> · <a href="https://en.wikipedia.org/wiki/ISO_3166-2" target="_blank" rel="noopener" class="text-blue-600 underline">all countries</a>'
         city: City
         actions: Actions
         save: Save
@@ -148,6 +167,8 @@ admin:
         flash:
             created: Employee %name% has been created.
             updated: Employee %name% has been updated.
+        error:
+            duplicate_number: "Employee number %number% is already taken in this company."
 profile:
     title: My profile
     heading: My profile
