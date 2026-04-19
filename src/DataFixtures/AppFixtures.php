@@ -7,11 +7,8 @@ namespace App\DataFixtures;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\CompanyHoliday;
 use App\Domain\Entity\Employee;
-use App\Domain\Entity\HolidayOverride;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
-use App\Domain\Enum\FederalState;
-use App\Domain\Enum\HolidayOverrideType;
 use App\Domain\Enum\UserRole;
 use App\Domain\Enum\Weekday;
 use App\Domain\ValueObject\WorkSchedule;
@@ -88,17 +85,12 @@ final class AppFixtures extends Fixture
         ));
 
         // Phase 3: demo holiday configuration for the current + next year.
+        // No state-wide override demo on purpose — Augsburger Friedensfest (8.8.)
+        // is city-level only (Art. 1 Abs. 1 Nr. 4b BayFTG, Augsburg only), so
+        // demoing it as a DE-BY override would mislead users. Municipality-level
+        // holidays will land with location-scoped overrides in a later phase.
         $currentYear = (int) new \DateTimeImmutable()->format('Y');
         foreach ([$currentYear, $currentYear + 1] as $year) {
-            // Augsburger Friedensfest (added) — demo only for Bayern.
-            $manager->persist(new HolidayOverride(
-                $company,
-                FederalState::Bayern,
-                new \DateTimeImmutable()->setDate($year, 8, 8)->setTime(0, 0),
-                'Augsburger Hohes Friedensfest',
-                HolidayOverrideType::Added,
-            ));
-
             // Brueckentag after Tag der Deutschen Einheit (Friday if 3.10. is Thursday; pragmatic: skip if weekend).
             $tdde = new \DateTimeImmutable()->setDate($year, 10, 3)->setTime(0, 0);
             if ('Thursday' === $tdde->format('l')) {

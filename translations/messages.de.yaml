@@ -192,28 +192,28 @@ admin:
             regional: Bundesland
             company: Firmenweit
         empty: Keine Feiertage im Zeitraum gefunden.
-        manage_overrides: Overrides verwalten
+        manage_overrides: Regionale Anpassungen
         manage_company: Firmen-Feiertage verwalten
         override:
-            title: Feiertags-Overrides
-            heading: Overrides pro Bundesland
-            description: "Füge zusätzliche Feiertage hinzu oder entferne berechnete Feiertage für ein Bundesland. Wirkt sich auf alle Mitarbeiter dieses Bundeslandes aus."
-            create: Override anlegen
+            title: Regionale Feiertags-Anpassungen
+            heading: Regionale Feiertags-Anpassungen
+            description: "Ergänze Feiertage, die nur in bestimmten Regionen eines Bundeslandes gelten (z.B. Augsburger Friedensfest), oder markiere vom Default-Kalender angenommene Feiertage als nicht zutreffend (z.B. Mariä Himmelfahrt in protestantischen bayerischen Gemeinden). Wirkt sich auf alle Mitarbeiter dieses Bundeslandes aus."
+            create: Anpassung anlegen
             edit: Bearbeiten
             delete: Entfernen
-            confirm_delete: "Override wirklich entfernen?"
+            confirm_delete: "Anpassung wirklich löschen?"
             back: Zurück
             federal_state: Bundesland
             date: Datum
             name: Bezeichnung
-            type: Typ
-            empty: Noch keine Overrides angelegt.
+            type: Art
+            empty: Noch keine Anpassungen angelegt.
             save: Speichern
             flash:
-                created: Override wurde angelegt.
-                updated: Override wurde aktualisiert.
-                deleted: Override wurde entfernt.
-                duplicate: Für dieses Datum und Bundesland existiert bereits ein Override.
+                created: Anpassung wurde angelegt.
+                updated: Anpassung wurde aktualisiert.
+                deleted: Anpassung wurde entfernt.
+                duplicate: Für dieses Datum und Bundesland existiert bereits eine Anpassung.
         company:
             title: Firmenweite Feiertage
             heading: Firmenweite Feiertage
@@ -256,8 +256,8 @@ holiday:
         company: Firmenweit
 holiday_override:
     type:
-        added: Hinzugefügt
-        removed: Entfernt
+        added: Zusätzlicher Feiertag
+        removed: "Entfällt (kein gesetzlicher Feiertag)"
 federal_state:
     bw: Baden-Württemberg
     by: Bayern
