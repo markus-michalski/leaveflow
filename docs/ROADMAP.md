@@ -205,6 +205,24 @@ A phase is **done** only when:
 - Override application precedence
 - **Starting point:** existing `~/projekte/script_collection/php/holiday.php`
 
+**Known limitation — municipality-level holidays (deferred to Phase 9):**
+
+Some holidays are legally tied to the municipality (Gemeinde), not the federal
+state. v1 models them at state level with pragmatic defaults that match the
+population majority; outliers use `HolidayOverride` to add or remove.
+
+| Holiday | Legal scope | Our default | Workaround for outliers |
+|---|---|---|---|
+| Mariä Himmelfahrt (BY) | Gemeinden mit überwiegend katholischer Bevölkerung (Art. 1 Abs. 1 Nr. 2 BayFTG) — ~1.704 / 2.056 | BY-wide `on` (83% match) | Protestant-majority Gemeinden add `removed` override |
+| Fronleichnam (SN) | Nur bestimmte Regionen (§ 1 Abs. 1 SächsSFG, Teile von Bautzen/Hoyerswerda/Kamenz) | SN-wide `off` (~97% match) | Catholic Gemeinden add `added` override |
+| Fronleichnam (TH) | Nur bestimmte Gemeinden (§ 2 Abs. 2 ThürFGtG, Eichsfeld + Teile Unstrut-Hainich / Wartburgkreis) | TH-wide `off` | Eichsfeld-based companies add `added` override |
+| Augsburger Friedensfest (BY) | Nur Stadt Augsburg (Art. 1 Abs. 1 Nr. 4b BayFTG) | not modeled | Firms with Augsburg office use `CompanyHoliday` (company-wide) until Phase 9 introduces location-scoped overrides |
+
+Location-scoped overrides (`HolidayOverride.location_id`) land in Phase 9 along
+with the other Admin-Power refinements. Until then, single-office companies
+can use `CompanyHoliday`; multi-office companies accept that firm-wide entries
+apply to all locations.
+
 ---
 
 ### Phase 4 — AbsenceTypes & Entitlements
@@ -335,6 +353,9 @@ LeaveFlow is now usable by a real team. Everything after is enhancement.
 - Manual entitlement overrides (with audit)
 - **6-week illness alert** — rolling count of consecutive illness days, email to manager OR configurable address (e.g. office management)
 - **CSV import** — employees + existing leave balances, downloadable template with mandatory fields and example rows, validation + error report before commit
+- **Location-scoped `HolidayOverride`** — optional `location_id` column; resolves municipality-level holidays (Augsburger Friedensfest, Fronleichnam in Eichsfeld/Bautzen, protestant-minority BY Gemeinden for Mariä Himmelfahrt). See Phase 3 "Known limitation" section. Requires API shift from `getHolidaysForCompany(State)` to `getHolidaysForEmployee(Employee)` — Employee's Location drives state + local rules.
+- Manual per-day `WorkSchedule` distribution UI (VO already supports it, just no form widget yet)
+- Admin-User-List: filter + search (issue #3), pagination (issue #4)
 
 ---
 

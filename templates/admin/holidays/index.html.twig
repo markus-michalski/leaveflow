@@ -44,9 +44,12 @@
                 {% endfor %}
             </select>
         </label>
-        <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            {{ 'admin.holidays.apply'|trans }}
-        </button>
+        <div class="flex flex-col">
+            <span class="mb-1 text-sm" aria-hidden="true">&nbsp;</span>
+            <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ 'admin.holidays.apply'|trans }}
+            </button>
+        </div>
     </form>
 
     <div class="mb-4 flex flex-wrap items-center gap-4 text-xs text-gray-600">

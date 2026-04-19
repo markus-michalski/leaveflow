@@ -192,28 +192,28 @@ admin:
             regional: State
             company: Company
         empty: No holidays in the selected range.
-        manage_overrides: Manage overrides
+        manage_overrides: Regional adjustments
         manage_company: Manage company holidays
         override:
-            title: Holiday overrides
-            heading: Overrides per federal state
-            description: "Add additional holidays or remove calculated ones for a specific state. Affects all employees based in that state."
-            create: Create override
+            title: Regional holiday adjustments
+            heading: Regional holiday adjustments
+            description: "Add holidays that only apply in specific regions of a federal state (e.g. Augsburg Peace Festival), or mark default-calculated holidays as not applying (e.g. Assumption Day in protestant Bavarian municipalities). Affects all employees based in that state."
+            create: Create adjustment
             edit: Edit
             delete: Remove
-            confirm_delete: "Really remove this override?"
+            confirm_delete: "Really delete this adjustment?"
             back: Back
             federal_state: Federal state
             date: Date
             name: Label
-            type: Type
-            empty: No overrides yet.
+            type: Kind
+            empty: No adjustments yet.
             save: Save
             flash:
-                created: Override has been created.
-                updated: Override has been updated.
-                deleted: Override has been removed.
-                duplicate: An override for this state and date already exists.
+                created: Adjustment has been created.
+                updated: Adjustment has been updated.
+                deleted: Adjustment has been deleted.
+                duplicate: An adjustment for this state and date already exists.
         company:
             title: Company-wide holidays
             heading: Company-wide holidays
@@ -256,8 +256,8 @@ holiday:
         company: Company
 holiday_override:
     type:
-        added: Added
-        removed: Removed
+        added: Additional holiday
+        removed: "Does not apply (not a legal holiday)"
 federal_state:
     bw: Baden-Württemberg
     by: Bavaria
