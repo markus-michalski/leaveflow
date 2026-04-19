@@ -30,6 +30,7 @@ nav:
         users: Benutzer
         locations: Standorte
         employees: Mitarbeiter
+        holidays: Feiertage
     logout: Abmelden
 welcome:
     title: Willkommen bei LeaveFlow
@@ -169,6 +170,111 @@ admin:
             updated: Mitarbeiter %name% wurde aktualisiert.
         error:
             duplicate_number: "Personalnummer %number% ist im Unternehmen bereits vergeben."
+    holidays:
+        title: Feiertage
+        heading: Feiertagskalender
+        description: "Berechnete Feiertage je Bundesland plus firmenweite Ausnahmen. Overrides werden pro Bundesland verwaltet; Company-Feiertage gelten für alle Standorte."
+        year: Jahr
+        state: Bundesland
+        apply: Anzeigen
+        date: Datum
+        weekday: Wochentag
+        name: Name
+        source: Quelle
+        actions: Aktionen
+        source_calculated: Berechnet
+        source_override_added: Hinzugefügt
+        source_override_removed: Entfernt
+        source_company: Firmenweit
+        legend:
+            title: Legende
+            national: Bundesweit
+            regional: Bundesland
+            company: Firmenweit
+        empty: Keine Feiertage im Zeitraum gefunden.
+        manage_overrides: Overrides verwalten
+        manage_company: Firmen-Feiertage verwalten
+        override:
+            title: Feiertags-Overrides
+            heading: Overrides pro Bundesland
+            description: "Füge zusätzliche Feiertage hinzu oder entferne berechnete Feiertage für ein Bundesland. Wirkt sich auf alle Mitarbeiter dieses Bundeslandes aus."
+            create: Override anlegen
+            edit: Bearbeiten
+            delete: Entfernen
+            confirm_delete: "Override wirklich entfernen?"
+            back: Zurück
+            federal_state: Bundesland
+            date: Datum
+            name: Bezeichnung
+            type: Typ
+            empty: Noch keine Overrides angelegt.
+            save: Speichern
+            flash:
+                created: Override wurde angelegt.
+                updated: Override wurde aktualisiert.
+                deleted: Override wurde entfernt.
+                duplicate: Für dieses Datum und Bundesland existiert bereits ein Override.
+        company:
+            title: Firmenweite Feiertage
+            heading: Firmenweite Feiertage
+            description: "Brückentage, Betriebsruhen, firmenweite Sondertage. Gelten für alle Standorte, unabhängig vom Bundesland."
+            create: Eintrag anlegen
+            edit: Bearbeiten
+            delete: Entfernen
+            confirm_delete: "Eintrag wirklich entfernen?"
+            back: Zurück
+            date: Datum
+            name: Bezeichnung
+            empty: Noch keine firmenweiten Feiertage.
+            save: Speichern
+            flash:
+                created: Firmenfeiertag wurde angelegt.
+                updated: Firmenfeiertag wurde aktualisiert.
+                deleted: Firmenfeiertag wurde entfernt.
+                duplicate: Für dieses Datum existiert bereits ein Firmenfeiertag.
+holiday:
+    neujahr: Neujahr
+    heilige_drei_koenige: Heilige Drei Könige
+    frauentag: Internationaler Frauentag
+    karfreitag: Karfreitag
+    ostermontag: Ostermontag
+    tag_der_arbeit: Tag der Arbeit
+    christi_himmelfahrt: Christi Himmelfahrt
+    pfingstmontag: Pfingstmontag
+    fronleichnam: Fronleichnam
+    mariae_himmelfahrt: Mariä Himmelfahrt
+    weltkindertag: Weltkindertag
+    tag_der_deutschen_einheit: Tag der Deutschen Einheit
+    reformationstag: Reformationstag
+    allerheiligen: Allerheiligen
+    buss_und_bettag: Buß- und Bettag
+    erster_weihnachtstag: 1. Weihnachtstag
+    zweiter_weihnachtstag: 2. Weihnachtstag
+    scope:
+        national: Bundesweit
+        regional: Bundesland
+        company: Firmenweit
+holiday_override:
+    type:
+        added: Hinzugefügt
+        removed: Entfernt
+federal_state:
+    bw: Baden-Württemberg
+    by: Bayern
+    be: Berlin
+    bb: Brandenburg
+    hb: Bremen
+    hh: Hamburg
+    he: Hessen
+    mv: Mecklenburg-Vorpommern
+    ni: Niedersachsen
+    nw: Nordrhein-Westfalen
+    rp: Rheinland-Pfalz
+    sl: Saarland
+    sn: Sachsen
+    st: Sachsen-Anhalt
+    sh: Schleswig-Holstein
+    th: Thüringen
 profile:
     title: Mein Profil
     heading: Mein Profil
