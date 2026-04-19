@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\DataFixtures;
 
 use App\Domain\Entity\Company;
+use App\Domain\Entity\CompanyHoliday;
 use App\Domain\Entity\Employee;
+use App\Domain\Entity\HolidayOverride;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
+use App\Domain\Enum\FederalState;
+use App\Domain\Enum\HolidayOverrideType;
 use App\Domain\Enum\UserRole;
 use App\Domain\Enum\Weekday;
 use App\Domain\ValueObject\WorkSchedule;
@@ -82,6 +86,42 @@ final class AppFixtures extends Fixture
             null,
             new \DateTimeImmutable('2024-09-30'),
         ));
+
+        // Phase 3: demo holiday configuration for the current + next year.
+        $currentYear = (int) new \DateTimeImmutable()->format('Y');
+        foreach ([$currentYear, $currentYear + 1] as $year) {
+            // Augsburger Friedensfest (added) — demo only for Bayern.
+            $manager->persist(new HolidayOverride(
+                $company,
+                FederalState::Bayern,
+                new \DateTimeImmutable()->setDate($year, 8, 8)->setTime(0, 0),
+                'Augsburger Hohes Friedensfest',
+                HolidayOverrideType::Added,
+            ));
+
+            // Brueckentag after Tag der Deutschen Einheit (Friday if 3.10. is Thursday; pragmatic: skip if weekend).
+            $tdde = new \DateTimeImmutable()->setDate($year, 10, 3)->setTime(0, 0);
+            if ('Thursday' === $tdde->format('l')) {
+                $manager->persist(new CompanyHoliday(
+                    $company,
+                    $tdde->modify('+1 day'),
+                    'Brückentag nach Tag der Deutschen Einheit',
+                ));
+            }
+
+            // Company-wide Betriebsruhe between Christmas and New Year (Dec 27-31).
+            for ($day = 27; $day <= 31; ++$day) {
+                $date = new \DateTimeImmutable()->setDate($year, 12, $day)->setTime(0, 0);
+                if ('Saturday' === $date->format('l') || 'Sunday' === $date->format('l')) {
+                    continue;
+                }
+                $manager->persist(new CompanyHoliday(
+                    $company,
+                    $date,
+                    'Betriebsruhe Weihnachten',
+                ));
+            }
+        }
 
         $manager->flush();
     }

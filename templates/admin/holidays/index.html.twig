@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.holidays.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-6xl p-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.holidays.heading'|trans }}</h1>
+            <p class="mt-1 max-w-3xl text-sm text-gray-500">{{ 'admin.holidays.description'|trans }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+            <a href="{{ path('app_admin_holiday_override_index') }}"
+               class="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
+                {{ 'admin.holidays.manage_overrides'|trans }}
+            </a>
+            <a href="{{ path('app_admin_company_holiday_index') }}"
+               class="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
+                {{ 'admin.holidays.manage_company'|trans }}
+            </a>
+        </div>
+    </header>
+
+    <form method="get" class="mb-6 flex flex-wrap items-end gap-4 rounded-xl bg-white p-4 shadow-sm" data-testid="holiday-filter">
+        <label class="flex flex-col text-sm">
+            <span class="mb-1 font-medium text-gray-700">{{ 'admin.holidays.year'|trans }}</span>
+            <select name="year" class="rounded-md border border-gray-300 px-3 py-2">
+                {% for y in years %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="flex flex-col text-sm">
+            <span class="mb-1 font-medium text-gray-700">{{ 'admin.holidays.state'|trans }}</span>
+            <select name="state" class="rounded-md border border-gray-300 px-3 py-2">
+                {% for s in states %}
+                    <option value="{{ s.value }}" {% if s == state %}selected{% endif %}>
+                        {{ s.value }} — {{ s.label|trans }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            {{ 'admin.holidays.apply'|trans }}
+        </button>
+    </form>
+
+    <div class="mb-4 flex flex-wrap items-center gap-4 text-xs text-gray-600">
+        <span class="font-semibold text-gray-700">{{ 'admin.holidays.legend.title'|trans }}:</span>
+        <span class="inline-flex items-center gap-1"><span class="inline-block h-3 w-3 rounded-full bg-emerald-500"></span>{{ 'admin.holidays.legend.national'|trans }}</span>
+        <span class="inline-flex items-center gap-1"><span class="inline-block h-3 w-3 rounded-full bg-sky-500"></span>{{ 'admin.holidays.legend.regional'|trans }}</span>
+        <span class="inline-flex items-center gap-1"><span class="inline-block h-3 w-3 rounded-full bg-amber-500"></span>{{ 'admin.holidays.legend.company'|trans }}</span>
+    </div>
+
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th class="px-6 py-3">{{ 'admin.holidays.date'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.holidays.weekday'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.holidays.name'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.holidays.source'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
+                {% for holiday in holidays %}
+                    <tr data-testid="holiday-row">
+                        <td class="px-6 py-3 font-medium text-gray-900">{{ holiday.date|date('d.m.Y') }}</td>
+                        <td class="px-6 py-3">{{ ('weekday.' ~ holiday.date|date('l')|lower)|trans }}</td>
+                        <td class="px-6 py-3">
+                            {% if holiday.nameKey starts with 'holiday.' %}
+                                {{ holiday.nameKey|trans }}
+                            {% else %}
+                                {{ holiday.nameKey }}
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3">
+                            {% set scope = holiday.scope.value %}
+                            {% set dotColor = {national: 'bg-emerald-500', regional: 'bg-sky-500', company: 'bg-amber-500'}[scope] %}
+                            <span class="inline-flex items-center gap-2">
+                                <span class="inline-block h-2 w-2 rounded-full {{ dotColor }}"></span>
+                                {{ ('holiday.scope.' ~ scope)|trans }}
+                            </span>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-6 text-center text-gray-500">{{ 'admin.holidays.empty'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

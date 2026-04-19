@@ -30,6 +30,7 @@ nav:
         users: Users
         locations: Locations
         employees: Employees
+        holidays: Holidays
     logout: Log out
 welcome:
     title: Welcome to LeaveFlow
@@ -169,6 +170,111 @@ admin:
             updated: Employee %name% has been updated.
         error:
             duplicate_number: "Employee number %number% is already taken in this company."
+    holidays:
+        title: Holidays
+        heading: Holiday calendar
+        description: "Calculated holidays by federal state plus company-wide exceptions. Overrides are managed per state; company holidays apply to all locations."
+        year: Year
+        state: Federal state
+        apply: Show
+        date: Date
+        weekday: Weekday
+        name: Name
+        source: Source
+        actions: Actions
+        source_calculated: Calculated
+        source_override_added: Added
+        source_override_removed: Removed
+        source_company: Company
+        legend:
+            title: Legend
+            national: National
+            regional: State
+            company: Company
+        empty: No holidays in the selected range.
+        manage_overrides: Manage overrides
+        manage_company: Manage company holidays
+        override:
+            title: Holiday overrides
+            heading: Overrides per federal state
+            description: "Add additional holidays or remove calculated ones for a specific state. Affects all employees based in that state."
+            create: Create override
+            edit: Edit
+            delete: Remove
+            confirm_delete: "Really remove this override?"
+            back: Back
+            federal_state: Federal state
+            date: Date
+            name: Label
+            type: Type
+            empty: No overrides yet.
+            save: Save
+            flash:
+                created: Override has been created.
+                updated: Override has been updated.
+                deleted: Override has been removed.
+                duplicate: An override for this state and date already exists.
+        company:
+            title: Company-wide holidays
+            heading: Company-wide holidays
+            description: "Bridge days, company closures, special company-wide dates. Apply to all locations regardless of federal state."
+            create: Create entry
+            edit: Edit
+            delete: Remove
+            confirm_delete: "Really remove this entry?"
+            back: Back
+            date: Date
+            name: Label
+            empty: No company-wide holidays yet.
+            save: Save
+            flash:
+                created: Company holiday has been created.
+                updated: Company holiday has been updated.
+                deleted: Company holiday has been removed.
+                duplicate: A company holiday for this date already exists.
+holiday:
+    neujahr: "New Year's Day"
+    heilige_drei_koenige: Epiphany
+    frauentag: "International Women's Day"
+    karfreitag: Good Friday
+    ostermontag: Easter Monday
+    tag_der_arbeit: Labour Day
+    christi_himmelfahrt: Ascension Day
+    pfingstmontag: Whit Monday
+    fronleichnam: Corpus Christi
+    mariae_himmelfahrt: Assumption of Mary
+    weltkindertag: "World Children's Day"
+    tag_der_deutschen_einheit: German Unity Day
+    reformationstag: Reformation Day
+    allerheiligen: "All Saints' Day"
+    buss_und_bettag: Repentance and Prayer Day
+    erster_weihnachtstag: Christmas Day
+    zweiter_weihnachtstag: Boxing Day
+    scope:
+        national: National
+        regional: State
+        company: Company
+holiday_override:
+    type:
+        added: Added
+        removed: Removed
+federal_state:
+    bw: Baden-Württemberg
+    by: Bavaria
+    be: Berlin
+    bb: Brandenburg
+    hb: Bremen
+    hh: Hamburg
+    he: Hesse
+    mv: Mecklenburg-Vorpommern
+    ni: Lower Saxony
+    nw: North Rhine-Westphalia
+    rp: Rhineland-Palatinate
+    sl: Saarland
+    sn: Saxony
+    st: Saxony-Anhalt
+    sh: Schleswig-Holstein
+    th: Thuringia
 profile:
     title: My profile
     heading: My profile
