@@ -30,7 +30,11 @@ nav:
     calendar: Calendar
     requests: Requests
     employees: Employees
+    primary: "Primary navigation"
+    user:
+        menu_label: "Open user menu"
     admin:
+        menu: Admin
         users: Users
         locations: Locations
         employees: Employees

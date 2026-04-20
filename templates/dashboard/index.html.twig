@@ -9,44 +9,79 @@
             <h1 class="text-2xl font-semibold text-gray-900">{{ 'dashboard.heading'|trans }}</h1>
             <p class="text-sm text-gray-500">{{ 'dashboard.welcome'|trans({ '%name%': app.user.email }) }}</p>
         </div>
-        <nav class="flex items-center gap-3">
-            <a href="{{ path('app_profile') }}"
-               class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                {{ 'nav.profile'|trans }}
-            </a>
+
+        <nav class="flex items-center gap-3" aria-label="{{ 'nav.primary'|trans }}">
             {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('app_admin_user_index') }}"
-                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
-                    {{ 'nav.admin.users'|trans }}
-                </a>
-                <a href="{{ path('app_admin_location_index') }}"
-                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
-                    {{ 'nav.admin.locations'|trans }}
-                </a>
-                <a href="{{ path('app_admin_employee_index') }}"
-                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
-                    {{ 'nav.admin.employees'|trans }}
-                </a>
-                <a href="{{ path('app_admin_holiday_index') }}"
-                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
-                    {{ 'nav.admin.holidays'|trans }}
-                </a>
-                <a href="{{ path('app_admin_absence_type_index') }}"
-                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
-                    {{ 'nav.admin.absence_types'|trans }}
-                </a>
-                <a href="{{ path('app_admin_entitlement_index') }}"
-                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">
-                    {{ 'nav.admin.entitlements'|trans }}
-                </a>
+                <div class="relative">
+                    <button type="button"
+                            data-dropdown-toggle="admin-menu"
+                            aria-haspopup="menu"
+                            aria-expanded="false"
+                            class="inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {{ 'nav.admin.menu'|trans }}
+                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <div id="admin-menu"
+                         class="z-10 hidden w-56 divide-y divide-gray-100 rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+                        <ul class="py-1 text-sm text-gray-700" role="menu" aria-orientation="vertical">
+                            <li>
+                                <a href="{{ path('app_admin_user_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.users'|trans }}</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('app_admin_location_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.locations'|trans }}</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('app_admin_employee_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.employees'|trans }}</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('app_admin_holiday_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.holidays'|trans }}</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('app_admin_absence_type_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.absence_types'|trans }}</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('app_admin_entitlement_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.entitlements'|trans }}</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             {% endif %}
-            <form action="{{ path('app_logout') }}" method="post" class="inline">
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-                <button type="submit"
-                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    {{ 'nav.logout'|trans }}
+
+            <div class="relative">
+                {# Simple initial based on local-part of email — keeps it snappy without an Employee lookup. #}
+                {% set emailInitial = app.user.email|slice(0, 1)|upper %}
+                <button type="button"
+                        data-dropdown-toggle="user-menu"
+                        aria-haspopup="menu"
+                        aria-expanded="false"
+                        aria-label="{{ 'nav.user.menu_label'|trans }}"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    {{ emailInitial }}
                 </button>
-            </form>
+                <div id="user-menu"
+                     class="z-10 hidden w-64 divide-y divide-gray-100 rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+                    <div class="px-4 py-3 text-sm">
+                        <div class="font-medium text-gray-900">{{ app.user.email }}</div>
+                        {% set role = app.user.roles|first %}
+                        {% if role %}
+                            <div class="text-xs text-gray-500">{{ role|replace({'ROLE_': ''})|lower|capitalize }}</div>
+                        {% endif %}
+                    </div>
+                    <ul class="py-1 text-sm text-gray-700" role="menu" aria-orientation="vertical">
+                        <li>
+                            <a href="{{ path('app_profile') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.profile'|trans }}</a>
+                        </li>
+                    </ul>
+                    <div class="py-1">
+                        <form action="{{ path('app_logout') }}" method="post">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                            <button type="submit" role="menuitem" class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">{{ 'nav.logout'|trans }}</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </nav>
     </header>
 
