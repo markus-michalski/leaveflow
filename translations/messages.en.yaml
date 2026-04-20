@@ -247,9 +247,9 @@ admin:
             active: Active
             inactive: Inactive
         deducts: deducts
-        no_deducts: neutral
+        no_deducts: "Does not deduct from leave balance"
         requires_approval: Approval required
-        no_approval: auto-approved
+        no_approval: "Auto-approved"
         field:
             name: Name
             deductsFromLeave: "Deducts from leave balance"

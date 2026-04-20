@@ -247,9 +247,9 @@ admin:
             active: Aktiv
             inactive: Inaktiv
         deducts: zieht ab
-        no_deducts: neutral
+        no_deducts: "Zieht nicht vom Urlaubskonto ab"
         requires_approval: Genehmigungspflicht
-        no_approval: automatisch
+        no_approval: "Wird automatisch genehmigt"
         field:
             name: Name
             deductsFromLeave: "Zieht vom Urlaubskonto ab"
