@@ -24,8 +24,8 @@ class CompanyHolidayRepository extends ServiceEntityRepository
      */
     public function findByCompanyAndYear(Company $company, int $year): array
     {
-        $start = new \DateTimeImmutable()->setDate($year, 1, 1)->setTime(0, 0);
-        $end = new \DateTimeImmutable()->setDate($year, 12, 31)->setTime(23, 59, 59);
+        $start = (new \DateTimeImmutable())->setDate($year, 1, 1)->setTime(0, 0);
+        $end = (new \DateTimeImmutable())->setDate($year, 12, 31)->setTime(23, 59, 59);
 
         return $this->createQueryBuilder('h')
             ->andWhere('h.company = :company')

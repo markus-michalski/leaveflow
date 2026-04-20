@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\DataFixtures;
 
+use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\CompanyHoliday;
 use App\Domain\Entity\Employee;
+use App\Domain\Entity\LeaveEntitlement;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
+use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Enum\UserRole;
 use App\Domain\Enum\Weekday;
 use App\Domain\ValueObject\WorkSchedule;
@@ -47,7 +50,7 @@ final class AppFixtures extends Fixture
 
         // Admin stays user-only (external IT account — no HR record).
         // Manager + Employee get full employee profiles.
-        $manager->persist(new Employee(
+        $maya = new Employee(
             $company,
             'Maya Manager',
             'EMP-0001',
@@ -55,9 +58,10 @@ final class AppFixtures extends Fixture
             WorkSchedule::standardFullTime(),
             new \DateTimeImmutable('2024-01-15'),
             $users['manager@leaveflow.test'],
-        ));
+        );
+        $manager->persist($maya);
 
-        $manager->persist(new Employee(
+        $erik = new Employee(
             $company,
             'Erik Employee',
             'EMP-0002',
@@ -70,7 +74,8 @@ final class AppFixtures extends Fixture
             ]),
             new \DateTimeImmutable('2025-03-01'),
             $users['employee@leaveflow.test'],
-        ));
+        );
+        $manager->persist($erik);
 
         // Demonstrates Employee without User (pre-go-live import / archived ex-employee).
         $manager->persist(new Employee(
@@ -89,10 +94,10 @@ final class AppFixtures extends Fixture
         // is city-level only (Art. 1 Abs. 1 Nr. 4b BayFTG, Augsburg only), so
         // demoing it as a DE-BY override would mislead users. Municipality-level
         // holidays will land with location-scoped overrides in a later phase.
-        $currentYear = (int) new \DateTimeImmutable()->format('Y');
+        $currentYear = (int) (new \DateTimeImmutable())->format('Y');
         foreach ([$currentYear, $currentYear + 1] as $year) {
             // Brueckentag after Tag der Deutschen Einheit (Friday if 3.10. is Thursday; pragmatic: skip if weekend).
-            $tdde = new \DateTimeImmutable()->setDate($year, 10, 3)->setTime(0, 0);
+            $tdde = (new \DateTimeImmutable())->setDate($year, 10, 3)->setTime(0, 0);
             if ('Thursday' === $tdde->format('l')) {
                 $manager->persist(new CompanyHoliday(
                     $company,
@@ -103,7 +108,7 @@ final class AppFixtures extends Fixture
 
             // Company-wide Betriebsruhe between Christmas and New Year (Dec 27-31).
             for ($day = 27; $day <= 31; ++$day) {
-                $date = new \DateTimeImmutable()->setDate($year, 12, $day)->setTime(0, 0);
+                $date = (new \DateTimeImmutable())->setDate($year, 12, $day)->setTime(0, 0);
                 if ('Saturday' === $date->format('l') || 'Sunday' === $date->format('l')) {
                     continue;
                 }
@@ -115,7 +120,51 @@ final class AppFixtures extends Fixture
             }
         }
 
+        // Phase 4: default AbsenceTypes (six entries mirroring the roadmap).
+        foreach ($this->absenceTypeSeeds($company) as $absenceType) {
+            $manager->persist($absenceType);
+        }
+
+        // Phase 4: current-year regular entitlement plus a demo carryover from
+        // last year for Maya to showcase the FIFO consumption rules.
+        $manager->persist(new LeaveEntitlement(
+            $maya,
+            $currentYear,
+            LeaveEntitlementType::Regular,
+            240.0,
+        ));
+        $manager->persist(new LeaveEntitlement(
+            $maya,
+            $currentYear,
+            LeaveEntitlementType::Carryover,
+            16.0,
+            (new \DateTimeImmutable())->setDate($currentYear, 3, 31)->setTime(0, 0),
+        ));
+
+        // Erik works 30h/4d so 30 leave days map to 30 * 7.5h = 225h.
+        $manager->persist(new LeaveEntitlement(
+            $erik,
+            $currentYear,
+            LeaveEntitlementType::Regular,
+            225.0,
+        ));
+
         $manager->flush();
+    }
+
+    /**
+     * @return iterable<AbsenceType>
+     */
+    private function absenceTypeSeeds(Company $company): iterable
+    {
+        // color, icon pairs chosen for the Phase 5 calendar rendering.
+        yield new AbsenceType($company, 'Urlaub', true, true, '#3B82F6', 'calendar');
+        yield new AbsenceType($company, 'Resturlaub', true, true, '#6366F1', 'calendar');
+        // Krankheit: eAU since 2023 means no upload, no approval gate, no deduction.
+        yield new AbsenceType($company, 'Krankheit', false, false, '#EF4444', 'heart');
+        yield new AbsenceType($company, 'Überstundenabbau', true, true, '#10B981', 'clock');
+        yield new AbsenceType($company, 'Sonderurlaub', true, true, '#F59E0B', 'gift');
+        yield new AbsenceType($company, 'Fortbildung', false, true, '#8B5CF6', 'academic-cap');
     }
 
     /**

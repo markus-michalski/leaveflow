@@ -31,6 +31,8 @@ nav:
         locations: Locations
         employees: Employees
         holidays: Holidays
+        absence_types: Absence types
+        entitlements: Leave balances
     logout: Log out
 welcome:
     title: Welcome to LeaveFlow
@@ -232,6 +234,64 @@ admin:
                 updated: Company holiday has been updated.
                 deleted: Company holiday has been removed.
                 duplicate: A company holiday for this date already exists.
+    absence_types:
+        title: Absence types
+        heading: Absence types
+        description: "Maintain the catalogue of absence types (e.g. vacation, sickness, home office). Policy flags drive whether a type deducts from the leave balance and whether it requires approval."
+        create: Create new
+        edit: Edit
+        delete: Delete
+        confirm_delete: "Really delete this absence type?"
+        empty: "No absence types yet."
+        status:
+            active: Active
+            inactive: Inactive
+        deducts: deducts
+        no_deducts: neutral
+        requires_approval: Approval required
+        no_approval: auto-approved
+        field:
+            name: Name
+            deductsFromLeave: "Deducts from leave balance"
+            requiresApproval: "Requires approval"
+            color: Color
+            icon: Icon
+            active: Active
+        flash:
+            created: "Absence type has been created."
+            updated: "Absence type has been updated."
+            deleted: "Absence type has been deleted."
+            activated: "Absence type has been activated."
+            deactivated: "Absence type has been deactivated."
+            duplicate: "An absence type with this name already exists."
+        new:
+            title: "Create absence type"
+        edit_view:
+            title: "Edit absence type"
+    entitlements:
+        title: Leave balances
+        heading: Leave balances
+        description: "Overview of all leave entitlements. The expiry of a carryover entitlement can be extended manually for illness or parental leave."
+        empty: "No leave entitlements recorded yet."
+        edit_expiry: "Adjust expiry"
+        expired_badge: "Expired"
+        no_expiry: "—"
+        field:
+            employee: Employee
+            year: Year
+            type: Type
+            granted: "Granted"
+            used: "Used"
+            remaining: "Remaining"
+            expires_at: "Expires on"
+        type:
+            regular: "Vacation"
+            carryover: "Carryover"
+        flash:
+            expiry_updated: "Expiry has been updated."
+        edit_expiry_view:
+            title: "Edit expiry"
+            hint: "Leave empty to remove the expiry (e.g. for a recognized BAG notification-duty exception)."
 holiday:
     neujahr: "New Year's Day"
     heilige_drei_koenige: Epiphany

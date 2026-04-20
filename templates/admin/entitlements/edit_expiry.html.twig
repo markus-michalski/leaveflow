@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.entitlements.edit_expiry_view.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-6xl p-6">
+    <header class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-900">
+            {{ 'admin.entitlements.edit_expiry_view.title'|trans }}
+        </h1>
+        <a href="{{ path('app_admin_entitlement_index') }}"
+           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ 'nav.home'|trans }}
+        </a>
+    </header>
+
+    <div class="mx-auto max-w-xl">
+        <dl class="mb-4 grid grid-cols-2 gap-3 rounded-xl bg-white p-6 shadow-sm text-sm">
+            <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.employee'|trans }}</dt>
+            <dd class="text-gray-900">{{ entry.employee.fullName }}</dd>
+            <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.year'|trans }}</dt>
+            <dd class="text-gray-900">{{ entry.year }}</dd>
+            <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.type'|trans }}</dt>
+            <dd class="text-gray-900">{{ ('admin.entitlements.type.' ~ entry.type.value)|trans }}</dd>
+            <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.granted'|trans }}</dt>
+            <dd class="text-gray-900 font-mono">{{ entry.hoursGranted|number_format(2, ',', '.') }}</dd>
+        </dl>
+
+        <div class="rounded-xl bg-white p-6 shadow-sm">
+            {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'admin-entitlement-expiry-form' } }) }}
+                <p class="text-xs text-gray-500">{{ 'admin.entitlements.edit_expiry_view.hint'|trans }}</p>
+                {{ form_errors(form) }}
+                {{ form_row(form.expiresAt, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <a href="{{ path('app_admin_entitlement_index') }}"
+                       class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        {{ 'nav.home'|trans }}
+                    </a>
+                    <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        {{ 'admin.entitlements.edit_expiry'|trans }}
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

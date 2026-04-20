@@ -31,6 +31,8 @@ nav:
         locations: Standorte
         employees: Mitarbeiter
         holidays: Feiertage
+        absence_types: Urlaubsarten
+        entitlements: Urlaubskonten
     logout: Abmelden
 welcome:
     title: Willkommen bei LeaveFlow
@@ -232,6 +234,64 @@ admin:
                 updated: Firmenfeiertag wurde aktualisiert.
                 deleted: Firmenfeiertag wurde entfernt.
                 duplicate: Für dieses Datum existiert bereits ein Firmenfeiertag.
+    absence_types:
+        title: Urlaubsarten
+        heading: Urlaubsarten
+        description: "Pflege hier den Katalog der Abwesenheitsarten (z. B. Urlaub, Krankheit, Home Office). Die Policy-Flags bestimmen, ob eine Art vom Urlaubskonto abzieht und ob sie genehmigt werden muss."
+        create: Neu anlegen
+        edit: Bearbeiten
+        delete: Löschen
+        confirm_delete: "Urlaubsart wirklich löschen?"
+        empty: "Noch keine Urlaubsarten angelegt."
+        status:
+            active: Aktiv
+            inactive: Inaktiv
+        deducts: zieht ab
+        no_deducts: neutral
+        requires_approval: Genehmigungspflicht
+        no_approval: automatisch
+        field:
+            name: Name
+            deductsFromLeave: "Zieht vom Urlaubskonto ab"
+            requiresApproval: "Erfordert Genehmigung"
+            color: Farbe
+            icon: Icon
+            active: Aktiv
+        flash:
+            created: "Urlaubsart wurde angelegt."
+            updated: "Urlaubsart wurde aktualisiert."
+            deleted: "Urlaubsart wurde gelöscht."
+            activated: "Urlaubsart wurde aktiviert."
+            deactivated: "Urlaubsart wurde deaktiviert."
+            duplicate: "Eine Urlaubsart mit diesem Namen existiert bereits."
+        new:
+            title: "Urlaubsart anlegen"
+        edit_view:
+            title: "Urlaubsart bearbeiten"
+    entitlements:
+        title: Urlaubskonten
+        heading: Urlaubskonten
+        description: "Übersicht aller Urlaubsansprüche. Die Ablauffrist eines Resturlaubs lässt sich bei Krankheit/Elternzeit manuell verlängern."
+        empty: "Noch keine Urlaubsansprüche erfasst."
+        edit_expiry: "Ablauf anpassen"
+        expired_badge: "Abgelaufen"
+        no_expiry: "—"
+        field:
+            employee: Mitarbeiter
+            year: Jahr
+            type: Art
+            granted: "Gewährt"
+            used: "Verbraucht"
+            remaining: "Verfügbar"
+            expires_at: "Ablauffrist"
+        type:
+            regular: "Urlaub"
+            carryover: "Resturlaub"
+        flash:
+            expiry_updated: "Ablauffrist wurde aktualisiert."
+        edit_expiry_view:
+            title: "Ablauffrist bearbeiten"
+            hint: "Leer lassen, um die Ablauffrist zu entfernen (z. B. bei anerkannter BAG-Aufklärungspflicht-Ausnahme)."
 holiday:
     neujahr: Neujahr
     heilige_drei_koenige: Heilige Drei Könige

@@ -160,7 +160,7 @@ final class AdminUserController extends AbstractController
 
         $resetToken = $this->resetPasswordHelper->generateResetToken($user);
 
-        $email = new \Symfony\Bridge\Twig\Mime\TemplatedEmail()
+        $email = (new \Symfony\Bridge\Twig\Mime\TemplatedEmail())
             ->from(new Address('no-reply@leaveflow.test', 'LeaveFlow'))
             ->to((string) $user->getEmail())
             ->subject($this->translator->trans('admin.users.invitation.subject'))

@@ -25,8 +25,8 @@ class HolidayOverrideRepository extends ServiceEntityRepository
      */
     public function findByCompanyYearAndState(Company $company, int $year, FederalState $state): array
     {
-        $start = new \DateTimeImmutable()->setDate($year, 1, 1)->setTime(0, 0);
-        $end = new \DateTimeImmutable()->setDate($year, 12, 31)->setTime(23, 59, 59);
+        $start = (new \DateTimeImmutable())->setDate($year, 1, 1)->setTime(0, 0);
+        $end = (new \DateTimeImmutable())->setDate($year, 12, 31)->setTime(23, 59, 59);
 
         return $this->createQueryBuilder('o')
             ->andWhere('o.company = :company')
