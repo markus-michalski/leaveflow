@@ -10,7 +10,7 @@
         </h1>
         <a href="{{ path('app_admin_entitlement_index') }}"
            class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            {{ 'nav.home'|trans }}
+            {{ 'nav.back_to_list'|trans }}
         </a>
     </header>
 
@@ -35,10 +35,10 @@
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <a href="{{ path('app_admin_entitlement_index') }}"
                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        {{ 'nav.home'|trans }}
+                        {{ 'form.cancel'|trans }}
                     </a>
                     <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                        {{ 'admin.entitlements.edit_expiry'|trans }}
+                        {{ 'form.save'|trans }}
                     </button>
                 </div>
             {{ form_end(form) }}

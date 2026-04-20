@@ -3,6 +3,9 @@ app:
     tagline: Moderne Urlaubsverwaltung
 form:
     required_legend: "Mit * markierte Felder sind Pflichtfelder."
+    cancel: Abbrechen
+    save: Speichern
+    create: Anlegen
 flash:
     dismiss: Meldung schließen
 error:
@@ -22,6 +25,7 @@ error:
         message: Die angeforderte Seite konnte nicht gefunden werden. Vielleicht wurde der Link verändert oder der Inhalt entfernt.
 nav:
     home: Start
+    back_to_list: "Zurück zur Übersicht"
     profile: Mein Profil
     calendar: Kalender
     requests: Anträge

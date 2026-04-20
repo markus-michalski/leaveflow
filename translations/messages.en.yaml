@@ -3,6 +3,9 @@ app:
     tagline: Modern leave management
 form:
     required_legend: "Fields marked with * are required."
+    cancel: Cancel
+    save: Save
+    create: Create
 flash:
     dismiss: Dismiss message
 error:
@@ -22,6 +25,7 @@ error:
         message: The requested page could not be found. Maybe the link has changed or the content has been removed.
 nav:
     home: Home
+    back_to_list: "Back to overview"
     profile: My profile
     calendar: Calendar
     requests: Requests
