@@ -28,10 +28,13 @@
                       style="background-color: {{ form.color.vars.value|default('#3B82F6') }};"></span>
             </div>
 
-            <div class="space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3">
-                {{ form_row(form.deductsFromLeave) }}
-                {{ form_row(form.requiresApproval) }}
-                {{ form_row(form.active) }}
+            <div class="space-y-3 rounded-md border border-gray-200 bg-gray-50 p-4">
+                {% for field in [form.deductsFromLeave, form.requiresApproval, form.active] %}
+                    <label class="flex cursor-pointer items-center gap-3 text-sm text-gray-700">
+                        {{ form_widget(field, { attr: { class: 'h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500' } }) }}
+                        <span>{{ field.vars.label|trans }}</span>
+                    </label>
+                {% endfor %}
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-2">
