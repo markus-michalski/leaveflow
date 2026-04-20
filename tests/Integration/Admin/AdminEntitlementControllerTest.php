@@ -74,6 +74,8 @@ final class AdminEntitlementControllerTest extends WebTestCase
         ]);
 
         self::assertResponseRedirects('/admin/entitlements');
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('[role="alert"]', 'Ablauffrist wurde aktualisiert');
 
         $this->em->clear();
         /** @var LeaveEntitlement $reloaded */

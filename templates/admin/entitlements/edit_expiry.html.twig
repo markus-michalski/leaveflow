@@ -24,6 +24,10 @@
             <dd class="text-gray-900">{{ ('admin.entitlements.type.' ~ entry.type.value)|trans }}</dd>
             <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.granted'|trans }}</dt>
             <dd class="text-gray-900 font-mono">{{ entry.hoursGranted|number_format(2, ',', '.') }}</dd>
+            <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.used'|trans }}</dt>
+            <dd class="text-gray-900 font-mono">{{ entry.hoursUsed|number_format(2, ',', '.') }}</dd>
+            <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.remaining'|trans }}</dt>
+            <dd class="text-gray-900 font-mono">{{ entry.hoursRemaining|number_format(2, ',', '.') }}</dd>
         </dl>
 
         <div class="rounded-xl bg-white p-6 shadow-sm">
