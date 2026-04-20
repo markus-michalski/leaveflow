@@ -177,7 +177,7 @@ final class HolidayCalculator
 
     private function date(int $year, int $month, int $day): \DateTimeImmutable
     {
-        return new \DateTimeImmutable()->setDate($year, $month, $day)->setTime(0, 0);
+        return (new \DateTimeImmutable())->setDate($year, $month, $day)->setTime(0, 0);
     }
 
     private function assertSupportedYear(int $year): void

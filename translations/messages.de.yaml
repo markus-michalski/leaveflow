@@ -3,6 +3,9 @@ app:
     tagline: Moderne Urlaubsverwaltung
 form:
     required_legend: "Mit * markierte Felder sind Pflichtfelder."
+    cancel: Abbrechen
+    save: Speichern
+    create: Anlegen
 flash:
     dismiss: Meldung schließen
 error:
@@ -22,6 +25,7 @@ error:
         message: Die angeforderte Seite konnte nicht gefunden werden. Vielleicht wurde der Link verändert oder der Inhalt entfernt.
 nav:
     home: Start
+    back_to_list: "Zurück zur Übersicht"
     profile: Mein Profil
     calendar: Kalender
     requests: Anträge
@@ -31,6 +35,8 @@ nav:
         locations: Standorte
         employees: Mitarbeiter
         holidays: Feiertage
+        absence_types: Urlaubsarten
+        entitlements: Urlaubskonten
     logout: Abmelden
 welcome:
     title: Willkommen bei LeaveFlow
@@ -232,6 +238,70 @@ admin:
                 updated: Firmenfeiertag wurde aktualisiert.
                 deleted: Firmenfeiertag wurde entfernt.
                 duplicate: Für dieses Datum existiert bereits ein Firmenfeiertag.
+    absence_types:
+        title: Urlaubsarten
+        heading: Urlaubsarten
+        description: "Pflege hier den Katalog der Abwesenheitsarten (z. B. Urlaub, Krankheit, Home Office). Die Policy-Flags bestimmen, ob eine Art vom Urlaubskonto abzieht und ob sie genehmigt werden muss."
+        create: "Urlaubsart anlegen"
+        edit: Bearbeiten
+        delete: Löschen
+        confirm_delete: "Urlaubsart wirklich löschen?"
+        empty: "Noch keine Urlaubsarten angelegt."
+        status:
+            active: Aktiv
+            inactive: Inaktiv
+        deducts: zieht ab
+        no_deducts: "Zieht nicht vom Urlaubskonto ab"
+        requires_approval: Genehmigungspflicht
+        no_approval: "Wird automatisch genehmigt"
+        field:
+            name: Name
+            deductsFromLeave: "Zieht vom Urlaubskonto ab"
+            requiresApproval: "Erfordert Genehmigung"
+            color: Farbe
+            active: Aktiv
+        flash:
+            created: "Urlaubsart wurde angelegt."
+            updated: "Urlaubsart wurde aktualisiert."
+            deleted: "Urlaubsart wurde gelöscht."
+            activated: "Urlaubsart wurde aktiviert."
+            deactivated: "Urlaubsart wurde deaktiviert."
+            duplicate: "Eine Urlaubsart mit diesem Namen existiert bereits."
+        new:
+            title: "Urlaubsart anlegen"
+        edit_view:
+            title: "Urlaubsart bearbeiten"
+    entitlements:
+        title: Urlaubskonten
+        heading: Urlaubskonten
+        description: "Übersicht aller Urlaubsansprüche. Die Ablauffrist eines Resturlaubs lässt sich bei Krankheit/Elternzeit manuell verlängern."
+        empty: "Noch keine Urlaubsansprüche erfasst."
+        create: "Urlaubsanspruch anlegen"
+        edit_expiry: "Ablauf anpassen"
+        expired_badge: "Abgelaufen"
+        no_expiry: "—"
+        field:
+            employee: Mitarbeiter
+            employee_placeholder: "Mitarbeiter auswählen …"
+            year: Jahr
+            type: Art
+            granted: "Gewährt (Stunden)"
+            used: "Verbraucht"
+            remaining: "Verfügbar"
+            expires_at: "Ablauffrist"
+        type:
+            regular: "Urlaub"
+            carryover: "Resturlaub"
+        flash:
+            created: "Urlaubsanspruch wurde angelegt."
+            expiry_updated: "Ablauffrist wurde aktualisiert."
+            duplicate: "Für diesen Mitarbeiter existiert bereits ein Eintrag mit diesem Jahr und dieser Art."
+        new:
+            title: "Urlaubsanspruch anlegen"
+            hint: "Richtwert: 30 Urlaubstage × Stunden/Tag laut Arbeitszeitmodell (z. B. Vollzeit 40 h/5 Tage → 240 h). Bei Resturlaub zusätzlich Ablauffrist setzen (Standard: 31.03. Folgejahr)."
+        edit_expiry_view:
+            title: "Ablauffrist bearbeiten"
+            hint: "Leer lassen, um die Ablauffrist zu entfernen (z. B. bei anerkannter BAG-Aufklärungspflicht-Ausnahme)."
 holiday:
     neujahr: Neujahr
     heilige_drei_koenige: Heilige Drei Könige

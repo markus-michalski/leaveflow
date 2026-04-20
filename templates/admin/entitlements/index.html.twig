@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.entitlements.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-7xl p-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.entitlements.heading'|trans }}</h1>
+            <p class="mt-1 max-w-3xl text-sm text-gray-500">{{ 'admin.entitlements.description'|trans }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+            <a href="{{ path('app_admin_entitlement_new') }}"
+               class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ 'admin.entitlements.create'|trans }}
+            </a>
+        </div>
+    </header>
+
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th class="px-6 py-3">{{ 'admin.entitlements.field.employee'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.entitlements.field.year'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.entitlements.field.type'|trans }}</th>
+                    <th class="px-6 py-3 text-right">{{ 'admin.entitlements.field.granted'|trans }}</th>
+                    <th class="px-6 py-3 text-right">{{ 'admin.entitlements.field.used'|trans }}</th>
+                    <th class="px-6 py-3 text-right">{{ 'admin.entitlements.field.remaining'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.entitlements.field.expires_at'|trans }}</th>
+                    <th class="px-6 py-3 text-right"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
+                {% set previous_employee_id = null %}
+                {% for entry in entries %}
+                    {% set is_expired = entry.expiresAt is not null and today > entry.expiresAt %}
+                    {% set is_new_employee = previous_employee_id != entry.employee.id %}
+                    <tr data-testid="entitlement-row-{{ entry.id }}"
+                        class="{{ is_new_employee ? 'border-t-2 border-gray-300' : '' }}">
+                        <td class="px-6 py-3 whitespace-nowrap {{ is_new_employee ? 'font-medium text-gray-900' : 'text-gray-400' }}">
+                            {{ is_new_employee ? entry.employee.fullName : '' }}
+                        </td>
+                        <td class="px-6 py-3">{{ entry.year }}</td>
+                        <td class="px-6 py-3">{{ ('admin.entitlements.type.' ~ entry.type.value)|trans }}</td>
+                        <td class="px-6 py-3 text-right font-mono">{{ entry.hoursGranted|number_format(2, ',', '.') }}</td>
+                        <td class="px-6 py-3 text-right font-mono">{{ entry.hoursUsed|number_format(2, ',', '.') }}</td>
+                        <td class="px-6 py-3 text-right font-mono">{{ entry.hoursRemaining|number_format(2, ',', '.') }}</td>
+                        <td class="px-6 py-3 {{ is_expired ? 'text-rose-600 font-semibold' : '' }}">
+                            {% if entry.expiresAt %}
+                                {{ entry.expiresAt|date('d.m.Y') }}
+                                {% if is_expired %}
+                                    <span class="ml-1 inline-flex items-center rounded-md bg-rose-50 px-1.5 py-0.5 text-xs font-medium text-rose-700">
+                                        {{ 'admin.entitlements.expired_badge'|trans }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-gray-400">{{ 'admin.entitlements.no_expiry'|trans }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 text-right">
+                            <a href="{{ path('app_admin_entitlement_edit_expiry', { id: entry.id }) }}"
+                               class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                {{ 'admin.entitlements.edit_expiry'|trans }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% set previous_employee_id = entry.employee.id %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="px-6 py-6 text-center text-gray-500">{{ 'admin.entitlements.empty'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

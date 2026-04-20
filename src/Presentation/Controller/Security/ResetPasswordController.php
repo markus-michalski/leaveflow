@@ -138,7 +138,7 @@ final class ResetPasswordController extends AbstractController
             return $this->redirectToRoute('app_check_email');
         }
 
-        $email = new \Symfony\Bridge\Twig\Mime\TemplatedEmail()
+        $email = (new \Symfony\Bridge\Twig\Mime\TemplatedEmail())
             ->from(new Address('no-reply@leaveflow.test', 'LeaveFlow'))
             ->to((string) $user->getEmail())
             ->subject($this->translator->trans('security.reset_password.email.subject'))

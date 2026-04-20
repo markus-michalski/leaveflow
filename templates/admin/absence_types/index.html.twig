@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.absence_types.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-6xl p-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.absence_types.heading'|trans }}</h1>
+            <p class="mt-1 max-w-3xl text-sm text-gray-500">{{ 'admin.absence_types.description'|trans }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+            <a href="{{ path('app_admin_absence_type_new') }}"
+               class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ 'admin.absence_types.create'|trans }}
+            </a>
+        </div>
+    </header>
+
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th class="px-6 py-3">{{ 'admin.absence_types.field.color'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.absence_types.field.name'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.absence_types.field.deductsFromLeave'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.absence_types.field.requiresApproval'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.absence_types.status.active'|trans }}</th>
+                    <th class="px-6 py-3 text-right">{{ 'admin.absence_types.edit'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
+                {% for entry in entries %}
+                    <tr data-testid="absence-type-row-{{ entry.id }}">
+                        <td class="px-6 py-3">
+                            <span class="inline-block h-5 w-5 rounded-full border border-gray-200"
+                                  style="background-color: {{ entry.color }};"
+                                  title="{{ entry.color }}"></span>
+                        </td>
+                        <td class="px-6 py-3 font-medium text-gray-900">
+                            {{ entry.name }}
+                        </td>
+                        <td class="px-6 py-3">
+                            {% if entry.deductsFromLeave %}
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
+                                      title="{{ 'admin.absence_types.deducts'|trans }}"
+                                      aria-label="{{ 'admin.absence_types.deducts'|trans }}">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                    </svg>
+                                </span>
+                            {% else %}
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-50 text-gray-400"
+                                      title="{{ 'admin.absence_types.no_deducts'|trans }}"
+                                      aria-label="{{ 'admin.absence_types.no_deducts'|trans }}">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                                    </svg>
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3">
+                            {% if entry.requiresApproval %}
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
+                                      title="{{ 'admin.absence_types.requires_approval'|trans }}"
+                                      aria-label="{{ 'admin.absence_types.requires_approval'|trans }}">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                    </svg>
+                                </span>
+                            {% else %}
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-50 text-gray-400"
+                                      title="{{ 'admin.absence_types.no_approval'|trans }}"
+                                      aria-label="{{ 'admin.absence_types.no_approval'|trans }}">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                                    </svg>
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3">
+                            <form method="post" action="{{ path('app_admin_absence_type_toggle', { id: entry.id }) }}" class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle-absence-type-' ~ entry.id) }}">
+                                {% if entry.active %}
+                                    <button type="submit" class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100">
+                                        {{ 'admin.absence_types.status.active'|trans }}
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-200">
+                                        {{ 'admin.absence_types.status.inactive'|trans }}
+                                    </button>
+                                {% endif %}
+                            </form>
+                        </td>
+                        <td class="px-6 py-3 text-right">
+                            <div class="inline-flex items-center gap-2">
+                                <a href="{{ path('app_admin_absence_type_edit', { id: entry.id }) }}"
+                                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                    {{ 'admin.absence_types.edit'|trans }}
+                                </a>
+                                <form method="post" action="{{ path('app_admin_absence_type_delete', { id: entry.id }) }}"
+                                      onsubmit="return confirm('{{ 'admin.absence_types.confirm_delete'|trans }}');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-absence-type-' ~ entry.id) }}">
+                                    <button type="submit" class="inline-flex items-center rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100">
+                                        {{ 'admin.absence_types.delete'|trans }}
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-6 text-center text-gray-500">{{ 'admin.absence_types.empty'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
