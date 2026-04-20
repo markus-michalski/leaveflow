@@ -276,14 +276,16 @@ admin:
         heading: Leave balances
         description: "Overview of all leave entitlements. The expiry of a carryover entitlement can be extended manually for illness or parental leave."
         empty: "No leave entitlements recorded yet."
+        create: "Create new"
         edit_expiry: "Adjust expiry"
         expired_badge: "Expired"
         no_expiry: "—"
         field:
             employee: Employee
+            employee_placeholder: "Select employee …"
             year: Year
             type: Type
-            granted: "Granted"
+            granted: "Granted (hours)"
             used: "Used"
             remaining: "Remaining"
             expires_at: "Expires on"
@@ -291,7 +293,12 @@ admin:
             regular: "Vacation"
             carryover: "Carryover"
         flash:
+            created: "Leave entitlement has been created."
             expiry_updated: "Expiry has been updated."
+            duplicate: "This employee already has an entry for the same year and type."
+        new:
+            title: "Create leave entitlement"
+            hint: "Rule of thumb: 30 vacation days × hours/day from the work schedule (e.g. full-time 40h/5d = 240h). For carryover entries also set an expiry (default: 31.03. of the following year)."
         edit_expiry_view:
             title: "Edit expiry"
             hint: "Leave empty to remove the expiry (e.g. for a recognized BAG notification-duty exception)."

@@ -122,6 +122,116 @@ final class AdminEntitlementControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
+    #[Test]
+    public function adminCreatesRegularEntitlement(): void
+    {
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements/new');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[employee]' => (string) $this->employee->getId(),
+            $formName.'[year]' => '2026',
+            $formName.'[type]' => LeaveEntitlementType::Regular->value,
+            $formName.'[hoursGranted]' => '240',
+            $formName.'[expiresAt]' => '',
+        ]);
+
+        self::assertResponseRedirects('/admin/entitlements');
+
+        /** @var LeaveEntitlement|null $created */
+        $created = $this->em->getRepository(LeaveEntitlement::class)->findOneBy([
+            'employee' => $this->employee,
+            'year' => 2026,
+            'type' => LeaveEntitlementType::Regular,
+        ]);
+        self::assertNotNull($created);
+        self::assertSame(240.0, $created->getHoursGranted());
+        self::assertSame(0.0, $created->getHoursUsed());
+        self::assertNull($created->getExpiresAt());
+    }
+
+    #[Test]
+    public function adminCreatesCarryoverEntitlementWithExpiry(): void
+    {
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements/new');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[employee]' => (string) $this->employee->getId(),
+            $formName.'[year]' => '2026',
+            $formName.'[type]' => LeaveEntitlementType::Carryover->value,
+            $formName.'[hoursGranted]' => '16',
+            $formName.'[expiresAt]' => '31.03.2026',
+        ]);
+
+        self::assertResponseRedirects('/admin/entitlements');
+
+        /** @var LeaveEntitlement|null $created */
+        $created = $this->em->getRepository(LeaveEntitlement::class)->findOneBy([
+            'employee' => $this->employee,
+            'year' => 2026,
+            'type' => LeaveEntitlementType::Carryover,
+        ]);
+        self::assertNotNull($created);
+        self::assertSame('2026-03-31', $created->getExpiresAt()?->format('Y-m-d'));
+    }
+
+    #[Test]
+    public function duplicateEntitlementShowsFormError(): void
+    {
+        $this->createEntitlement(2026, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements/new');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[employee]' => (string) $this->employee->getId(),
+            $formName.'[year]' => '2026',
+            $formName.'[type]' => LeaveEntitlementType::Regular->value,
+            $formName.'[hoursGranted]' => '240',
+            $formName.'[expiresAt]' => '',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+        self::assertStringContainsString('existiert', (string) $this->client->getResponse()->getContent());
+    }
+
+    #[Test]
+    public function archivedEmployeeNotOfferedInDropdown(): void
+    {
+        $archived = new Employee(
+            $this->company,
+            'Archived Alice',
+            'EMP-9999',
+            $this->employee->getLocation(),
+            $this->employee->getWorkSchedule(),
+            new \DateTimeImmutable('2020-01-01'),
+            null,
+            new \DateTimeImmutable('2024-12-31'),
+        );
+        $this->em->persist($archived);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements/new');
+        $options = $crawler->filter('select[name$="[employee]"] option')->each(
+            static fn ($node) => $node->text(),
+        );
+
+        self::assertNotContains('Archived Alice (EMP-9999)', $options);
+    }
+
     private function createEntitlement(
         int $year,
         LeaveEntitlementType $type,

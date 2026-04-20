@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Presentation\Controller\Admin;
 
 use App\Domain\Entity\Company;
+use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
+use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Repository\CompanyRepository;
 use App\Domain\Repository\LeaveEntitlementRepository;
 use App\Presentation\Form\LeaveEntitlementExpiresAtFormType;
+use App\Presentation\Form\LeaveEntitlementFormType;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -37,6 +42,57 @@ final class AdminEntitlementController extends AbstractController
         return $this->render('admin/entitlements/index.html.twig', [
             'entries' => $this->repository->findAllByCompany($company),
             'today' => new \DateTimeImmutable('today'),
+        ]);
+    }
+
+    #[Route('/new', name: 'new', methods: ['GET', 'POST'])]
+    public function new(Request $request): Response
+    {
+        $company = $this->requireCompany();
+        $form = $this->createForm(LeaveEntitlementFormType::class, null, ['company' => $company]);
+        // Sensible defaults: current year, Regular type.
+        $form->get('year')->setData((int) (new \DateTimeImmutable())->format('Y'));
+        $form->get('type')->setData(LeaveEntitlementType::Regular);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var Employee $employee */
+            $employee = $form->get('employee')->getData();
+            /** @var int $year */
+            $year = $form->get('year')->getData();
+            /** @var LeaveEntitlementType $type */
+            $type = $form->get('type')->getData();
+            $hoursGranted = (float) $form->get('hoursGranted')->getData();
+            /** @var \DateTimeImmutable|null $expiresAt */
+            $expiresAt = $form->get('expiresAt')->getData();
+
+            try {
+                $entry = new LeaveEntitlement($employee, $year, $type, $hoursGranted, $expiresAt);
+                $this->entityManager->persist($entry);
+                $this->entityManager->flush();
+            } catch (UniqueConstraintViolationException) {
+                $form->addError(new FormError(
+                    $this->translator->trans('admin.entitlements.flash.duplicate')
+                ));
+
+                return $this->render('admin/entitlements/form.html.twig', [
+                    'form' => $form,
+                ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
+            } catch (\InvalidArgumentException $e) {
+                $form->addError(new FormError($e->getMessage()));
+
+                return $this->render('admin/entitlements/form.html.twig', [
+                    'form' => $form,
+                ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
+            }
+
+            $this->addFlash('success', $this->translator->trans('admin.entitlements.flash.created'));
+
+            return $this->redirectToRoute('app_admin_entitlement_index');
+        }
+
+        return $this->render('admin/entitlements/form.html.twig', [
+            'form' => $form,
         ]);
     }
 

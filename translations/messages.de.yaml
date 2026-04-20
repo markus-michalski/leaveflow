@@ -276,14 +276,16 @@ admin:
         heading: Urlaubskonten
         description: "Übersicht aller Urlaubsansprüche. Die Ablauffrist eines Resturlaubs lässt sich bei Krankheit/Elternzeit manuell verlängern."
         empty: "Noch keine Urlaubsansprüche erfasst."
+        create: "Neu anlegen"
         edit_expiry: "Ablauf anpassen"
         expired_badge: "Abgelaufen"
         no_expiry: "—"
         field:
             employee: Mitarbeiter
+            employee_placeholder: "Mitarbeiter auswählen …"
             year: Jahr
             type: Art
-            granted: "Gewährt"
+            granted: "Gewährt (Stunden)"
             used: "Verbraucht"
             remaining: "Verfügbar"
             expires_at: "Ablauffrist"
@@ -291,7 +293,12 @@ admin:
             regular: "Urlaub"
             carryover: "Resturlaub"
         flash:
+            created: "Urlaubsanspruch wurde angelegt."
             expiry_updated: "Ablauffrist wurde aktualisiert."
+            duplicate: "Für diesen Mitarbeiter existiert bereits ein Eintrag mit diesem Jahr und dieser Art."
+        new:
+            title: "Urlaubsanspruch anlegen"
+            hint: "Richtwert: 30 Urlaubstage × Stunden/Tag laut Arbeitszeitmodell (z. B. Vollzeit 40 h/5 Tage → 240 h). Bei Resturlaub zusätzlich Ablauffrist setzen (Standard: 31.03. Folgejahr)."
         edit_expiry_view:
             title: "Ablauffrist bearbeiten"
             hint: "Leer lassen, um die Ablauffrist zu entfernen (z. B. bei anerkannter BAG-Aufklärungspflicht-Ausnahme)."

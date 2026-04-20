@@ -9,10 +9,16 @@
             <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.entitlements.heading'|trans }}</h1>
             <p class="mt-1 max-w-3xl text-sm text-gray-500">{{ 'admin.entitlements.description'|trans }}</p>
         </div>
-        <a href="{{ path('app_dashboard') }}"
-           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            {{ 'nav.home'|trans }}
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+            <a href="{{ path('app_admin_entitlement_new') }}"
+               class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ 'admin.entitlements.create'|trans }}
+            </a>
+        </div>
     </header>
 
     <div class="overflow-hidden rounded-xl bg-white shadow-sm">
