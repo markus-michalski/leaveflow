@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
- * @extends AbstractType<array{name: string, deductsFromLeave: bool, requiresApproval: bool, color: string, icon: string, active: bool}>
+ * @extends AbstractType<array{name: string, deductsFromLeave: bool, requiresApproval: bool, color: string, active: bool}>
  */
 final class AbsenceTypeFormType extends AbstractType
 {
@@ -42,11 +42,6 @@ final class AbsenceTypeFormType extends AbstractType
                 'constraints' => [new NotBlank()],
                 // Hex color pattern (#RGB or #RRGGBB) — matches AbsenceType::HEX_COLOR_PATTERN
                 'attr' => ['pattern' => '^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$'],
-            ])
-            ->add('icon', TextType::class, [
-                'label' => 'admin.absence_types.field.icon',
-                'mapped' => false,
-                'constraints' => [new NotBlank(), new Length(max: 50)],
             ])
             ->add('active', CheckboxType::class, [
                 'label' => 'admin.absence_types.field.active',

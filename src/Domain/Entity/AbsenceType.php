@@ -20,7 +20,9 @@ use Doctrine\ORM\Mapping as ORM;
  * - requiresApproval: true = goes through manager approval state machine
  *
  * Color is stored as uppercase 3- or 6-digit hex (#RGB or #RRGGBB) and used
- * for calendar rendering. Icon is a free-form string (Flowbite icon key).
+ * for calendar rendering. An icon field will be added in Phase 7 when the
+ * FullCalendar integration actually renders icons — with a proper picker, not
+ * a free-text string.
  */
 #[ORM\Entity(repositoryClass: AbsenceTypeRepository::class)]
 #[ORM\Table(name: 'absence_types')]
@@ -50,8 +52,6 @@ class AbsenceType
         #[ORM\Column(name: 'requires_approval', type: Types::BOOLEAN)]
         private bool $requiresApproval,
         string $color,
-        #[ORM\Column(length: 50)]
-        private string $icon,
         #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
         private bool $active = true,
     ) {
@@ -89,11 +89,6 @@ class AbsenceType
         return $this->color;
     }
 
-    public function getIcon(): string
-    {
-        return $this->icon;
-    }
-
     public function isActive(): bool
     {
         return $this->active;
@@ -114,13 +109,11 @@ class AbsenceType
         bool $deductsFromLeave,
         bool $requiresApproval,
         string $color,
-        string $icon,
     ): void {
         $this->name = $this->normalizeName($name);
         $this->color = $this->normalizeColor($color);
         $this->deductsFromLeave = $deductsFromLeave;
         $this->requiresApproval = $requiresApproval;
-        $this->icon = $icon;
     }
 
     private function normalizeName(string $name): string

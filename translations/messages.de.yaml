@@ -255,7 +255,6 @@ admin:
             deductsFromLeave: "Zieht vom Urlaubskonto ab"
             requiresApproval: "Erfordert Genehmigung"
             color: Farbe
-            icon: Icon
             active: Aktiv
         flash:
             created: "Urlaubsart wurde angelegt."

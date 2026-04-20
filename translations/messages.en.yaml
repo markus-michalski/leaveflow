@@ -255,7 +255,6 @@ admin:
             deductsFromLeave: "Deducts from leave balance"
             requiresApproval: "Requires approval"
             color: Color
-            icon: Icon
             active: Active
         flash:
             created: "Absence type has been created."

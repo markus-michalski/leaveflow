@@ -38,7 +38,6 @@ final class AdminAbsenceTypeControllerTest extends WebTestCase
             true,
             true,
             '#3B82F6',
-            'calendar',
         );
         $this->em->persist($entry);
         $this->em->flush();
@@ -68,7 +67,6 @@ final class AdminAbsenceTypeControllerTest extends WebTestCase
             $formName.'[name]' => 'Home Office',
             $formName.'[requiresApproval]' => '1',
             $formName.'[color]' => '#22C55E',
-            $formName.'[icon]' => 'home',
             $formName.'[active]' => '1',
         ]);
 
@@ -78,7 +76,6 @@ final class AdminAbsenceTypeControllerTest extends WebTestCase
         $created = $this->em->getRepository(AbsenceType::class)->findOneBy(['name' => 'Home Office']);
         self::assertNotNull($created);
         self::assertSame('#22C55E', $created->getColor());
-        self::assertSame('home', $created->getIcon());
         self::assertTrue($created->requiresApproval());
         self::assertFalse($created->deductsFromLeave());
         self::assertTrue($created->isActive());
@@ -93,7 +90,6 @@ final class AdminAbsenceTypeControllerTest extends WebTestCase
             true,
             true,
             '#3B82F6',
-            'calendar',
         );
         $this->em->persist($existing);
         $this->em->flush();
@@ -109,7 +105,6 @@ final class AdminAbsenceTypeControllerTest extends WebTestCase
             $formName.'[deductsFromLeave]' => '1',
             $formName.'[requiresApproval]' => '1',
             $formName.'[color]' => '#F59E0B',
-            $formName.'[icon]' => 'sun',
             $formName.'[active]' => '1',
         ]);
 
@@ -132,7 +127,6 @@ final class AdminAbsenceTypeControllerTest extends WebTestCase
             true,
             true,
             '#3B82F6',
-            'calendar',
         );
         $this->em->persist($existing);
         $this->em->flush();
@@ -148,7 +142,6 @@ final class AdminAbsenceTypeControllerTest extends WebTestCase
             $formName.'[deductsFromLeave]' => '1',
             $formName.'[requiresApproval]' => '1',
             $formName.'[color]' => '#3B82F6',
-            $formName.'[icon]' => 'calendar',
             $formName.'[active]' => '1',
         ]);
 
@@ -165,7 +158,6 @@ final class AdminAbsenceTypeControllerTest extends WebTestCase
             false,
             true,
             '#64748B',
-            'ban',
         );
         $this->em->persist($entry);
         $this->em->flush();
@@ -189,7 +181,6 @@ final class AdminAbsenceTypeControllerTest extends WebTestCase
             true,
             true,
             '#A855F7',
-            'moon',
         );
         $this->em->persist($entry);
         $this->em->flush();

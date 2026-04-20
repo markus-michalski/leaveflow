@@ -30,7 +30,6 @@ final class AbsenceTypeTest extends TestCase
             deductsFromLeave: true,
             requiresApproval: true,
             color: '#3B82F6',
-            icon: 'calendar',
         );
 
         self::assertSame($this->acme, $type->getCompany());
@@ -38,7 +37,6 @@ final class AbsenceTypeTest extends TestCase
         self::assertTrue($type->deductsFromLeave());
         self::assertTrue($type->requiresApproval());
         self::assertSame('#3B82F6', $type->getColor());
-        self::assertSame('calendar', $type->getIcon());
         self::assertTrue($type->isActive());
     }
 
@@ -48,7 +46,7 @@ final class AbsenceTypeTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('name');
 
-        new AbsenceType($this->acme, '   ', true, true, '#000000', 'calendar');
+        new AbsenceType($this->acme, '   ', true, true, '#000000');
     }
 
     #[Test]
@@ -58,7 +56,7 @@ final class AbsenceTypeTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('color');
 
-        new AbsenceType($this->acme, 'Urlaub', true, true, $color, 'calendar');
+        new AbsenceType($this->acme, 'Urlaub', true, true, $color);
     }
 
     /**
@@ -78,7 +76,7 @@ final class AbsenceTypeTest extends TestCase
     #[DataProvider('validColorProvider')]
     public function acceptsValidHexColor(string $color, string $expected): void
     {
-        $type = new AbsenceType($this->acme, 'Urlaub', true, true, $color, 'calendar');
+        $type = new AbsenceType($this->acme, 'Urlaub', true, true, $color);
 
         self::assertSame($expected, $type->getColor());
     }
@@ -96,7 +94,7 @@ final class AbsenceTypeTest extends TestCase
     #[Test]
     public function defaultsToActive(): void
     {
-        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6', 'calendar');
+        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6');
 
         self::assertTrue($type->isActive());
     }
@@ -104,7 +102,7 @@ final class AbsenceTypeTest extends TestCase
     #[Test]
     public function deactivateTogglesActiveFlag(): void
     {
-        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6', 'calendar');
+        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6');
 
         $type->deactivate();
 
@@ -114,7 +112,7 @@ final class AbsenceTypeTest extends TestCase
     #[Test]
     public function activateTogglesActiveFlag(): void
     {
-        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6', 'calendar');
+        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6');
         $type->deactivate();
 
         $type->activate();
@@ -125,42 +123,40 @@ final class AbsenceTypeTest extends TestCase
     #[Test]
     public function updateChangesAllMutableFields(): void
     {
-        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6', 'calendar');
+        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6');
 
         $type->update(
             name: '  Jahresurlaub  ',
             deductsFromLeave: false,
             requiresApproval: false,
             color: '#ef4444',
-            icon: 'sun',
         );
 
         self::assertSame('Jahresurlaub', $type->getName());
         self::assertFalse($type->deductsFromLeave());
         self::assertFalse($type->requiresApproval());
         self::assertSame('#EF4444', $type->getColor());
-        self::assertSame('sun', $type->getIcon());
     }
 
     #[Test]
     public function updateRejectsBlankName(): void
     {
-        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6', 'calendar');
+        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6');
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('name');
 
-        $type->update('  ', true, true, '#000000', 'calendar');
+        $type->update('  ', true, true, '#000000');
     }
 
     #[Test]
     public function updateRejectsInvalidColor(): void
     {
-        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6', 'calendar');
+        $type = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6');
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('color');
 
-        $type->update('Urlaub', true, true, 'not-hex', 'calendar');
+        $type->update('Urlaub', true, true, 'not-hex');
     }
 }

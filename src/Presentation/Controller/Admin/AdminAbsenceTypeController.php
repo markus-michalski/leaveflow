@@ -59,7 +59,6 @@ final class AdminAbsenceTypeController extends AbstractController
                     (bool) $form->get('deductsFromLeave')->getData(),
                     (bool) $form->get('requiresApproval')->getData(),
                     (string) $form->get('color')->getData(),
-                    (string) $form->get('icon')->getData(),
                     (bool) $form->get('active')->getData(),
                 );
                 $this->entityManager->persist($entry);
@@ -102,7 +101,6 @@ final class AdminAbsenceTypeController extends AbstractController
         $form->get('deductsFromLeave')->setData($entry->deductsFromLeave());
         $form->get('requiresApproval')->setData($entry->requiresApproval());
         $form->get('color')->setData($entry->getColor());
-        $form->get('icon')->setData($entry->getIcon());
         $form->get('active')->setData($entry->isActive());
 
         $form->handleRequest($request);
@@ -114,7 +112,6 @@ final class AdminAbsenceTypeController extends AbstractController
                     (bool) $form->get('deductsFromLeave')->getData(),
                     (bool) $form->get('requiresApproval')->getData(),
                     (string) $form->get('color')->getData(),
-                    (string) $form->get('icon')->getData(),
                 );
                 // active is independent of update()
                 if ((bool) $form->get('active')->getData()) {

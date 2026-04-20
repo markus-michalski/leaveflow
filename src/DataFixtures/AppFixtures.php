@@ -157,14 +157,13 @@ final class AppFixtures extends Fixture
      */
     private function absenceTypeSeeds(Company $company): iterable
     {
-        // color, icon pairs chosen for the Phase 5 calendar rendering.
-        yield new AbsenceType($company, 'Urlaub', true, true, '#3B82F6', 'calendar');
-        yield new AbsenceType($company, 'Resturlaub', true, true, '#6366F1', 'calendar');
+        yield new AbsenceType($company, 'Urlaub', true, true, '#3B82F6');
+        yield new AbsenceType($company, 'Resturlaub', true, true, '#6366F1');
         // Krankheit: eAU since 2023 means no upload, no approval gate, no deduction.
-        yield new AbsenceType($company, 'Krankheit', false, false, '#EF4444', 'heart');
-        yield new AbsenceType($company, 'Überstundenabbau', true, true, '#10B981', 'clock');
-        yield new AbsenceType($company, 'Sonderurlaub', true, true, '#F59E0B', 'gift');
-        yield new AbsenceType($company, 'Fortbildung', false, true, '#8B5CF6', 'academic-cap');
+        yield new AbsenceType($company, 'Krankheit', false, false, '#EF4444');
+        yield new AbsenceType($company, 'Überstundenabbau', true, true, '#10B981');
+        yield new AbsenceType($company, 'Sonderurlaub', true, true, '#F59E0B');
+        yield new AbsenceType($company, 'Fortbildung', false, true, '#8B5CF6');
     }
 
     /**
