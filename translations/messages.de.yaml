@@ -30,7 +30,11 @@ nav:
     calendar: Kalender
     requests: Anträge
     employees: Mitarbeiter
+    primary: "Hauptnavigation"
+    user:
+        menu_label: "Benutzermenü öffnen"
     admin:
+        menu: Administration
         users: Benutzer
         locations: Standorte
         employees: Mitarbeiter
