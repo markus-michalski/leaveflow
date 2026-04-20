@@ -46,20 +46,40 @@
                         </td>
                         <td class="px-6 py-3">
                             {% if entry.deductsFromLeave %}
-                                <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
-                                    {{ 'admin.absence_types.deducts'|trans }}
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
+                                      title="{{ 'admin.absence_types.deducts'|trans }}"
+                                      aria-label="{{ 'admin.absence_types.deducts'|trans }}">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                    </svg>
                                 </span>
                             {% else %}
-                                <span class="text-gray-300" aria-label="{{ 'admin.absence_types.no_deducts'|trans }}">—</span>
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-50 text-gray-400"
+                                      title="{{ 'admin.absence_types.no_deducts'|trans }}"
+                                      aria-label="{{ 'admin.absence_types.no_deducts'|trans }}">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                                    </svg>
+                                </span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-3">
                             {% if entry.requiresApproval %}
-                                <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
-                                    {{ 'admin.absence_types.requires_approval'|trans }}
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"
+                                      title="{{ 'admin.absence_types.requires_approval'|trans }}"
+                                      aria-label="{{ 'admin.absence_types.requires_approval'|trans }}">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                    </svg>
                                 </span>
                             {% else %}
-                                <span class="text-gray-300" aria-label="{{ 'admin.absence_types.no_approval'|trans }}">—</span>
+                                <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-50 text-gray-400"
+                                      title="{{ 'admin.absence_types.no_approval'|trans }}"
+                                      aria-label="{{ 'admin.absence_types.no_approval'|trans }}">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                                    </svg>
+                                </span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-3">
