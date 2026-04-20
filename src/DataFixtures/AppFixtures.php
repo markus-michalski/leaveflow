@@ -161,8 +161,14 @@ final class AppFixtures extends Fixture
         yield new AbsenceType($company, 'Resturlaub', true, true, '#6366F1');
         // Krankheit: eAU since 2023 means no upload, no approval gate, no deduction.
         yield new AbsenceType($company, 'Krankheit', false, false, '#EF4444');
-        yield new AbsenceType($company, 'Überstundenabbau', true, true, '#10B981');
-        yield new AbsenceType($company, 'Sonderurlaub', true, true, '#F59E0B');
+        // Überstundenabbau draws from an overtime balance we don't model yet.
+        // Until that bank exists, we don't deduct from the regular leave balance —
+        // otherwise taking TOIL would wrongly eat vacation days.
+        yield new AbsenceType($company, 'Überstundenabbau', false, true, '#10B981');
+        // Sonderurlaub per BGB §616: additional paid leave, does NOT deduct from
+        // the regular entitlement. Manager approves because the reason (bereavement,
+        // own wedding, birth, etc.) has to be verified.
+        yield new AbsenceType($company, 'Sonderurlaub', false, true, '#F59E0B');
         yield new AbsenceType($company, 'Fortbildung', false, true, '#8B5CF6');
     }
 
