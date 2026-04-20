@@ -242,7 +242,7 @@ admin:
         title: Absence types
         heading: Absence types
         description: "Maintain the catalogue of absence types (e.g. vacation, sickness, home office). Policy flags drive whether a type deducts from the leave balance and whether it requires approval."
-        create: Create new
+        create: "Add absence type"
         edit: Edit
         delete: Delete
         confirm_delete: "Really delete this absence type?"
@@ -276,7 +276,7 @@ admin:
         heading: Leave balances
         description: "Overview of all leave entitlements. The expiry of a carryover entitlement can be extended manually for illness or parental leave."
         empty: "No leave entitlements recorded yet."
-        create: "Create new"
+        create: "Add leave entitlement"
         edit_expiry: "Adjust expiry"
         expired_badge: "Expired"
         no_expiry: "—"

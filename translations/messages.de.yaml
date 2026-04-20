@@ -242,7 +242,7 @@ admin:
         title: Urlaubsarten
         heading: Urlaubsarten
         description: "Pflege hier den Katalog der Abwesenheitsarten (z. B. Urlaub, Krankheit, Home Office). Die Policy-Flags bestimmen, ob eine Art vom Urlaubskonto abzieht und ob sie genehmigt werden muss."
-        create: Neu anlegen
+        create: "Urlaubsart anlegen"
         edit: Bearbeiten
         delete: Löschen
         confirm_delete: "Urlaubsart wirklich löschen?"
@@ -276,7 +276,7 @@ admin:
         heading: Urlaubskonten
         description: "Übersicht aller Urlaubsansprüche. Die Ablauffrist eines Resturlaubs lässt sich bei Krankheit/Elternzeit manuell verlängern."
         empty: "Noch keine Urlaubsansprüche erfasst."
-        create: "Neu anlegen"
+        create: "Urlaubsanspruch anlegen"
         edit_expiry: "Ablauf anpassen"
         expired_badge: "Abgelaufen"
         no_expiry: "—"
