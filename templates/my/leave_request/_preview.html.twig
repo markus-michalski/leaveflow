@@ -1,0 +1,53 @@
+<turbo-frame id="leave-preview">
+    {% if errorKey %}
+        <div class="rounded-md border border-dashed border-gray-300 bg-gray-50 p-6 text-center text-sm text-gray-600"
+             data-testid="leave-preview-error">
+            {{ errorKey|trans }}
+        </div>
+    {% elseif breakdown %}
+        {% set total = breakdown.totalHours %}
+        {% set workingCount = breakdown.workingDays|length %}
+
+        <div class="rounded-md border border-gray-200 bg-white" data-testid="leave-preview-content">
+            <div class="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3">
+                <div class="text-sm">
+                    <span class="font-semibold text-gray-900" data-testid="leave-preview-summary">
+                        {{ 'my.leave_requests.preview.summary'|trans({
+                            '%days%': workingCount,
+                            '%hours%': total|number_format(2, ',', '.'),
+                        })|raw }}
+                    </span>
+                </div>
+            </div>
+            <ul class="divide-y divide-gray-100 text-sm">
+                {% for day in breakdown.days %}
+                    {% set weekday = day.date.format('N') %}
+                    {% set weekdayNames = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 7: 'sunday' } %}
+                    <li class="flex items-center justify-between px-4 py-2">
+                        <span class="flex items-center gap-2">
+                            <span class="inline-block w-24 text-xs uppercase tracking-wide text-gray-500">
+                                {{ ('weekday.' ~ weekdayNames[weekday])|trans }}
+                            </span>
+                            <span class="font-mono text-gray-700">{{ day.date|date('d.m.Y') }}</span>
+                        </span>
+                        <span class="flex items-center gap-3">
+                            {% if day.status.value == 'excluded' %}
+                                <span class="text-xs text-gray-500">{{ ('my.leave_requests.exclusion.' ~ day.reason.value)|trans }}</span>
+                                <span class="font-mono text-gray-400">0{{ 'h'|trans }}</span>
+                            {% elseif day.status.value == 'half_day' %}
+                                <span class="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">{{ 'my.leave_requests.preview.half_day'|trans }}</span>
+                                <span class="font-mono text-gray-900">{{ day.hours|number_format(2, ',', '.') }}{{ 'h'|trans }}</span>
+                            {% else %}
+                                <span class="font-mono text-gray-900">{{ day.hours|number_format(2, ',', '.') }}{{ 'h'|trans }}</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <div class="rounded-md border border-dashed border-gray-300 bg-gray-50 p-6 text-center text-sm text-gray-500" data-testid="leave-preview-placeholder">
+            {{ 'my.leave_requests.preview.awaiting_dates'|trans }}
+        </div>
+    {% endif %}
+</turbo-frame>

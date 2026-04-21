@@ -26,13 +26,18 @@ class LeaveRequestDayRepository extends ServiceEntityRepository
      * requests for an employee. Used by LeaveRequestService to guard against
      * oversubscription when checking the employee's remaining balance.
      *
+     * PHP-side aggregation on purpose: DQL doesn't ship YEAR() without a
+     * platform-specific extension, and the row count per employee/pending
+     * stays bounded (a handful of requests, each holding a few dozen days at
+     * most), so portability beats pushing the grouping into SQL.
+     *
      * @return array<int, float> keyed by year, e.g. [2025 => 40.0, 2026 => 8.0]
      */
     public function sumPendingHoursByYear(Employee $employee): array
     {
-        /** @var list<array{year: int, hours: float}> $rows */
+        /** @var list<array{date: \DateTimeImmutable, hours: float}> $rows */
         $rows = $this->createQueryBuilder('d')
-            ->select('YEAR(d.date) AS year', 'SUM(d.hours) AS hours')
+            ->select('d.date AS date', 'd.hours AS hours')
             ->innerJoin('d.leaveRequest', 'r')
             ->andWhere('r.employee = :employee')
             ->andWhere('r.status = :status')
@@ -40,13 +45,13 @@ class LeaveRequestDayRepository extends ServiceEntityRepository
             ->setParameter('employee', $employee)
             ->setParameter('status', LeaveRequestStatus::Pending->value)
             ->setParameter('excluded', LeaveDayStatus::Excluded->value)
-            ->groupBy('year')
             ->getQuery()
             ->getArrayResult();
 
         $result = [];
         foreach ($rows as $row) {
-            $result[(int) $row['year']] = (float) $row['hours'];
+            $year = (int) $row['date']->format('Y');
+            $result[$year] = ($result[$year] ?? 0.0) + (float) $row['hours'];
         }
 
         return $result;

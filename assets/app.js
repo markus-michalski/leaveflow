@@ -1,5 +1,6 @@
 import './stimulus_bootstrap.js';
 import './styles/app.css';
+import '@hotwired/turbo';
 import { initFlowbite } from 'flowbite';
 
 // Turbo swaps the <body> on navigation, which means Flowbite's DOMContentLoaded

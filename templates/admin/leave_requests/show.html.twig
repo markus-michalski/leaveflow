@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.leave_requests.show.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-3xl p-6">
+    <header class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.leave_requests.show.heading'|trans }}</h1>
+        <a href="{{ path('app_admin_leave_request_index') }}"
+           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ 'nav.back_to_list'|trans }}
+        </a>
+    </header>
+
+    <section class="rounded-xl bg-white p-6 shadow-sm">
+        <dl class="grid grid-cols-3 gap-y-3 text-sm">
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'admin.leave_requests.field.employee'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900">{{ leaveRequest.employee.fullName }} ({{ leaveRequest.employee.employeeNumber }})</dd>
+
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'my.leave_requests.field.status'|trans }}</dt>
+            <dd class="col-span-2">
+                {% set status_classes = {
+                    'pending': 'bg-amber-100 text-amber-800',
+                    'approved': 'bg-green-100 text-green-800',
+                    'rejected': 'bg-rose-100 text-rose-800',
+                    'cancelled': 'bg-gray-100 text-gray-700',
+                    'cancel_requested': 'bg-orange-100 text-orange-800',
+                } %}
+                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ status_classes[leaveRequest.status.value]|default('bg-gray-100 text-gray-700') }}">
+                    {{ ('my.leave_requests.status.' ~ leaveRequest.status.value)|trans }}
+                </span>
+            </dd>
+
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'my.leave_requests.field.range'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900">
+                {{ leaveRequest.startDate|date('d.m.Y') }}
+                {% if leaveRequest.startDate != leaveRequest.endDate %}
+                    – {{ leaveRequest.endDate|date('d.m.Y') }}
+                {% endif %}
+                {% if leaveRequest.dayType.value != 'full_day' %}
+                    <span class="ml-2 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">
+                        {{ ('my.leave_requests.day_type.' ~ leaveRequest.dayType.value)|trans }}
+                    </span>
+                {% endif %}
+            </dd>
+
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'my.leave_requests.field.absence_type'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900">
+                <span class="inline-flex items-center gap-1">
+                    <span class="inline-block h-2.5 w-2.5 rounded-full" style="background-color: {{ leaveRequest.absenceType.color }}"></span>
+                    {{ leaveRequest.absenceType.name }}
+                </span>
+            </dd>
+
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'my.leave_requests.field.hours'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900 font-mono">{{ leaveRequest.totalHours|number_format(2, ',', '.') }} h</dd>
+
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'my.leave_requests.field.requested_at'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900">{{ leaveRequest.requestedAt|date('d.m.Y H:i') }}</dd>
+        </dl>
+    </section>
+
+    <section class="mt-6 rounded-xl bg-white p-6 shadow-sm">
+        <h2 class="mb-3 text-lg font-semibold text-gray-900">{{ 'my.leave_requests.show.days_heading'|trans }}</h2>
+        <ul class="divide-y divide-gray-100 text-sm">
+            {% for day in leaveRequest.days %}
+                {% set weekday = day.date.format('N') %}
+                {% set weekdayNames = { 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday', 7: 'sunday' } %}
+                <li class="flex items-center justify-between py-2">
+                    <span class="flex items-center gap-2">
+                        <span class="inline-block w-24 text-xs uppercase tracking-wide text-gray-500">
+                            {{ ('weekday.' ~ weekdayNames[weekday])|trans }}
+                        </span>
+                        <span class="font-mono text-gray-700">{{ day.date|date('d.m.Y') }}</span>
+                    </span>
+                    <span class="flex items-center gap-3">
+                        {% if day.status.value == 'excluded' %}
+                            <span class="text-xs text-gray-500">{{ ('my.leave_requests.exclusion.' ~ day.reason.value)|trans }}</span>
+                            <span class="font-mono text-gray-400">0 h</span>
+                        {% elseif day.status.value == 'half_day' %}
+                            <span class="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">{{ 'my.leave_requests.preview.half_day'|trans }}</span>
+                            <span class="font-mono text-gray-900">{{ day.hours|number_format(2, ',', '.') }} h</span>
+                        {% else %}
+                            <span class="font-mono text-gray-900">{{ day.hours|number_format(2, ',', '.') }} h</span>
+                        {% endif %}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+</div>
+{% endblock %}
