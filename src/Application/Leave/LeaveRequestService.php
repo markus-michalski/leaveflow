@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Application\Leave;
 
+use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Application\Holiday\HolidayService;
 use App\Domain\Calculator\LeaveCalculator;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveRequest;
 use App\Domain\Enum\FederalState;
+use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
+use App\Domain\Repository\LeaveRequestDayRepository;
 use App\Domain\ValueObject\Holiday;
 use App\Domain\ValueObject\LeaveBreakdown;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,9 +35,16 @@ use Symfony\Component\Clock\ClockInterface;
  */
 final readonly class LeaveRequestService
 {
+    /**
+     * Tolerance for float comparisons in the per-year balance check.
+     */
+    private const float BALANCE_EPSILON = 0.0001;
+
     public function __construct(
         private HolidayService $holidayService,
         private LeaveCalculator $calculator,
+        private EntitlementBalanceReader $balanceReader,
+        private LeaveRequestDayRepository $dayRepository,
         private EntityManagerInterface $entityManager,
         private ClockInterface $clock,
     ) {
@@ -60,6 +70,10 @@ final readonly class LeaveRequestService
     ): LeaveRequest {
         $breakdown = $this->preview($employee, $startDate, $endDate, $dayType);
 
+        if ($absenceType->deductsFromLeave()) {
+            $this->assertBalanceCoversBreakdown($employee, $breakdown);
+        }
+
         $request = new LeaveRequest(
             employee: $employee,
             absenceType: $absenceType,
@@ -74,6 +88,53 @@ final readonly class LeaveRequestService
         $this->entityManager->flush();
 
         return $request;
+    }
+
+    /**
+     * Per-year balance check before creating a deducting leave request.
+     *
+     * Pending requests already held by the employee are counted as reserved,
+     * so three overlapping-year requests can't slip through by each one seeing
+     * the pre-approval balance. BUrlG §7 Abs. 1 sets the baseline expectation
+     * that leave requests are granted unless operational reasons block them —
+     * we want the block to happen visibly at request time, not silently during
+     * approval weeks later.
+     */
+    private function assertBalanceCoversBreakdown(Employee $employee, LeaveBreakdown $breakdown): void
+    {
+        $hoursByYear = $this->hoursByYear($breakdown);
+        if ([] === $hoursByYear) {
+            return;
+        }
+
+        $pendingByYear = $this->dayRepository->sumPendingHoursByYear($employee);
+        $asOf = $this->clock->now();
+
+        foreach ($hoursByYear as $year => $requestedHours) {
+            $snapshot = $this->balanceReader->forEmployee($employee, $year, $asOf);
+            $available = $snapshot->totalRemaining() - ($pendingByYear[$year] ?? 0.0);
+
+            if (($available + self::BALANCE_EPSILON) < $requestedHours) {
+                throw new InsufficientLeaveBalanceException($year, $requestedHours, max(0.0, $available));
+            }
+        }
+    }
+
+    /**
+     * @return array<int, float>
+     */
+    private function hoursByYear(LeaveBreakdown $breakdown): array
+    {
+        $hoursByYear = [];
+        foreach ($breakdown->days as $day) {
+            if (LeaveDayStatus::Excluded === $day->status) {
+                continue;
+            }
+            $year = (int) $day->date->format('Y');
+            $hoursByYear[$year] = ($hoursByYear[$year] ?? 0.0) + $day->hours;
+        }
+
+        return $hoursByYear;
     }
 
     /**
