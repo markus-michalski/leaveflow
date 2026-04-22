@@ -39,6 +39,7 @@ nav:
         locations: Standorte
         employees: Mitarbeiter
         holidays: Feiertage
+        leave_requests: Urlaubsanträge
         absence_types: Urlaubsarten
         entitlements: Urlaubskonten
     logout: Abmelden
@@ -306,6 +307,19 @@ admin:
         edit_expiry_view:
             title: "Ablauffrist bearbeiten"
             hint: "Leer lassen, um die Ablauffrist zu entfernen (z. B. bei anerkannter BAG-Aufklärungspflicht-Ausnahme)."
+    leave_requests:
+        title: Urlaubsanträge
+        heading: Urlaubsanträge
+        description: Überblick aller Anträge der Firma. Genehmigung erfolgt in Phase 6.
+        empty: Es gibt keine Anträge im gewählten Filter.
+        field:
+            employee: Mitarbeiter
+        filter:
+            label: Status
+            all: Alle
+        show:
+            title: Urlaubsantrag
+            heading: Urlaubsantrag
 holiday:
     neujahr: Neujahr
     heilige_drei_koenige: Heilige Drei Könige
@@ -362,6 +376,78 @@ profile:
     joined_at: Eintritt
     left_at: Austritt
     no_employee_record: Für deinen Account ist kein Mitarbeiterprofil hinterlegt. Wende dich an die Administration.
+    balance:
+        heading: "Mein Urlaubskonto %year%"
+        regular: Regulärer Anspruch
+        carryover: Resturlaub aus Vorjahr
+        total: Gesamt verfügbar
+        next_expiry: Resturlaub verfällt am
+        my_requests: Meine Anträge
+my:
+    leave_requests:
+        title: Meine Urlaubsanträge
+        heading: Meine Urlaubsanträge
+        description: Stelle neue Anträge und verfolge den Status deiner bestehenden.
+        create: Neuen Antrag stellen
+        empty: Du hast noch keine Anträge gestellt.
+        details: Details
+        field:
+            requested_at: Eingereicht
+            range: Zeitraum
+            absence_type: Abwesenheit
+            absence_type_placeholder: Bitte wählen…
+            hours: Stunden
+            status: Status
+            start_date: Von
+            end_date: Bis
+            day_type: Art
+        day_type:
+            full_day: Ganze Tage
+            half_day_am: Halber Tag (Vormittag)
+            half_day_pm: Halber Tag (Nachmittag)
+        status:
+            pending: Offen
+            recorded: Erfasst
+            approved: Genehmigt
+            rejected: Abgelehnt
+            cancelled: Storniert
+            cancel_requested: Stornierung angefragt
+        exclusion:
+            weekend: Wochenende
+            holiday: Feiertag
+            non_working_day: Kein Arbeitstag
+            employee_inactive: Nicht angestellt
+        new:
+            title: Neuer Urlaubsantrag
+            heading: Neuer Urlaubsantrag
+            submit: Antrag einreichen
+        show:
+            title: Urlaubsantrag
+            heading: Urlaubsantrag
+            days_heading: Tagesaufschlüsselung
+            cancel: Antrag stornieren
+            cancel_confirm: Möchtest du diesen Antrag wirklich stornieren?
+        preview:
+            heading: "Vorschau: Arbeitsstunden"
+            summary: "<strong>%days%</strong> Arbeitstage = <strong>%hours%&thinsp;h</strong>"
+            half_day: Halbtags
+            awaiting_dates: Wähle Start- und Enddatum, um die Vorschau zu sehen.
+            end_before_start: Das Enddatum liegt vor dem Startdatum.
+            unknown_federal_state: Dein Standort hat kein unterstütztes Bundesland.
+            backdated: Anträge können nicht rückwirkend gestellt werden. Bitte wähle ein Startdatum ab heute.
+            half_day_multi_day: Halbe Tage sind nur bei Einzeltag-Anträgen möglich. Setze Start und Ende auf dasselbe Datum oder stelle mehrere Anträge.
+        flash:
+            created: "Antrag über %hours% Stunden wurde eingereicht."
+            cancelled: "Antrag wurde storniert."
+        error:
+            end_before_start: Das Enddatum darf nicht vor dem Startdatum liegen.
+            absence_type_foreign: Die gewählte Abwesenheitsart gehört nicht zu deiner Firma.
+            no_employee_record: Für deinen Account ist kein Mitarbeiterprofil hinterlegt. Wende dich an die Administration.
+            insufficient_balance: "Dein Urlaubskonto %year% ist nicht ausreichend: %requested%h angefragt, %available%h verfügbar (inkl. offener Anträge)."
+            backdated: Anträge können nicht rückwirkend gestellt werden. Wende dich an die Administration, falls eine Korrektur nötig ist.
+            no_entitlement_for_year: "Für %year% wurde noch kein Urlaubsanspruch angelegt. Bitte wende dich an die Administration."
+            half_day_multi_day: Halbe Tage sind nur bei Einzeltag-Anträgen möglich. Für Mix-Szenarien bitte mehrere Anträge stellen.
+            cancel_not_allowed: "Dieser Antrag kann nicht storniert werden. Bereits genehmigte Anträge erfordern einen separaten Storno-Flow über die Administration."
 weekday:
     monday: Montag
     tuesday: Dienstag

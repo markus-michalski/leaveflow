@@ -41,6 +41,7 @@ nav:
         holidays: Holidays
         absence_types: Absence types
         entitlements: Leave balances
+        leave_requests: Leave requests
     logout: Log out
 welcome:
     title: Welcome to LeaveFlow
@@ -306,6 +307,19 @@ admin:
         edit_expiry_view:
             title: "Edit expiry"
             hint: "Leave empty to remove the expiry (e.g. for a recognized BAG notification-duty exception)."
+    leave_requests:
+        title: Leave requests
+        heading: Leave requests
+        description: "Overview of all leave requests in your company. Approval workflow lands in Phase 6."
+        empty: No leave requests match the selected filter.
+        field:
+            employee: Employee
+        filter:
+            label: Status
+            all: All
+        show:
+            title: Leave request
+            heading: Leave request
 holiday:
     neujahr: "New Year's Day"
     heilige_drei_koenige: Epiphany
@@ -362,6 +376,78 @@ profile:
     joined_at: Joined
     left_at: Left
     no_employee_record: No employee record is linked to your account. Please contact your administrator.
+    balance:
+        heading: "My leave balance %year%"
+        regular: Regular entitlement
+        carryover: Carryover from last year
+        total: Total available
+        next_expiry: Carryover expires on
+        my_requests: My requests
+my:
+    leave_requests:
+        title: My leave requests
+        heading: My leave requests
+        description: Submit new requests and track the status of existing ones.
+        create: Submit new request
+        empty: You have not submitted any requests yet.
+        details: Details
+        field:
+            requested_at: Submitted
+            range: Date range
+            absence_type: Absence type
+            absence_type_placeholder: Please choose…
+            hours: Hours
+            status: Status
+            start_date: From
+            end_date: To
+            day_type: Type
+        day_type:
+            full_day: Full days
+            half_day_am: Half day (morning)
+            half_day_pm: Half day (afternoon)
+        status:
+            pending: Pending
+            recorded: Recorded
+            approved: Approved
+            rejected: Rejected
+            cancelled: Cancelled
+            cancel_requested: Cancellation requested
+        exclusion:
+            weekend: Weekend
+            holiday: Holiday
+            non_working_day: Non-working day
+            employee_inactive: Not employed
+        new:
+            title: New leave request
+            heading: New leave request
+            submit: Submit request
+        show:
+            title: Leave request
+            heading: Leave request
+            days_heading: Day-by-day breakdown
+            cancel: Cancel request
+            cancel_confirm: Do you really want to cancel this request?
+        preview:
+            heading: "Preview: working hours"
+            summary: "<strong>%days%</strong> working days = <strong>%hours%&thinsp;h</strong>"
+            half_day: Half day
+            awaiting_dates: Pick start and end date to see the preview.
+            end_before_start: The end date is before the start date.
+            unknown_federal_state: Your location has no supported federal state.
+            backdated: Backdated requests are not supported. Please pick a start date in the future.
+            half_day_multi_day: Half days are only available on single-day requests. Set start and end to the same date, or file separate requests.
+        flash:
+            created: "Request for %hours% hours has been submitted."
+            cancelled: "Request has been cancelled."
+        error:
+            end_before_start: The end date must not precede the start date.
+            absence_type_foreign: The selected absence type does not belong to your company.
+            no_employee_record: No employee record is linked to your account. Please contact your administrator.
+            insufficient_balance: "Your %year% leave balance is insufficient: %requested%h requested, %available%h available (including pending requests)."
+            backdated: Backdated requests are not supported. Please contact your administrator if a correction is needed.
+            no_entitlement_for_year: "No leave entitlement exists for %year% yet. Please contact your administrator."
+            half_day_multi_day: Half days are only available on single-day requests. Please file separate requests for mix scenarios.
+            cancel_not_allowed: "This request cannot be cancelled. Approved requests require a separate cancellation flow via the admin."
 weekday:
     monday: Monday
     tuesday: Tuesday

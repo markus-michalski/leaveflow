@@ -9,11 +9,16 @@ use App\Domain\Entity\Company;
 use App\Domain\Entity\CompanyHoliday;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
+use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
+use App\Domain\Enum\LeaveDayStatus;
+use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Enum\UserRole;
 use App\Domain\Enum\Weekday;
+use App\Domain\ValueObject\LeaveBreakdown;
+use App\Domain\ValueObject\LeaveDay;
 use App\Domain\ValueObject\WorkSchedule;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -121,35 +126,97 @@ final class AppFixtures extends Fixture
         }
 
         // Phase 4: default AbsenceTypes (six entries mirroring the roadmap).
+        /** @var array<string, AbsenceType> $absenceTypesByName */
+        $absenceTypesByName = [];
         foreach ($this->absenceTypeSeeds($company) as $absenceType) {
             $manager->persist($absenceType);
+            $absenceTypesByName[$absenceType->getName()] = $absenceType;
         }
 
-        // Phase 4: current-year regular entitlement plus a demo carryover from
-        // last year for Maya to showcase the FIFO consumption rules.
-        $manager->persist(new LeaveEntitlement(
-            $maya,
-            $currentYear,
-            LeaveEntitlementType::Regular,
-            240.0,
-        ));
+        // Phase 5: three years of Regular entitlements (previous, current, next)
+        // so manual tests can exercise year-boundary requests and both the
+        // backdated-guard (previous year) and the "no entitlement" edge never
+        // fires just because the seed doesn't cover the range.
+        foreach ([$currentYear - 1, $currentYear, $currentYear + 1] as $year) {
+            $manager->persist(new LeaveEntitlement(
+                $maya,
+                $year,
+                LeaveEntitlementType::Regular,
+                240.0,
+            ));
+            // Erik works 30h/4d so 30 leave days map to 30 * 7.5h = 225h.
+            $manager->persist(new LeaveEntitlement(
+                $erik,
+                $year,
+                LeaveEntitlementType::Regular,
+                225.0,
+            ));
+        }
+
+        // Demo carryover for Maya: 16h still outstanding, expiring 31.03. of
+        // the following year so the profile dashboard keeps showing an active
+        // carryover regardless of when the fixtures are loaded. Admins can
+        // edit the expiry via /admin/entitlements to simulate the abgelaufen-
+        // case.
         $manager->persist(new LeaveEntitlement(
             $maya,
             $currentYear,
             LeaveEntitlementType::Carryover,
             16.0,
-            (new \DateTimeImmutable())->setDate($currentYear, 3, 31)->setTime(0, 0),
+            (new \DateTimeImmutable())->setDate($currentYear + 1, 3, 31)->setTime(0, 0),
         ));
 
-        // Erik works 30h/4d so 30 leave days map to 30 * 7.5h = 225h.
-        $manager->persist(new LeaveEntitlement(
-            $erik,
-            $currentYear,
-            LeaveEntitlementType::Regular,
-            225.0,
-        ));
+        // Phase 5: demo leave requests so admins and employees see realistic
+        // entries on their dashboards right after `make fixtures`.
+        foreach ($this->leaveRequestSeeds($maya, $erik, $absenceTypesByName) as $request) {
+            $manager->persist($request);
+        }
 
         $manager->flush();
+    }
+
+    /**
+     * @param array<string, AbsenceType> $absenceTypesByName
+     *
+     * @return iterable<LeaveRequest>
+     */
+    private function leaveRequestSeeds(
+        Employee $maya,
+        Employee $erik,
+        array $absenceTypesByName,
+    ): iterable {
+        // Maya: 5 days of summer vacation in July (full-time Mon-Fri, 40h).
+        $summer = new LeaveRequest(
+            $maya,
+            $absenceTypesByName['Urlaub'],
+            new \DateTimeImmutable('2026-07-06'),
+            new \DateTimeImmutable('2026-07-10'),
+            LeaveDayType::FullDay,
+            new \DateTimeImmutable('2026-04-15 10:00:00'),
+        );
+        $summer->applyBreakdown(new LeaveBreakdown([
+            new LeaveDay(new \DateTimeImmutable('2026-07-06'), 8.0, LeaveDayStatus::Working),
+            new LeaveDay(new \DateTimeImmutable('2026-07-07'), 8.0, LeaveDayStatus::Working),
+            new LeaveDay(new \DateTimeImmutable('2026-07-08'), 8.0, LeaveDayStatus::Working),
+            new LeaveDay(new \DateTimeImmutable('2026-07-09'), 8.0, LeaveDayStatus::Working),
+            new LeaveDay(new \DateTimeImmutable('2026-07-10'), 8.0, LeaveDayStatus::Working),
+        ]));
+        yield $summer;
+
+        // Erik: single half-day sick leave (non-deducting). Erik's schedule is
+        // Mon-Thu 7.5h each — 22.04.2026 is a Wednesday, so the half-day is 3.75h.
+        $sick = new LeaveRequest(
+            $erik,
+            $absenceTypesByName['Krankheit'],
+            new \DateTimeImmutable('2026-04-22'),
+            new \DateTimeImmutable('2026-04-22'),
+            LeaveDayType::HalfDayAm,
+            new \DateTimeImmutable('2026-04-22 08:15:00'),
+        );
+        $sick->applyBreakdown(new LeaveBreakdown([
+            new LeaveDay(new \DateTimeImmutable('2026-04-22'), 3.75, LeaveDayStatus::HalfDay),
+        ]));
+        yield $sick;
     }
 
     /**

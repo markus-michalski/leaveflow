@@ -44,9 +44,20 @@
                             <li>
                                 <a href="{{ path('app_admin_entitlement_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.entitlements'|trans }}</a>
                             </li>
+                            <li>
+                                <a href="{{ path('app_admin_leave_request_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.leave_requests'|trans }}</a>
+                            </li>
                         </ul>
                     </div>
                 </div>
+            {% endif %}
+
+            {% if app.user.hasEmployee %}
+                <a href="{{ path('app_my_leave_request_index') }}"
+                   data-testid="nav-my-leave-requests"
+                   class="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ 'nav.requests'|trans }}
+                </a>
             {% endif %}
 
             <div class="relative">

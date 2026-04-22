@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'my.leave_requests.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-5xl p-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'my.leave_requests.heading'|trans }}</h1>
+            <p class="mt-1 text-sm text-gray-500">{{ 'my.leave_requests.description'|trans }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+            <a href="{{ path('app_my_leave_request_new') }}"
+               data-testid="my-leave-requests-new"
+               class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ 'my.leave_requests.create'|trans }}
+            </a>
+        </div>
+    </header>
+
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th class="px-6 py-3">{{ 'my.leave_requests.field.requested_at'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'my.leave_requests.field.range'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'my.leave_requests.field.absence_type'|trans }}</th>
+                    <th class="px-6 py-3 text-right">{{ 'my.leave_requests.field.hours'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'my.leave_requests.field.status'|trans }}</th>
+                    <th class="px-6 py-3 text-right"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700" data-testid="my-leave-requests-list">
+                {% for req in requests %}
+                    <tr data-testid="my-leave-request-row-{{ req.id }}">
+                        <td class="px-6 py-3 whitespace-nowrap">{{ req.requestedAt|date('d.m.Y H:i') }}</td>
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            {{ req.startDate|date('d.m.Y') }}
+                            {%- if req.startDate != req.endDate %}
+                                &nbsp;–&nbsp;{{ req.endDate|date('d.m.Y') }}
+                            {% endif %}
+                            {% if req.dayType.value != 'full_day' %}
+                                <span class="ml-1 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">
+                                    {{ ('my.leave_requests.day_type.' ~ req.dayType.value)|trans }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3">
+                            <span class="inline-flex items-center gap-1">
+                                <span class="inline-block h-2.5 w-2.5 rounded-full" style="background-color: {{ req.absenceType.color }}"></span>
+                                {{ req.absenceType.name }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3 text-right font-mono">{{ req.totalHours|number_format(2, ',', '.') }}</td>
+                        <td class="px-6 py-3">
+                            {% set status_classes = {
+                                'pending': 'bg-amber-100 text-amber-800',
+                                'recorded': 'bg-sky-100 text-sky-800',
+                                'approved': 'bg-green-100 text-green-800',
+                                'rejected': 'bg-rose-100 text-rose-800',
+                                'cancelled': 'bg-gray-100 text-gray-700',
+                                'cancel_requested': 'bg-orange-100 text-orange-800',
+                            } %}
+                            <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ status_classes[req.status.value]|default('bg-gray-100 text-gray-700') }}">
+                                {{ ('my.leave_requests.status.' ~ req.status.value)|trans }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3 text-right">
+                            <a href="{{ path('app_my_leave_request_show', { id: req.id }) }}"
+                               class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                                {{ 'my.leave_requests.details'|trans }}
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-6 text-center text-gray-500" data-testid="my-leave-requests-empty">{{ 'my.leave_requests.empty'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

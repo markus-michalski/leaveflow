@@ -12,6 +12,33 @@
         </a>
     </header>
 
+    {% if employee and balance %}
+        <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-balance">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-semibold text-gray-900">{{ 'profile.balance.heading'|trans({ '%year%': balanceYear }) }}</h2>
+                <a href="{{ path('app_my_leave_request_index') }}"
+                   class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                    {{ 'profile.balance.my_requests'|trans }}
+                </a>
+            </div>
+            <dl class="grid grid-cols-3 gap-y-2 text-sm">
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.balance.regular'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900 font-mono" data-testid="profile-balance-regular">{{ balance.regularRemaining|number_format(2, ',', '.') }} h</dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.balance.carryover'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900 font-mono" data-testid="profile-balance-carryover">{{ balance.carryoverRemaining|number_format(2, ',', '.') }} h</dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.balance.total'|trans }}</dt>
+                <dd class="col-span-2 font-mono font-semibold text-gray-900" data-testid="profile-balance-total">{{ balance.totalRemaining|number_format(2, ',', '.') }} h</dd>
+
+                {% if balance.nextExpiry %}
+                    <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.balance.next_expiry'|trans }}</dt>
+                    <dd class="col-span-2 text-amber-700" data-testid="profile-balance-expiry">{{ balance.nextExpiry|date('d.m.Y') }}</dd>
+                {% endif %}
+            </dl>
+        </section>
+    {% endif %}
+
     <section class="rounded-xl bg-white p-6 shadow-sm space-y-4">
         <dl class="grid grid-cols-3 gap-y-3 text-sm">
             <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.email'|trans }}</dt>
