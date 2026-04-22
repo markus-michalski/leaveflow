@@ -7,6 +7,7 @@ namespace App\DataFixtures;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\CompanyHoliday;
+use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
 use App\Domain\Entity\LeaveRequest;
@@ -83,7 +84,7 @@ final class AppFixtures extends Fixture
         $manager->persist($erik);
 
         // Demonstrates Employee without User (pre-go-live import / archived ex-employee).
-        $manager->persist(new Employee(
+        $hannah = new Employee(
             $company,
             'Hannah History',
             'EMP-0003',
@@ -92,7 +93,18 @@ final class AppFixtures extends Fixture
             new \DateTimeImmutable('2019-05-01'),
             null,
             new \DateTimeImmutable('2024-09-30'),
-        ));
+        );
+        $manager->persist($hannah);
+
+        // Phase 6: single default "Alle" department per company. Maya
+        // (Manager role) is the lead — Erik submits, Maya approves. No
+        // deputy in the demo seed so the Admin fallback path is visible
+        // when Maya herself submits a request.
+        $alle = new Department($company, 'Alle', lead: $maya);
+        $manager->persist($alle);
+        $maya->assignToDepartment($alle);
+        $erik->assignToDepartment($alle);
+        $hannah->assignToDepartment($alle);
 
         // Phase 3: demo holiday configuration for the current + next year.
         // No state-wide override demo on purpose — Augsburger Friedensfest (8.8.)
