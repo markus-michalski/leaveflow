@@ -121,3 +121,7 @@ db-reset: ## Drop, create, migrate the database (DEV ONLY)
 	$(EXEC) bin/console doctrine:database:drop --force --if-exists
 	$(EXEC) bin/console doctrine:database:create
 	$(EXEC) bin/console doctrine:migrations:migrate --no-interaction
+
+.PHONY: fixtures
+fixtures: ## Purge DB and (re)load the demo fixtures (DEV ONLY)
+	$(EXEC) bin/console doctrine:fixtures:load --no-interaction
