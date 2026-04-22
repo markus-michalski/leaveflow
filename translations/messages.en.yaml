@@ -37,11 +37,14 @@ nav:
         menu: Admin
         users: Users
         locations: Locations
+        departments: Departments
         employees: Employees
         holidays: Holidays
         absence_types: Absence types
         entitlements: Leave balances
         leave_requests: Leave requests
+    manager:
+        approvals: Approvals
     logout: Log out
 welcome:
     title: Welcome to LeaveFlow
@@ -131,6 +134,37 @@ admin:
             body: an administrator has created a LeaveFlow account for you. Click the link below to set your password and sign in.
             cta: Set password and sign in
             expires_in_one_hour: This link is valid for one hour. Request a new one if it expires.
+    departments:
+        title: Departments
+        heading: Departments
+        intro: "Departments group employees and own the approval chain. Each department has a primary lead and an optional deputy."
+        create: Add department
+        edit: Edit
+        edit_heading: Edit department
+        name: Name
+        lead: Team lead
+        deputy: Deputy
+        no_lead: "— No lead (admin approves) —"
+        no_deputy: "— No deputy —"
+        active: Active
+        active_hint: "Inactive departments no longer receive new approvals — requests are routed to the admin fallback."
+        actions: Actions
+        save: Save
+        back: Back
+        delete: Delete
+        delete_confirm: "Really delete department %name%?"
+        deactivate: Deactivate
+        activate: Activate
+        empty: No departments yet — create one to enable manager approvals.
+        status:
+            active: Active
+            inactive: Inactive
+        flash:
+            created: Department %name% has been created.
+            updated: Department %name% has been updated.
+            activated: Department %name% has been activated.
+            deactivated: Department %name% has been deactivated.
+            deleted: Department %name% has been deleted.
     locations:
         title: Locations
         heading: Locations
@@ -169,6 +203,9 @@ admin:
         user: Linked user
         user_help: Optional. Only set if this employee should be able to sign in.
         user_placeholder: "— No login —"
+        department: Department
+        department_help: "Optional. Without a department, approvals go straight to the admin fallback."
+        department_placeholder: "— No department —"
         linked_user: Login
         no_user: no login
         days_suffix: " days"
@@ -456,3 +493,44 @@ weekday:
     friday: Friday
     saturday: Saturday
     sunday: Sunday
+manager:
+    approvals:
+        title: Pending approvals
+        heading: Pending approvals
+        intro: "Leave requests from your team that need a decision. Admins see requests from the whole company."
+        empty: No requests need your attention right now.
+        review: Review
+        show:
+            title: Review leave request
+            heading: Review leave request
+        actions:
+            heading: Decision
+            approve: Approve
+            reject: Reject
+            cancel_heading: Cancellation request
+            cancel_intro: "The employee asked to cancel this approved leave. Decide whether to grant it."
+            confirm_cancel: Confirm cancellation
+            deny_cancel: Deny cancellation
+        reject:
+            reason: Rejection reason
+            reason_placeholder: "A short note visible to the employee."
+            reason_required: "Please give a reason for the rejection."
+        history:
+            heading: Decision history
+            empty: No decisions recorded yet.
+            system: System
+        transitions:
+            approve: Approved
+            reject: Rejected
+            cancel_pending: Withdrawn
+            cancel_recorded: Withdrawn
+            request_cancel: Cancellation requested
+            confirm_cancel: Cancellation confirmed
+            deny_cancel: Cancellation denied
+        flash:
+            approved: Request from %name% approved.
+            rejected: Request from %name% rejected.
+            cancel_confirmed: Cancellation for %name% confirmed.
+            cancel_denied: Cancellation for %name% denied.
+            invalid_transition: This transition is no longer valid — the request has been updated elsewhere.
+            cancellation_not_allowed: Cancellation is no longer allowed for this request.

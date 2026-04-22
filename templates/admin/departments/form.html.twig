@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ (is_new ? 'admin.departments.create' : 'admin.departments.edit_heading')|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-xl p-6">
+    <header class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-900">
+            {{ (is_new ? 'admin.departments.create' : 'admin.departments.edit_heading')|trans }}
+        </h1>
+        <a href="{{ path('app_admin_department_index') }}"
+           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ 'admin.departments.back'|trans }}
+        </a>
+    </header>
+
+    <div class="rounded-xl bg-white p-6 shadow-sm">
+        {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'admin-department-form' } }) }}
+            <p class="text-xs text-gray-500">{{ 'form.required_legend'|trans }}</p>
+            {{ form_row(form.name, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+            {{ form_row(form.lead, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+            {{ form_row(form.deputy, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+
+            <div class="flex items-start gap-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+                {{ form_widget(form.active, { attr: { class: 'mt-1 h-4 w-4 rounded border-gray-300 text-blue-600' } }) }}
+                <div>
+                    {{ form_label(form.active, null, { label_attr: { class: 'text-sm font-medium text-gray-700' } }) }}
+                    <p class="mt-0.5 text-xs text-gray-500">{{ 'admin.departments.active_hint'|trans }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <a href="{{ path('app_admin_department_index') }}"
+                   class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ 'admin.departments.back'|trans }}
+                </a>
+                <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    {{ 'admin.departments.save'|trans }}
+                </button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

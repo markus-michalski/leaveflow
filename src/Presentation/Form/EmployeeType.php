@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presentation\Form;
 
 use App\Domain\Entity\Company;
+use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
@@ -61,6 +62,20 @@ final class EmployeeType extends AbstractType
                 'choice_label' => 'name',
                 'placeholder' => 'admin.employees.location_placeholder',
                 'constraints' => [new NotBlank()],
+            ])
+            ->add('department', EntityType::class, [
+                'label' => 'admin.employees.department',
+                'help' => 'admin.employees.department_help',
+                'mapped' => false,
+                'class' => Department::class,
+                'required' => false,
+                'placeholder' => 'admin.employees.department_placeholder',
+                'choice_label' => 'name',
+                'query_builder' => static fn ($repo) => $repo->createQueryBuilder('d')
+                    ->andWhere('d.company = :company')
+                    ->setParameter('company', $company)
+                    ->orderBy('d.active', 'DESC')
+                    ->addOrderBy('d.name', 'ASC'),
             ])
             ->add('weeklyHours', NumberType::class, [
                 'label' => 'admin.employees.weekly_hours',
