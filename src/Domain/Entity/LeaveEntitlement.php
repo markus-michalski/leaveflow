@@ -134,6 +134,28 @@ class LeaveEntitlement
         $this->hoursUsed += $hours;
     }
 
+    /**
+     * Returns previously-consumed hours to the balance. Used when an approved
+     * leave is cancelled (workflow confirm_cancel).
+     */
+    public function release(float $hours): void
+    {
+        if ($hours < 0) {
+            throw new \InvalidArgumentException('LeaveEntitlement.release requires non-negative hours.');
+        }
+        if (0.0 === $hours) {
+            return;
+        }
+        if (($this->hoursUsed - $hours) < -self::SUM_EPSILON) {
+            throw new \DomainException(\sprintf('Cannot release %.2fh: only %.2fh have been consumed.', $hours, $this->hoursUsed));
+        }
+
+        $this->hoursUsed -= $hours;
+        if ($this->hoursUsed < 0) {
+            $this->hoursUsed = 0.0;
+        }
+    }
+
     public function adjustExpiresAt(?\DateTimeImmutable $expiresAt): void
     {
         $this->expiresAt = $expiresAt?->setTime(0, 0);

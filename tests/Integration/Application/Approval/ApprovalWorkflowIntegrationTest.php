@@ -8,10 +8,12 @@ use App\Application\Approval\ApprovalWorkflow;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
+use App\Domain\Entity\LeaveEntitlement;
 use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\Location;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
+use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Enum\LeaveRequestStatus;
 use App\Domain\Enum\Weekday;
 use App\Domain\Repository\LeaveRequestAuditEntryRepository;
@@ -50,7 +52,7 @@ final class ApprovalWorkflowIntegrationTest extends KernelTestCase
     #[Test]
     public function approveTransitionsStatusAndWritesAuditEntry(): void
     {
-        [$request, $manager] = $this->createPendingRequestAndManager();
+        [$request, $manager] = $this->createPendingRequestAndManagerWithEntitlement();
 
         $this->workflow->approve($request, $manager);
         $this->em->flush();
@@ -80,10 +82,82 @@ final class ApprovalWorkflowIntegrationTest extends KernelTestCase
         self::assertSame(LeaveRequestStatus::Rejected, $entries[0]->getToStatus());
     }
 
+    #[Test]
+    public function approveDeductsEntitlementHours(): void
+    {
+        [$request, $manager, $entitlement] = $this->createPendingRequestAndManagerWithEntitlement();
+
+        $this->workflow->approve($request, $manager);
+        $this->em->flush();
+
+        self::assertSame(40.0, $entitlement->getHoursUsed(), 'approve must book the full request hours.');
+        self::assertSame(200.0, $entitlement->getHoursRemaining());
+    }
+
+    #[Test]
+    public function confirmCancelReleasesEntitlementHours(): void
+    {
+        [$request, $manager, $entitlement] = $this->createPendingRequestAndManagerWithEntitlement();
+
+        $this->workflow->approve($request, $manager);
+        $this->em->flush();
+        self::assertSame(40.0, $entitlement->getHoursUsed());
+
+        $this->workflow->requestCancel($request, $request->getEmployee());
+        $this->workflow->confirmCancel($request, $manager);
+        $this->em->flush();
+
+        self::assertSame(LeaveRequestStatus::Cancelled, $request->getStatus());
+        self::assertSame(0.0, $entitlement->getHoursUsed(), 'confirm_cancel must refund booked hours.');
+    }
+
+    #[Test]
+    public function denyCancelLeavesEntitlementHoursBooked(): void
+    {
+        [$request, $manager, $entitlement] = $this->createPendingRequestAndManagerWithEntitlement();
+
+        $this->workflow->approve($request, $manager);
+        $this->workflow->requestCancel($request, $request->getEmployee());
+        $this->workflow->denyCancel($request, $manager);
+        $this->em->flush();
+
+        self::assertSame(LeaveRequestStatus::Approved, $request->getStatus());
+        self::assertSame(40.0, $entitlement->getHoursUsed(), 'deny_cancel must leave hoursUsed unchanged.');
+    }
+
+    #[Test]
+    public function approveOfNonDeductingTypeDoesNotTouchEntitlements(): void
+    {
+        [$request, $manager, $entitlement] = $this->createPendingRequestAndManagerWithEntitlement(deducting: false);
+
+        $this->workflow->approve($request, $manager);
+        $this->em->flush();
+
+        self::assertSame(0.0, $entitlement->getHoursUsed());
+    }
+
+    /**
+     * @return array{0: LeaveRequest, 1: Employee, 2: LeaveEntitlement}
+     */
+    private function createPendingRequestAndManagerWithEntitlement(bool $deducting = true): array
+    {
+        [$request, $manager] = $this->createPendingRequestAndManager($deducting);
+        $entitlement = new LeaveEntitlement(
+            $request->getEmployee(),
+            2099,
+            LeaveEntitlementType::Regular,
+            240.0,
+        );
+        $this->em->persist($entitlement);
+        $this->em->flush();
+
+        return [$request, $manager, $entitlement];
+    }
+
     /**
      * @return array{0: LeaveRequest, 1: Employee}
      */
-    private function createPendingRequestAndManager(): array
+    private function createPendingRequestAndManager(bool $deducting = true): array
     {
         $company = new Company('Integration GmbH');
         $this->em->persist($company);
@@ -117,8 +191,8 @@ final class ApprovalWorkflowIntegrationTest extends KernelTestCase
 
         $urlaub = new AbsenceType(
             company: $company,
-            name: 'Urlaub',
-            deductsFromLeave: true,
+            name: $deducting ? 'Urlaub' : 'Krankheit',
+            deductsFromLeave: $deducting,
             requiresApproval: true,
             color: '#3B82F6',
         );

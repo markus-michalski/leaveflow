@@ -165,6 +165,52 @@ final class LeaveEntitlementTest extends TestCase
     }
 
     #[Test]
+    public function releaseReturnsHoursToRemaining(): void
+    {
+        $entitlement = new LeaveEntitlement($this->employee, 2026, LeaveEntitlementType::Regular, 40.0);
+        $entitlement->consume(24.0);
+
+        $entitlement->release(8.0);
+
+        self::assertSame(16.0, $entitlement->getHoursUsed());
+        self::assertSame(24.0, $entitlement->getHoursRemaining());
+    }
+
+    #[Test]
+    public function releaseRejectsNegativeAmount(): void
+    {
+        $entitlement = new LeaveEntitlement($this->employee, 2026, LeaveEntitlementType::Regular, 40.0);
+        $entitlement->consume(24.0);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $entitlement->release(-1.0);
+    }
+
+    #[Test]
+    public function releaseZeroAmountIsNoop(): void
+    {
+        $entitlement = new LeaveEntitlement($this->employee, 2026, LeaveEntitlementType::Regular, 40.0);
+        $entitlement->consume(24.0);
+
+        $entitlement->release(0.0);
+
+        self::assertSame(24.0, $entitlement->getHoursUsed());
+    }
+
+    #[Test]
+    public function releaseRejectsMoreThanConsumed(): void
+    {
+        $entitlement = new LeaveEntitlement($this->employee, 2026, LeaveEntitlementType::Regular, 40.0);
+        $entitlement->consume(24.0);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('release');
+
+        $entitlement->release(24.01);
+    }
+
+    #[Test]
     public function isExpiredFalseWhenNoExpiryDateSet(): void
     {
         $entitlement = new LeaveEntitlement($this->employee, 2026, LeaveEntitlementType::Regular, 240.0);

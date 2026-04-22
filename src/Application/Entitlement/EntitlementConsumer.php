@@ -65,6 +65,50 @@ final readonly class EntitlementConsumer
     }
 
     /**
+     * Symmetric counterpart to {@see consume} — returns previously-consumed
+     * hours to the entitlement pool. Ordering is reversed (latest expiry
+     * first) so Regular balance absorbs the refund before Carryover does and
+     * statutory Carryover windows don't silently widen.
+     *
+     * @param list<LeaveEntitlement> $entitlements
+     *
+     * @throws \InvalidArgumentException when hours is negative
+     * @throws \DomainException when the aggregated consumed balance is less than the release amount
+     */
+    public function release(array $entitlements, float $hours): void
+    {
+        if ($hours < 0) {
+            throw new \InvalidArgumentException('EntitlementConsumer.release requires non-negative hours.');
+        }
+        if (0.0 === $hours) {
+            return;
+        }
+
+        $ordered = $this->releaseOrder($entitlements);
+        $totalConsumed = array_sum(array_map(
+            static fn (LeaveEntitlement $e): float => $e->getHoursUsed(),
+            $ordered,
+        ));
+
+        if ($totalConsumed + self::BALANCE_EPSILON < $hours) {
+            throw new \DomainException(\sprintf('Cannot release %.2fh: only %.2fh have been consumed across entitlements.', $hours, $totalConsumed));
+        }
+
+        $remaining = $hours;
+        foreach ($ordered as $entitlement) {
+            if ($remaining <= self::BALANCE_EPSILON) {
+                break;
+            }
+            $give = min($remaining, $entitlement->getHoursUsed());
+            if ($give <= 0) {
+                continue;
+            }
+            $entitlement->release($give);
+            $remaining -= $give;
+        }
+    }
+
+    /**
      * @param list<LeaveEntitlement> $entitlements
      *
      * @return list<LeaveEntitlement>
@@ -90,6 +134,37 @@ final readonly class EntitlementConsumer
             }
 
             return $aExpiry <=> $bExpiry;
+        });
+
+        return $filtered;
+    }
+
+    /**
+     * @param list<LeaveEntitlement> $entitlements
+     *
+     * @return list<LeaveEntitlement>
+     */
+    private function releaseOrder(array $entitlements): array
+    {
+        $filtered = array_values(array_filter(
+            $entitlements,
+            static fn (LeaveEntitlement $e): bool => $e->getHoursUsed() > 0,
+        ));
+
+        usort($filtered, static function (LeaveEntitlement $a, LeaveEntitlement $b): int {
+            $aExpiry = $a->getExpiresAt();
+            $bExpiry = $b->getExpiresAt();
+            if (null === $aExpiry && null === $bExpiry) {
+                return 0;
+            }
+            if (null === $aExpiry) {
+                return -1;
+            }
+            if (null === $bExpiry) {
+                return 1;
+            }
+
+            return $bExpiry <=> $aExpiry;
         });
 
         return $filtered;

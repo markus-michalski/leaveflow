@@ -57,7 +57,7 @@ final class ManagerApprovalControllerTest extends WebTestCase
         $this->client->request('GET', '/manager/approvals');
 
         self::assertResponseIsSuccessful();
-        self::assertSame(2, $this->client->getCrawler()->filter('[data-testid^="manager-approval-row-"]')->count());
+        self::assertCount(2, $this->client->getCrawler()->filter('[data-testid^="manager-approval-row-"]'));
     }
 
     #[Test]
@@ -72,7 +72,7 @@ final class ManagerApprovalControllerTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         // Only teamMember's request — outsideEmployee is in a different dept.
-        self::assertSame(1, $this->client->getCrawler()->filter('[data-testid^="manager-approval-row-"]')->count());
+        self::assertCount(1, $this->client->getCrawler()->filter('[data-testid^="manager-approval-row-"]'));
     }
 
     #[Test]
@@ -190,6 +190,19 @@ final class ManagerApprovalControllerTest extends WebTestCase
 
     private function storeRequest(Employee $employee): LeaveRequest
     {
+        // Approval booking needs a 2099 entitlement to deduct from. One per
+        // employee is enough — repeat calls hit the same row.
+        $existing = $this->em->getRepository(\App\Domain\Entity\LeaveEntitlement::class)
+            ->findOneBy(['employee' => $employee, 'year' => 2099]);
+        if (null === $existing) {
+            $this->em->persist(new \App\Domain\Entity\LeaveEntitlement(
+                $employee,
+                2099,
+                \App\Domain\Enum\LeaveEntitlementType::Regular,
+                240.0,
+            ));
+        }
+
         $request = new LeaveRequest(
             employee: $employee,
             absenceType: $this->urlaub,
