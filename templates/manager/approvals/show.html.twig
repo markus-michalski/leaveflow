@@ -59,22 +59,27 @@
     {% if leaveRequest.status.value == 'pending' %}
         <section class="mt-6 rounded-xl bg-white p-6 shadow-sm" data-testid="approval-actions-pending">
             <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'manager.approvals.actions.heading'|trans }}</h2>
-            <div class="flex flex-wrap items-start gap-4">
-                <form method="post" action="{{ path('app_manager_approval_approve', { id: leaveRequest.id }) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('approve-leave-request-' ~ leaveRequest.id) }}">
-                    <button type="submit"
-                            data-testid="approve-button"
-                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-                        {{ 'manager.approvals.actions.approve'|trans }}
-                    </button>
-                </form>
+            <div class="grid gap-4 md:grid-cols-2 items-stretch">
+                <div class="flex flex-col rounded-md border border-emerald-200 bg-emerald-50 p-4">
+                    <h3 class="mb-3 text-sm font-medium text-emerald-800">{{ 'manager.approvals.actions.approve_heading'|trans }}</h3>
+                    <p class="mb-3 text-xs text-emerald-700">{{ 'manager.approvals.actions.approve_intro'|trans }}</p>
+                    <form method="post" action="{{ path('app_manager_approval_approve', { id: leaveRequest.id }) }}" class="mt-auto">
+                        <input type="hidden" name="_token" value="{{ csrf_token('approve-leave-request-' ~ leaveRequest.id) }}">
+                        <button type="submit"
+                                data-testid="approve-button"
+                                class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                            {{ 'manager.approvals.actions.approve'|trans }}
+                        </button>
+                    </form>
+                </div>
 
-                <div class="flex-1 min-w-[260px] rounded-md border border-rose-200 bg-rose-50 p-4">
-                    {{ form_start(rejectForm, { action: path('app_manager_approval_reject', { id: leaveRequest.id }), attr: { 'data-testid': 'reject-form', class: 'space-y-3' } }) }}
-                        {{ form_row(rejectForm.reason, { label_attr: { class: 'block text-sm font-medium text-rose-800' }, attr: { class: 'mt-1 block w-full rounded-md border border-rose-300 px-3 py-2' } }) }}
+                <div class="flex flex-col rounded-md border border-rose-200 bg-rose-50 p-4">
+                    <h3 class="mb-3 text-sm font-medium text-rose-800">{{ 'manager.approvals.actions.reject_heading'|trans }}</h3>
+                    {{ form_start(rejectForm, { action: path('app_manager_approval_reject', { id: leaveRequest.id }), attr: { 'data-testid': 'reject-form', class: 'flex flex-col gap-3 flex-1' } }) }}
+                        {{ form_row(rejectForm.reason, { label_attr: { class: 'block text-sm font-medium text-rose-800' }, attr: { class: 'mt-1 block w-full rounded-md border border-rose-300 px-3 py-2', rows: 3 } }) }}
                         <button type="submit"
                                 data-testid="reject-button"
-                                class="rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700">
+                                class="mt-auto self-start rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700">
                             {{ 'manager.approvals.actions.reject'|trans }}
                         </button>
                     {{ form_end(rejectForm) }}
@@ -85,23 +90,31 @@
         <section class="mt-6 rounded-xl bg-white p-6 shadow-sm" data-testid="approval-actions-cancel-requested">
             <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'manager.approvals.actions.cancel_heading'|trans }}</h2>
             <p class="mb-4 text-sm text-gray-600">{{ 'manager.approvals.actions.cancel_intro'|trans }}</p>
-            <div class="flex flex-wrap gap-3">
-                <form method="post" action="{{ path('app_manager_approval_confirm_cancel', { id: leaveRequest.id }) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('confirm-cancel-leave-request-' ~ leaveRequest.id) }}">
-                    <button type="submit"
-                            data-testid="confirm-cancel-button"
-                            class="rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
-                        {{ 'manager.approvals.actions.confirm_cancel'|trans }}
-                    </button>
-                </form>
-                <form method="post" action="{{ path('app_manager_approval_deny_cancel', { id: leaveRequest.id }) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('deny-cancel-leave-request-' ~ leaveRequest.id) }}">
-                    <button type="submit"
-                            data-testid="deny-cancel-button"
-                            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        {{ 'manager.approvals.actions.deny_cancel'|trans }}
-                    </button>
-                </form>
+            <div class="grid gap-4 md:grid-cols-2 items-stretch">
+                <div class="flex flex-col rounded-md border border-gray-200 bg-gray-50 p-4">
+                    <h3 class="mb-3 text-sm font-medium text-gray-800">{{ 'manager.approvals.actions.confirm_cancel_heading'|trans }}</h3>
+                    <p class="mb-3 text-xs text-gray-600">{{ 'manager.approvals.actions.confirm_cancel_intro'|trans }}</p>
+                    <form method="post" action="{{ path('app_manager_approval_confirm_cancel', { id: leaveRequest.id }) }}" class="mt-auto">
+                        <input type="hidden" name="_token" value="{{ csrf_token('confirm-cancel-leave-request-' ~ leaveRequest.id) }}">
+                        <button type="submit"
+                                data-testid="confirm-cancel-button"
+                                class="rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+                            {{ 'manager.approvals.actions.confirm_cancel'|trans }}
+                        </button>
+                    </form>
+                </div>
+
+                <div class="flex flex-col rounded-md border border-amber-200 bg-amber-50 p-4">
+                    <h3 class="mb-3 text-sm font-medium text-amber-800">{{ 'manager.approvals.actions.deny_cancel_heading'|trans }}</h3>
+                    {{ form_start(denyCancelForm, { action: path('app_manager_approval_deny_cancel', { id: leaveRequest.id }), attr: { 'data-testid': 'deny-cancel-form', class: 'flex flex-col gap-3 flex-1' } }) }}
+                        {{ form_row(denyCancelForm.reason, { label: 'manager.approvals.deny_cancel.reason'|trans, label_attr: { class: 'block text-sm font-medium text-amber-800' }, attr: { class: 'mt-1 block w-full rounded-md border border-amber-300 px-3 py-2', rows: 3, placeholder: 'manager.approvals.deny_cancel.reason_placeholder'|trans } }) }}
+                        <button type="submit"
+                                data-testid="deny-cancel-button"
+                                class="mt-auto self-start rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700">
+                            {{ 'manager.approvals.actions.deny_cancel'|trans }}
+                        </button>
+                    {{ form_end(denyCancelForm) }}
+                </div>
             </div>
         </section>
     {% endif %}

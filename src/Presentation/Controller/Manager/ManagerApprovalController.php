@@ -84,12 +84,11 @@ final class ManagerApprovalController extends AbstractController
             LeaveRequestApprovalAttribute::DenyCancel->value,
         ], $leaveRequest);
 
-        $rejectForm = $this->createForm(RejectLeaveRequestFormType::class);
-
         return $this->render('manager/approvals/show.html.twig', [
             'leaveRequest' => $leaveRequest,
             'auditEntries' => $this->auditRepository->findByLeaveRequest($leaveRequest),
-            'rejectForm' => $rejectForm,
+            'rejectForm' => $this->createForm(RejectLeaveRequestFormType::class),
+            'denyCancelForm' => $this->createForm(RejectLeaveRequestFormType::class),
         ]);
     }
 
@@ -129,6 +128,7 @@ final class ManagerApprovalController extends AbstractController
                 'leaveRequest' => $leaveRequest,
                 'auditEntries' => $this->auditRepository->findByLeaveRequest($leaveRequest),
                 'rejectForm' => $form,
+                'denyCancelForm' => $this->createForm(RejectLeaveRequestFormType::class),
             ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
         }
 
@@ -149,6 +149,7 @@ final class ManagerApprovalController extends AbstractController
                 'leaveRequest' => $leaveRequest,
                 'auditEntries' => $this->auditRepository->findByLeaveRequest($leaveRequest),
                 'rejectForm' => $form,
+                'denyCancelForm' => $this->createForm(RejectLeaveRequestFormType::class),
             ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
         } catch (InvalidTransitionException) {
             $this->addFlash('error', $this->translator->trans('manager.approvals.flash.invalid_transition'));
@@ -187,17 +188,37 @@ final class ManagerApprovalController extends AbstractController
     {
         $this->denyAccessUnlessGranted(LeaveRequestApprovalAttribute::DenyCancel->value, $leaveRequest);
 
-        $token = (string) $request->request->get('_token');
-        if (!$this->isCsrfTokenValid('deny-cancel-leave-request-'.$leaveRequest->getId(), $token)) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        $form = $this->createForm(RejectLeaveRequestFormType::class);
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->render('manager/approvals/show.html.twig', [
+                'leaveRequest' => $leaveRequest,
+                'auditEntries' => $this->auditRepository->findByLeaveRequest($leaveRequest),
+                'rejectForm' => $this->createForm(RejectLeaveRequestFormType::class),
+                'denyCancelForm' => $form,
+            ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
         }
 
+        $reason = (string) $form->get('reason')->getData();
+
         try {
-            $this->approvalWorkflow->denyCancel($leaveRequest, $this->currentEmployee());
+            $this->approvalWorkflow->denyCancel($leaveRequest, $this->currentEmployee(), $reason);
             $this->entityManager->flush();
             $this->addFlash('success', $this->translator->trans('manager.approvals.flash.cancel_denied', [
                 '%name%' => $leaveRequest->getEmployee()->getFullName(),
             ]));
+        } catch (RejectionReasonRequiredException) {
+            $form->get('reason')->addError(new \Symfony\Component\Form\FormError(
+                $this->translator->trans('manager.approvals.deny_cancel.reason_required'),
+            ));
+
+            return $this->render('manager/approvals/show.html.twig', [
+                'leaveRequest' => $leaveRequest,
+                'auditEntries' => $this->auditRepository->findByLeaveRequest($leaveRequest),
+                'rejectForm' => $this->createForm(RejectLeaveRequestFormType::class),
+                'denyCancelForm' => $form,
+            ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
         } catch (InvalidTransitionException) {
             $this->addFlash('error', $this->translator->trans('manager.approvals.flash.invalid_transition'));
         }

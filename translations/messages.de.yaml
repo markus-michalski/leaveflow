@@ -466,6 +466,19 @@ my:
             cancel_confirm: Möchtest du diesen Antrag wirklich stornieren?
             request_cancel: Stornierung beantragen
             request_cancel_confirm: Möchtest du wirklich die Stornierung dieses genehmigten Antrags beantragen?
+            reject_reason_heading: Begründung der Ablehnung
+            history_heading: Entscheidungs-Verlauf
+        history:
+            reason_label: Begründung
+            system: System
+            transition:
+                approve: Genehmigt
+                reject: Abgelehnt
+                cancel_pending: Zurückgezogen
+                cancel_recorded: Zurückgezogen
+                request_cancel: Stornierung beantragt
+                confirm_cancel: Stornierung bestätigt
+                deny_cancel: Stornierung abgelehnt
         preview:
             heading: "Vorschau: Arbeitsstunden"
             summary: "<strong>%days%</strong> Arbeitstage = <strong>%hours%&thinsp;h</strong>"
@@ -511,15 +524,25 @@ manager:
         actions:
             heading: Entscheidung
             approve: Genehmigen
+            approve_heading: Antrag genehmigen
+            approve_intro: "Stunden werden direkt vom Urlaubskonto abgebucht."
             reject: Ablehnen
+            reject_heading: Antrag ablehnen
             cancel_heading: Stornoanfrage
             cancel_intro: "Der Mitarbeiter möchte den genehmigten Urlaub stornieren. Entscheide, ob du zustimmst."
             confirm_cancel: Stornierung bestätigen
+            confirm_cancel_heading: Stornierung bestätigen
+            confirm_cancel_intro: "Der Urlaub wird storniert und die Stunden zurück aufs Urlaubskonto gebucht."
             deny_cancel: Stornierung ablehnen
+            deny_cancel_heading: Stornierung ablehnen
         reject:
             reason: Begründung der Ablehnung
             reason_placeholder: "Kurze Notiz, die der Mitarbeiter sieht."
             reason_required: "Bitte Grund für die Ablehnung angeben."
+        deny_cancel:
+            reason: Begründung der Ablehnung
+            reason_placeholder: "Warum darf der Urlaub nicht storniert werden?"
+            reason_required: "Bitte Grund für die Ablehnung der Stornierung angeben."
         history:
             heading: Entscheidungs-Verlauf
             empty: Noch keine Entscheidungen getroffen.

@@ -118,7 +118,7 @@ final class ApprovalWorkflowIntegrationTest extends KernelTestCase
 
         $this->workflow->approve($request, $manager);
         $this->workflow->requestCancel($request, $request->getEmployee());
-        $this->workflow->denyCancel($request, $manager);
+        $this->workflow->denyCancel($request, $manager, 'Teamplanung bleibt bestehen.');
         $this->em->flush();
 
         self::assertSame(LeaveRequestStatus::Approved, $request->getStatus());

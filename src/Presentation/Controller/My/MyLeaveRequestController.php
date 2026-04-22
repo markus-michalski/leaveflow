@@ -18,6 +18,7 @@ use App\Domain\Entity\User;
 use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveRequestStatus;
 use App\Domain\Repository\EmployeeRepository;
+use App\Domain\Repository\LeaveRequestAuditEntryRepository;
 use App\Domain\Repository\LeaveRequestRepository;
 use App\Presentation\Form\LeaveRequestFormType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,6 +38,7 @@ final class MyLeaveRequestController extends AbstractController
     public function __construct(
         private readonly EmployeeRepository $employeeRepository,
         private readonly LeaveRequestRepository $leaveRequestRepository,
+        private readonly LeaveRequestAuditEntryRepository $auditRepository,
         private readonly LeaveRequestService $service,
         private readonly ApprovalWorkflow $approvalWorkflow,
         private readonly ClockInterface $clock,
@@ -197,6 +199,7 @@ final class MyLeaveRequestController extends AbstractController
         return $this->render('my/leave_request/show.html.twig', [
             'leaveRequest' => $leaveRequest,
             'canRequestCancel' => $this->canRequestCancel($leaveRequest),
+            'auditEntries' => $this->auditRepository->findByLeaveRequest($leaveRequest),
         ]);
     }
 

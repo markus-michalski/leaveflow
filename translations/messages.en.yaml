@@ -466,6 +466,19 @@ my:
             cancel_confirm: Do you really want to cancel this request?
             request_cancel: Request cancellation
             request_cancel_confirm: Do you really want to request cancellation of this approved leave?
+            reject_reason_heading: Rejection reason
+            history_heading: Decision history
+        history:
+            reason_label: Reason
+            system: System
+            transition:
+                approve: Approved
+                reject: Rejected
+                cancel_pending: Withdrawn
+                cancel_recorded: Withdrawn
+                request_cancel: Cancellation requested
+                confirm_cancel: Cancellation confirmed
+                deny_cancel: Cancellation denied
         preview:
             heading: "Preview: working hours"
             summary: "<strong>%days%</strong> working days = <strong>%hours%&thinsp;h</strong>"
@@ -511,15 +524,25 @@ manager:
         actions:
             heading: Decision
             approve: Approve
+            approve_heading: Approve request
+            approve_intro: "Hours will be deducted from the employee's leave balance."
             reject: Reject
+            reject_heading: Reject request
             cancel_heading: Cancellation request
             cancel_intro: "The employee asked to cancel this approved leave. Decide whether to grant it."
             confirm_cancel: Confirm cancellation
+            confirm_cancel_heading: Confirm cancellation
+            confirm_cancel_intro: "The leave will be cancelled and the hours will be refunded to the employee's balance."
             deny_cancel: Deny cancellation
+            deny_cancel_heading: Deny cancellation
         reject:
             reason: Rejection reason
             reason_placeholder: "A short note visible to the employee."
             reason_required: "Please give a reason for the rejection."
+        deny_cancel:
+            reason: Denial reason
+            reason_placeholder: "Why can the leave not be cancelled?"
+            reason_required: "Please give a reason for denying the cancellation."
         history:
             heading: Decision history
             empty: No decisions recorded yet.

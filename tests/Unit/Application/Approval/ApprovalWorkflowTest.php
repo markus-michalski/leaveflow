@@ -303,9 +303,24 @@ final class ApprovalWorkflowTest extends TestCase
         $workflow->approve($request, $this->manager);
         $workflow->requestCancel($request, $this->employee);
 
-        $workflow->denyCancel($request, $this->manager);
+        $workflow->denyCancel($request, $this->manager, 'Teamplanung steht bereits, Urlaub bleibt bestehen.');
 
         self::assertSame(LeaveRequestStatus::Approved, $request->getStatus());
+    }
+
+    #[Test]
+    public function denyCancelWithEmptyReasonThrows(): void
+    {
+        $clock = new MockClock('2026-07-01 09:00:00');
+        $workflow = $this->buildApprovalWorkflow($clock);
+
+        $request = $this->buildPendingRequest();
+        $workflow->approve($request, $this->manager);
+        $workflow->requestCancel($request, $this->employee);
+
+        $this->expectException(RejectionReasonRequiredException::class);
+
+        $workflow->denyCancel($request, $this->manager, '   ');
     }
 
     #[Test]

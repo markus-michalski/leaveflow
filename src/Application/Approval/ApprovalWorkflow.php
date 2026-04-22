@@ -93,9 +93,16 @@ final class ApprovalWorkflow
         $this->apply($request, 'confirm_cancel', ['actor' => $manager]);
     }
 
-    public function denyCancel(LeaveRequest $request, Employee $manager): void
+    public function denyCancel(LeaveRequest $request, Employee $manager, string $reason): void
     {
-        $this->apply($request, 'deny_cancel', ['actor' => $manager]);
+        if ('' === trim($reason)) {
+            throw new RejectionReasonRequiredException();
+        }
+
+        $this->apply($request, 'deny_cancel', [
+            'actor' => $manager,
+            'reason' => trim($reason),
+        ]);
     }
 
     /**
