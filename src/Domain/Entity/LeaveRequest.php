@@ -133,6 +133,17 @@ class LeaveRequest
         return $this->status;
     }
 
+    /**
+     * Workflow marking setter. Invoked by Symfony Workflow's MethodMarkingStore
+     * when a transition is applied. Business code must not call this directly —
+     * go through {@see \App\Application\Approval\ApprovalWorkflow} so audit trail
+     * and notifications fire.
+     */
+    public function setStatus(LeaveRequestStatus $status): void
+    {
+        $this->status = $status;
+    }
+
     public function getTotalHours(): float
     {
         return $this->totalHours;

@@ -21,3 +21,12 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+# Expose workflow services to integration tests. Without a real consumer
+# (controllers land later in Phase 6), the container compiler inlines the
+# service away and `self::getContainer()->get(...)` fails in tests.
+when@test:
+    services:
+        App\Application\Approval\ApprovalWorkflow:
+            autowire: true
+            public: true
