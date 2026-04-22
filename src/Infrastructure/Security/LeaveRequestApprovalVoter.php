@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+use App\Application\Approval\LeaveRequestApprovalAttribute;
 use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\User;
 use App\Domain\Enum\UserRole;
@@ -26,21 +27,9 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
  */
 final class LeaveRequestApprovalVoter extends Voter
 {
-    public const string APPROVE = 'LEAVE_REQUEST_APPROVE';
-    public const string REJECT = 'LEAVE_REQUEST_REJECT';
-    public const string CONFIRM_CANCEL = 'LEAVE_REQUEST_CONFIRM_CANCEL';
-    public const string DENY_CANCEL = 'LEAVE_REQUEST_DENY_CANCEL';
-
-    private const array SUPPORTED_ATTRIBUTES = [
-        self::APPROVE,
-        self::REJECT,
-        self::CONFIRM_CANCEL,
-        self::DENY_CANCEL,
-    ];
-
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $subject instanceof LeaveRequest && \in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+        return $subject instanceof LeaveRequest && null !== LeaveRequestApprovalAttribute::tryFrom($attribute);
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool

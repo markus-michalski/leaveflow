@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Infrastructure\Security;
 
+use App\Application\Approval\LeaveRequestApprovalAttribute;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Department;
@@ -63,10 +64,10 @@ final class LeaveRequestApprovalVoterTest extends TestCase
      */
     public static function approvalAttributeProvider(): iterable
     {
-        yield 'APPROVE' => [LeaveRequestApprovalVoter::APPROVE];
-        yield 'REJECT' => [LeaveRequestApprovalVoter::REJECT];
-        yield 'CONFIRM_CANCEL' => [LeaveRequestApprovalVoter::CONFIRM_CANCEL];
-        yield 'DENY_CANCEL' => [LeaveRequestApprovalVoter::DENY_CANCEL];
+        yield 'APPROVE' => [LeaveRequestApprovalAttribute::Approve->value];
+        yield 'REJECT' => [LeaveRequestApprovalAttribute::Reject->value];
+        yield 'CONFIRM_CANCEL' => [LeaveRequestApprovalAttribute::ConfirmCancel->value];
+        yield 'DENY_CANCEL' => [LeaveRequestApprovalAttribute::DenyCancel->value];
     }
 
     #[Test]

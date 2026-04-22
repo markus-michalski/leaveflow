@@ -7,6 +7,7 @@ namespace App\Presentation\Controller\Manager;
 use App\Application\Approval\ApprovalWorkflow;
 use App\Application\Approval\CancellationNotAllowedException;
 use App\Application\Approval\InvalidTransitionException;
+use App\Application\Approval\LeaveRequestApprovalAttribute;
 use App\Application\Approval\RejectionReasonRequiredException;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
@@ -16,7 +17,6 @@ use App\Domain\Enum\UserRole;
 use App\Domain\Repository\CompanyRepository;
 use App\Domain\Repository\LeaveRequestAuditEntryRepository;
 use App\Domain\Repository\LeaveRequestRepository;
-use App\Infrastructure\Security\LeaveRequestApprovalVoter;
 use App\Presentation\Form\RejectLeaveRequestFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,7 +30,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * Manager-facing approval surface for LeaveRequests.
  *
  * List + detail + the four state-machine actions (approve/reject/confirm-
- * cancel/deny-cancel). Access is gated by LeaveRequestApprovalVoter — the
+ * cancel/deny-cancel). Access is gated by the approval voter — the
  * controller hands the subject to the Voter instead of re-implementing
  * dept-lead/deputy checks.
  *
@@ -78,10 +78,10 @@ final class ManagerApprovalController extends AbstractController
     public function show(Request $request, LeaveRequest $leaveRequest): Response
     {
         $this->denyAccessUnlessOneOfGranted([
-            LeaveRequestApprovalVoter::APPROVE,
-            LeaveRequestApprovalVoter::REJECT,
-            LeaveRequestApprovalVoter::CONFIRM_CANCEL,
-            LeaveRequestApprovalVoter::DENY_CANCEL,
+            LeaveRequestApprovalAttribute::Approve->value,
+            LeaveRequestApprovalAttribute::Reject->value,
+            LeaveRequestApprovalAttribute::ConfirmCancel->value,
+            LeaveRequestApprovalAttribute::DenyCancel->value,
         ], $leaveRequest);
 
         $rejectForm = $this->createForm(RejectLeaveRequestFormType::class);
@@ -96,7 +96,7 @@ final class ManagerApprovalController extends AbstractController
     #[Route('/{id}/approve', name: 'approve', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function approve(Request $request, LeaveRequest $leaveRequest): Response
     {
-        $this->denyAccessUnlessGranted(LeaveRequestApprovalVoter::APPROVE, $leaveRequest);
+        $this->denyAccessUnlessGranted(LeaveRequestApprovalAttribute::Approve->value, $leaveRequest);
 
         $token = (string) $request->request->get('_token');
         if (!$this->isCsrfTokenValid('approve-leave-request-'.$leaveRequest->getId(), $token)) {
@@ -119,7 +119,7 @@ final class ManagerApprovalController extends AbstractController
     #[Route('/{id}/reject', name: 'reject', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function reject(Request $request, LeaveRequest $leaveRequest): Response
     {
-        $this->denyAccessUnlessGranted(LeaveRequestApprovalVoter::REJECT, $leaveRequest);
+        $this->denyAccessUnlessGranted(LeaveRequestApprovalAttribute::Reject->value, $leaveRequest);
 
         $form = $this->createForm(RejectLeaveRequestFormType::class);
         $form->handleRequest($request);
@@ -160,7 +160,7 @@ final class ManagerApprovalController extends AbstractController
     #[Route('/{id}/confirm-cancel', name: 'confirm_cancel', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function confirmCancel(Request $request, LeaveRequest $leaveRequest): Response
     {
-        $this->denyAccessUnlessGranted(LeaveRequestApprovalVoter::CONFIRM_CANCEL, $leaveRequest);
+        $this->denyAccessUnlessGranted(LeaveRequestApprovalAttribute::ConfirmCancel->value, $leaveRequest);
 
         $token = (string) $request->request->get('_token');
         if (!$this->isCsrfTokenValid('confirm-cancel-leave-request-'.$leaveRequest->getId(), $token)) {
@@ -185,7 +185,7 @@ final class ManagerApprovalController extends AbstractController
     #[Route('/{id}/deny-cancel', name: 'deny_cancel', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function denyCancel(Request $request, LeaveRequest $leaveRequest): Response
     {
-        $this->denyAccessUnlessGranted(LeaveRequestApprovalVoter::DENY_CANCEL, $leaveRequest);
+        $this->denyAccessUnlessGranted(LeaveRequestApprovalAttribute::DenyCancel->value, $leaveRequest);
 
         $token = (string) $request->request->get('_token');
         if (!$this->isCsrfTokenValid('deny-cancel-leave-request-'.$leaveRequest->getId(), $token)) {
