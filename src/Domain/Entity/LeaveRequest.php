@@ -82,7 +82,14 @@ class LeaveRequest
 
         $this->assertRangeValid($this->startDate, $this->endDate);
 
-        $this->status = LeaveRequestStatus::Pending;
+        // Absence types without an approval gate (Krankheit is the default
+        // example, thanks to eAU) are informational entries — they get
+        // Recorded instead of Pending so neither the employee nor the manager
+        // sees a fake "awaiting approval" badge on something that isn't up
+        // for review.
+        $this->status = $absenceType->requiresApproval()
+            ? LeaveRequestStatus::Pending
+            : LeaveRequestStatus::Recorded;
         $this->days = new ArrayCollection();
     }
 
@@ -137,6 +144,23 @@ class LeaveRequest
     public function getDays(): Collection
     {
         return $this->days;
+    }
+
+    /**
+     * Self-service cancellation for Pending or Recorded requests.
+     *
+     * Phase 5 scope: employees can withdraw their own requests before a
+     * manager decision was made. Phase 6 adds the Approved → CancelRequested
+     * → Cancelled transition (manager-driven) via Symfony Workflow.
+     */
+    public function cancel(): void
+    {
+        if (LeaveRequestStatus::Pending !== $this->status
+            && LeaveRequestStatus::Recorded !== $this->status) {
+            throw new \DomainException(\sprintf('LeaveRequest cannot be cancelled from status %s; only Pending and Recorded are self-service-cancellable.', $this->status->value));
+        }
+
+        $this->status = LeaveRequestStatus::Cancelled;
     }
 
     /**

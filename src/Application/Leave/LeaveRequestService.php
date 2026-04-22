@@ -13,6 +13,7 @@ use App\Domain\Entity\LeaveRequest;
 use App\Domain\Enum\FederalState;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
+use App\Domain\Repository\LeaveEntitlementRepository;
 use App\Domain\Repository\LeaveRequestDayRepository;
 use App\Domain\ValueObject\Holiday;
 use App\Domain\ValueObject\LeaveBreakdown;
@@ -44,6 +45,7 @@ final readonly class LeaveRequestService
         private HolidayService $holidayService,
         private LeaveCalculator $calculator,
         private EntitlementBalanceReader $balanceReader,
+        private LeaveEntitlementRepository $entitlementRepository,
         private LeaveRequestDayRepository $dayRepository,
         private EntityManagerInterface $entityManager,
         private ClockInterface $clock,
@@ -56,6 +58,8 @@ final readonly class LeaveRequestService
         \DateTimeImmutable $endDate,
         LeaveDayType $dayType,
     ): LeaveBreakdown {
+        $this->assertNotBackdated($startDate);
+        $this->assertHalfDayOnlyOnSingleDay($startDate, $endDate, $dayType);
         $holidays = $this->resolveHolidays($employee, $startDate, $endDate);
 
         return $this->calculator->calculate($employee, $startDate, $endDate, $dayType, $holidays);
@@ -111,12 +115,48 @@ final readonly class LeaveRequestService
         $asOf = $this->clock->now();
 
         foreach ($hoursByYear as $year => $requestedHours) {
+            // Existence of an entitlement for the year is the "this year is
+            // open for you" signal — distinct from "you have an entry but
+            // not enough hours left". Giving the two cases separate errors
+            // lets the UI point the user to the admin for the former and to
+            // the request itself for the latter.
+            if ([] === $this->entitlementRepository->findByEmployeeAndYear($employee, $year)) {
+                throw new NoEntitlementForYearException($year);
+            }
+
             $snapshot = $this->balanceReader->forEmployee($employee, $year, $asOf);
             $available = $snapshot->totalRemaining() - ($pendingByYear[$year] ?? 0.0);
 
             if (($available + self::BALANCE_EPSILON) < $requestedHours) {
                 throw new InsufficientLeaveBalanceException($year, $requestedHours, max(0.0, $available));
             }
+        }
+    }
+
+    private function assertNotBackdated(\DateTimeImmutable $startDate): void
+    {
+        $today = $this->clock->now()->setTime(0, 0, 0, 0);
+        $start = $startDate->setTime(0, 0, 0, 0);
+
+        if ($start < $today) {
+            throw new BackdatedLeaveRequestException($start);
+        }
+    }
+
+    private function assertHalfDayOnlyOnSingleDay(
+        \DateTimeImmutable $startDate,
+        \DateTimeImmutable $endDate,
+        LeaveDayType $dayType,
+    ): void {
+        if (!$dayType->isHalfDay()) {
+            return;
+        }
+
+        $start = $startDate->setTime(0, 0, 0, 0);
+        $end = $endDate->setTime(0, 0, 0, 0);
+
+        if ($start->getTimestamp() !== $end->getTimestamp()) {
+            throw new MultiDayHalfDayException();
         }
     }
 

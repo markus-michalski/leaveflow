@@ -52,10 +52,13 @@
                 </div>
             {% endif %}
 
-            <a href="{{ path('app_my_leave_request_index') }}"
-               class="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                {{ 'nav.requests'|trans }}
-            </a>
+            {% if app.user.hasEmployee %}
+                <a href="{{ path('app_my_leave_request_index') }}"
+                   data-testid="nav-my-leave-requests"
+                   class="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ 'nav.requests'|trans }}
+                </a>
+            {% endif %}
 
             <div class="relative">
                 {# Simple initial based on local-part of email — keeps it snappy without an Employee lookup. #}

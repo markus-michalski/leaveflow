@@ -407,6 +407,7 @@ my:
             half_day_pm: Halber Tag (Nachmittag)
         status:
             pending: Offen
+            recorded: Erfasst
             approved: Genehmigt
             rejected: Abgelehnt
             cancelled: Storniert
@@ -424,6 +425,8 @@ my:
             title: Urlaubsantrag
             heading: Urlaubsantrag
             days_heading: Tagesaufschlüsselung
+            cancel: Antrag stornieren
+            cancel_confirm: Möchtest du diesen Antrag wirklich stornieren?
         preview:
             heading: "Vorschau: Arbeitsstunden"
             summary: "<strong>%days%</strong> Arbeitstage = <strong>%hours%&thinsp;h</strong>"
@@ -431,13 +434,20 @@ my:
             awaiting_dates: Wähle Start- und Enddatum, um die Vorschau zu sehen.
             end_before_start: Das Enddatum liegt vor dem Startdatum.
             unknown_federal_state: Dein Standort hat kein unterstütztes Bundesland.
+            backdated: Anträge können nicht rückwirkend gestellt werden. Bitte wähle ein Startdatum ab heute.
+            half_day_multi_day: Halbe Tage sind nur bei Einzeltag-Anträgen möglich. Setze Start und Ende auf dasselbe Datum oder stelle mehrere Anträge.
         flash:
             created: "Antrag über %hours% Stunden wurde eingereicht."
+            cancelled: "Antrag wurde storniert."
         error:
             end_before_start: Das Enddatum darf nicht vor dem Startdatum liegen.
             absence_type_foreign: Die gewählte Abwesenheitsart gehört nicht zu deiner Firma.
             no_employee_record: Für deinen Account ist kein Mitarbeiterprofil hinterlegt. Wende dich an die Administration.
             insufficient_balance: "Dein Urlaubskonto %year% ist nicht ausreichend: %requested%h angefragt, %available%h verfügbar (inkl. offener Anträge)."
+            backdated: Anträge können nicht rückwirkend gestellt werden. Wende dich an die Administration, falls eine Korrektur nötig ist.
+            no_entitlement_for_year: "Für %year% wurde noch kein Urlaubsanspruch angelegt. Bitte wende dich an die Administration."
+            half_day_multi_day: Halbe Tage sind nur bei Einzeltag-Anträgen möglich. Für Mix-Szenarien bitte mehrere Anträge stellen.
+            cancel_not_allowed: "Dieser Antrag kann nicht storniert werden. Bereits genehmigte Anträge erfordern einen separaten Storno-Flow über die Administration."
 weekday:
     monday: Montag
     tuesday: Dienstag

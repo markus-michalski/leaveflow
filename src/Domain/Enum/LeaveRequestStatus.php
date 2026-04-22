@@ -7,13 +7,25 @@ namespace App\Domain\Enum;
 /**
  * Lifecycle states for a LeaveRequest.
  *
- * Phase 5 only creates Pending requests. Transitions to the other states and
- * their guards are implemented in Phase 6 via Symfony Workflow; the cases are
- * already declared so the Doctrine column type is stable from the start.
+ * Phase 5 creates either Pending or Recorded depending on the absence type's
+ * requiresApproval flag. Transitions between the Pending/Approved/Rejected
+ * triple are implemented in Phase 6 via Symfony Workflow; the cases are
+ * declared now so the Doctrine column type is stable from the start.
+ *
+ * - Pending           — waiting for manager decision (requiresApproval = true):
+ *                       Urlaub, Resturlaub, Sonderurlaub §616, Überstundenabbau,
+ *                       Fortbildung
+ * - Recorded          — informational entry, no approval gate. Krankheit is
+ *                       the only default type in this slot (eAU since 2023
+ *                       makes manager approval moot).
+ * - Approved/Rejected — Phase 6, after manager decision
+ * - Cancelled         — withdrawn (by employee or manager)
+ * - CancelRequested   — employee asks for cancellation of an approved request
  */
 enum LeaveRequestStatus: string
 {
     case Pending = 'pending';
+    case Recorded = 'recorded';
     case Approved = 'approved';
     case Rejected = 'rejected';
     case Cancelled = 'cancelled';

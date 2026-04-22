@@ -148,106 +148,38 @@ final class LeaveCalculatorTest extends TestCase
     }
 
     #[Test]
-    public function halfDayAmOnMultiDayRangeAffectsOnlyStart(): void
+    public function halfDayOnMultiDayRangeThrows(): void
     {
-        // Mon-Fri full-time, HalfDayAm => Mon = 4h half, Tue-Fri = 8h each.
+        // Rule C: half-day day-types are valid only for single-day ranges.
+        // Mix-scenarios (Mon half + Wed full + Fri half) must be submitted
+        // as separate requests.
         $employee = $this->fullTimeEmployee();
-        $breakdown = $this->calculator->calculate(
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->calculator->calculate(
             $employee,
             new \DateTimeImmutable('2025-02-03'),
             new \DateTimeImmutable('2025-02-07'),
             LeaveDayType::HalfDayAm,
             holidays: [],
         );
-
-        self::assertSame(36.0, $breakdown->totalHours());
-        self::assertCount(5, $breakdown->workingDays());
-
-        $start = $breakdown->days[0];
-        self::assertSame('2025-02-03', $start->date->format('Y-m-d'));
-        self::assertSame(LeaveDayStatus::HalfDay, $start->status);
-        self::assertSame(4.0, $start->hours);
-
-        for ($i = 1; $i <= 4; ++$i) {
-            self::assertSame(LeaveDayStatus::Working, $breakdown->days[$i]->status);
-            self::assertSame(8.0, $breakdown->days[$i]->hours);
-        }
     }
 
     #[Test]
-    public function halfDayPmOnMultiDayRangeAffectsOnlyEnd(): void
+    public function halfDayPmOnMultiDayRangeAlsoThrows(): void
     {
-        // Mon-Fri full-time, HalfDayPm => Mon-Thu = 8h each, Fri = 4h half.
         $employee = $this->fullTimeEmployee();
-        $breakdown = $this->calculator->calculate(
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->calculator->calculate(
             $employee,
             new \DateTimeImmutable('2025-02-03'),
             new \DateTimeImmutable('2025-02-07'),
             LeaveDayType::HalfDayPm,
             holidays: [],
         );
-
-        self::assertSame(36.0, $breakdown->totalHours());
-
-        for ($i = 0; $i <= 3; ++$i) {
-            self::assertSame(LeaveDayStatus::Working, $breakdown->days[$i]->status);
-            self::assertSame(8.0, $breakdown->days[$i]->hours);
-        }
-
-        $end = $breakdown->days[4];
-        self::assertSame('2025-02-07', $end->date->format('Y-m-d'));
-        self::assertSame(LeaveDayStatus::HalfDay, $end->status);
-        self::assertSame(4.0, $end->hours);
-    }
-
-    #[Test]
-    public function halfDayIntentOnExcludedBoundaryIsSilentlyIgnored(): void
-    {
-        // Part-time Mon/Wed/Fri, range Tue .. Fri with HalfDayAm:
-        // Tuesday is NonWorkingDay, so the HalfDay intent has no effect. The
-        // remaining Wed/Fri are full working days (Thu also NonWorkingDay).
-        $employee = $this->partTimeMonWedFriEmployee();
-        $breakdown = $this->calculator->calculate(
-            $employee,
-            new \DateTimeImmutable('2025-02-04'), // Tue
-            new \DateTimeImmutable('2025-02-07'), // Fri
-            LeaveDayType::HalfDayAm,
-            holidays: [],
-        );
-
-        self::assertSame(16.0, $breakdown->totalHours());
-        self::assertCount(2, $breakdown->workingDays());
-        foreach ($breakdown->workingDays() as $day) {
-            self::assertSame(LeaveDayStatus::Working, $day->status);
-            self::assertSame(8.0, $day->hours);
-        }
-    }
-
-    #[Test]
-    public function halfDayIntentOnHolidayBoundaryIsSilentlyIgnored(): void
-    {
-        // Range Thu 29.05 .. Fri 30.05.2025, Thu = Christi Himmelfahrt.
-        // HalfDayAm on start: Thu is a holiday -> excluded, HalfDay intent verpufft.
-        // Friday is a full working day.
-        $employee = $this->fullTimeEmployee();
-        $breakdown = $this->calculator->calculate(
-            $employee,
-            new \DateTimeImmutable('2025-05-29'),
-            new \DateTimeImmutable('2025-05-30'),
-            LeaveDayType::HalfDayAm,
-            holidays: [
-                new Holiday(
-                    new \DateTimeImmutable('2025-05-29'),
-                    'holiday.christi_himmelfahrt',
-                    HolidayScope::National,
-                ),
-            ],
-        );
-
-        self::assertSame(8.0, $breakdown->totalHours());
-        self::assertCount(1, $breakdown->workingDays());
-        self::assertCount(1, $breakdown->excludedDays());
-        self::assertSame(ExclusionReason::Holiday, $breakdown->excludedDays()[0]->reason);
     }
 
     // -----------------------------------------------------------------

@@ -42,13 +42,16 @@ final class LeaveCalculator
         if ($end < $start) {
             throw new \InvalidArgumentException('LeaveCalculator: endDate must not precede startDate.');
         }
+        if ($dayType->isHalfDay() && $start->getTimestamp() !== $end->getTimestamp()) {
+            throw new \InvalidArgumentException('LeaveCalculator: half-day day-type is only valid for single-day ranges.');
+        }
 
         $holidayIndex = $this->indexHolidaysByDate($holidays);
         $schedule = $employee->getWorkSchedule();
 
         $days = [];
         for ($current = $start; $current <= $end; $current = $current->modify('+1 day')) {
-            $days[] = $this->classify($employee, $schedule, $current, $start, $end, $dayType, $holidayIndex);
+            $days[] = $this->classify($employee, $schedule, $current, $dayType, $holidayIndex);
         }
 
         return new LeaveBreakdown($days);
@@ -61,8 +64,6 @@ final class LeaveCalculator
         Employee $employee,
         \App\Domain\ValueObject\WorkSchedule $schedule,
         \DateTimeImmutable $current,
-        \DateTimeImmutable $rangeStart,
-        \DateTimeImmutable $rangeEnd,
         LeaveDayType $dayType,
         array $holidayIndex,
     ): LeaveDay {
@@ -74,7 +75,10 @@ final class LeaveCalculator
         $weekday = Weekday::fromDateTime($current);
         $fullHours = $schedule->hoursForDay($weekday);
 
-        if ($this->isHalfDayBoundary($current, $rangeStart, $rangeEnd, $dayType)) {
+        // Multi-day + half-day is guarded by calculate() above, so reaching
+        // this branch means the range is a single day — the half-day flag
+        // applies to that one day regardless of Am vs. Pm.
+        if ($dayType->isHalfDay()) {
             return new LeaveDay($current, $fullHours / 2.0, LeaveDayStatus::HalfDay);
         }
 
@@ -108,26 +112,6 @@ final class LeaveCalculator
         }
 
         return null;
-    }
-
-    private function isHalfDayBoundary(
-        \DateTimeImmutable $current,
-        \DateTimeImmutable $rangeStart,
-        \DateTimeImmutable $rangeEnd,
-        LeaveDayType $dayType,
-    ): bool {
-        if (!$dayType->isHalfDay()) {
-            return false;
-        }
-
-        $isStart = $current->getTimestamp() === $rangeStart->getTimestamp();
-        $isEnd = $current->getTimestamp() === $rangeEnd->getTimestamp();
-
-        return match ($dayType) {
-            LeaveDayType::HalfDayAm => $isStart,
-            LeaveDayType::HalfDayPm => $isEnd,
-            LeaveDayType::FullDay => false,
-        };
     }
 
     /**

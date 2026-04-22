@@ -15,24 +15,40 @@
     <section class="rounded-xl bg-white p-6 shadow-sm"
              data-controller="leave-preview"
              data-leave-preview-preview-url-value="{{ path('app_my_leave_request_preview') }}">
+        {% set label_classes = 'block text-sm font-medium text-gray-700' %}
+        {% set input_classes = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500' %}
+
         {{ form_start(form, { attr: {
             'data-leave-preview-target': 'form',
             'class': 'space-y-5',
         } }) }}
 
-            <p class="text-sm text-gray-500">{{ 'form.required_legend'|trans }}</p>
+            <p class="text-xs text-gray-500">{{ 'form.required_legend'|trans }}</p>
 
             {{ form_errors(form) }}
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {{ form_row(form.startDate) }}
-                {{ form_row(form.endDate) }}
+                {{ form_row(form.startDate, {
+                    label_attr: { class: label_classes },
+                    attr: { class: input_classes },
+                }) }}
+                {{ form_row(form.endDate, {
+                    label_attr: { class: label_classes },
+                    attr: { class: input_classes },
+                }) }}
             </div>
 
-            {{ form_row(form.dayType) }}
-            {{ form_row(form.absenceType) }}
+            {{ form_row(form.dayType, {
+                label_attr: { class: label_classes },
+                attr: { class: input_classes },
+            }) }}
 
-            <div class="mt-4">
+            {{ form_row(form.absenceType, {
+                label_attr: { class: label_classes },
+                attr: { class: input_classes },
+            }) }}
+
+            <div class="mt-6">
                 <h2 class="mb-2 text-sm font-medium text-gray-700">{{ 'my.leave_requests.preview.heading'|trans }}</h2>
                 <turbo-frame id="leave-preview"
                              data-leave-preview-target="frame"
@@ -43,7 +59,7 @@
                 </turbo-frame>
             </div>
 
-            <div class="mt-6 flex items-center justify-end gap-3">
+            <div class="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
                 <a href="{{ path('app_my_leave_request_index') }}"
                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                     {{ 'form.cancel'|trans }}

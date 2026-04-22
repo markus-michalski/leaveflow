@@ -65,8 +65,6 @@ final class LeaveRequestFormType extends AbstractType
                 'mapped' => false,
                 'class' => LeaveDayType::class,
                 'choice_label' => static fn (LeaveDayType $t): string => 'my.leave_requests.day_type.'.$t->value,
-                'expanded' => true,
-                'multiple' => false,
                 'data' => LeaveDayType::FullDay,
                 'constraints' => [new NotNull()],
                 'attr' => [

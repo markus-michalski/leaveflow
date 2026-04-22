@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\My;
 
+use App\Application\Leave\BackdatedLeaveRequestException;
 use App\Application\Leave\InsufficientLeaveBalanceException;
 use App\Application\Leave\LeaveRequestService;
+use App\Application\Leave\MultiDayHalfDayException;
+use App\Application\Leave\NoEntitlementForYearException;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\User;
@@ -13,6 +16,7 @@ use App\Domain\Enum\LeaveDayType;
 use App\Domain\Repository\EmployeeRepository;
 use App\Domain\Repository\LeaveRequestRepository;
 use App\Presentation\Form\LeaveRequestFormType;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,6 +33,7 @@ final class MyLeaveRequestController extends AbstractController
         private readonly EmployeeRepository $employeeRepository,
         private readonly LeaveRequestRepository $leaveRequestRepository,
         private readonly LeaveRequestService $service,
+        private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
     ) {
     }
@@ -90,6 +95,20 @@ final class MyLeaveRequestController extends AbstractController
                     ));
 
                     return $this->redirectToRoute('app_my_leave_request_index');
+                } catch (BackdatedLeaveRequestException) {
+                    $form->get('startDate')->addError(new FormError(
+                        $this->translator->trans('my.leave_requests.error.backdated'),
+                    ));
+                } catch (MultiDayHalfDayException) {
+                    $form->get('dayType')->addError(new FormError(
+                        $this->translator->trans('my.leave_requests.error.half_day_multi_day'),
+                    ));
+                } catch (NoEntitlementForYearException $e) {
+                    $form->addError(new FormError(
+                        $this->translator->trans('my.leave_requests.error.no_entitlement_for_year', [
+                            '%year%' => (string) $e->year,
+                        ]),
+                    ));
                 } catch (InsufficientLeaveBalanceException $e) {
                     $form->addError(new FormError(
                         $this->translator->trans('my.leave_requests.error.insufficient_balance', [
@@ -140,6 +159,10 @@ final class MyLeaveRequestController extends AbstractController
 
             try {
                 $breakdown = $this->service->preview($employee, $start, $end, $dayType);
+            } catch (BackdatedLeaveRequestException) {
+                $errorKey = 'my.leave_requests.preview.backdated';
+            } catch (MultiDayHalfDayException) {
+                $errorKey = 'my.leave_requests.preview.half_day_multi_day';
             } catch (\ValueError) {
                 $errorKey = 'my.leave_requests.preview.unknown_federal_state';
             }
@@ -167,6 +190,34 @@ final class MyLeaveRequestController extends AbstractController
         return $this->render('my/leave_request/show.html.twig', [
             'leaveRequest' => $leaveRequest,
         ]);
+    }
+
+    #[Route('/{id}/cancel', name: 'cancel', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function cancel(int $id, Request $request): Response
+    {
+        $employee = $this->getEmployeeOrRedirect();
+        if ($employee instanceof Response) {
+            return $employee;
+        }
+
+        $leaveRequest = $this->leaveRequestRepository->find($id);
+        if (null === $leaveRequest || $leaveRequest->getEmployee() !== $employee) {
+            throw $this->createNotFoundException();
+        }
+
+        if (!$this->isCsrfTokenValid('cancel-leave-request-'.$id, (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        try {
+            $leaveRequest->cancel();
+            $this->entityManager->flush();
+            $this->addFlash('success', $this->translator->trans('my.leave_requests.flash.cancelled'));
+        } catch (\DomainException) {
+            $this->addFlash('error', $this->translator->trans('my.leave_requests.error.cancel_not_allowed'));
+        }
+
+        return $this->redirectToRoute('app_my_leave_request_show', ['id' => $id]);
     }
 
     private function getEmployeeOrRedirect(): Employee|Response

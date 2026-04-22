@@ -166,6 +166,7 @@ final class MyLeaveRequestControllerTest extends WebTestCase
         $created = $this->em->getRepository(LeaveRequest::class)->findOneBy(['employee' => $this->employee]);
         self::assertNotNull($created);
         self::assertSame(4.0, $created->getTotalHours(), 'full-time 40h/5d => 8h * 0.5 = 4h');
+        self::assertSame(LeaveRequestStatus::Recorded, $created->getStatus(), 'non-approval type lands in Recorded, not Pending');
     }
 
     #[Test]
@@ -243,6 +244,75 @@ final class MyLeaveRequestControllerTest extends WebTestCase
 
         $this->loginAs('employee@leaveflow.test');
         $this->client->request('GET', '/my/leave-requests/'.$foreignRequest->getId());
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    #[Test]
+    public function employeeCanCancelOwnPendingRequest(): void
+    {
+        $request = $this->createStoredRequest();
+        $this->em->flush();
+        $id = $request->getId();
+
+        $this->loginAs('employee@leaveflow.test');
+        $crawler = $this->client->request('GET', '/my/leave-requests/'.$id);
+        self::assertResponseIsSuccessful();
+
+        $cancelButton = $crawler->filter('[data-testid="leave-request-cancel"]');
+        self::assertCount(1, $cancelButton, 'Cancel button must be rendered for pending requests.');
+
+        $form = $cancelButton->form();
+        // The confirm() dialog on the form would block the browser submit but
+        // doesn't affect the HTTP request from the test client.
+        $this->client->submit($form);
+
+        self::assertResponseRedirects('/my/leave-requests/'.$id);
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('[role="alert"]', 'storniert');
+
+        $this->em->clear();
+        /** @var LeaveRequest $reloaded */
+        $reloaded = $this->em->getRepository(LeaveRequest::class)->find($id);
+        self::assertSame(LeaveRequestStatus::Cancelled, $reloaded->getStatus());
+    }
+
+    #[Test]
+    public function cancelButtonHiddenForCancelledRequest(): void
+    {
+        $request = $this->createStoredRequest();
+        $request->cancel();
+        $this->em->flush();
+
+        $this->loginAs('employee@leaveflow.test');
+        $this->client->request('GET', '/my/leave-requests/'.$request->getId());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('[data-testid="leave-request-cancel"]');
+    }
+
+    #[Test]
+    public function cancellingForeignRequestReturnsNotFound(): void
+    {
+        $other = new Employee(
+            $this->company,
+            'Other Olga',
+            'EMP-8888',
+            $this->employee->getLocation(),
+            $this->employee->getWorkSchedule(),
+            new \DateTimeImmutable('2020-01-01'),
+        );
+        $this->em->persist($other);
+        $this->em->flush();
+
+        $foreignRequest = $this->createStoredRequestFor($other);
+        $this->em->flush();
+
+        $this->loginAs('employee@leaveflow.test');
+        // 404 fires before the CSRF check, so any token value works here.
+        $this->client->request('POST', '/my/leave-requests/'.$foreignRequest->getId().'/cancel', [
+            '_token' => 'ignored',
+        ]);
 
         self::assertResponseStatusCodeSame(404);
     }

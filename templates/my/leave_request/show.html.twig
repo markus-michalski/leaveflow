@@ -4,12 +4,27 @@
 
 {% block body %}
 <div class="mx-auto max-w-3xl p-6">
-    <header class="mb-6 flex items-center justify-between">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 class="text-2xl font-semibold text-gray-900">{{ 'my.leave_requests.show.heading'|trans }}</h1>
-        <a href="{{ path('app_my_leave_request_index') }}"
-           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            {{ 'nav.back_to_list'|trans }}
-        </a>
+        <div class="flex items-center gap-2">
+            {% if leaveRequest.status.value in ['pending', 'recorded'] %}
+                <form method="post"
+                      action="{{ path('app_my_leave_request_cancel', { id: leaveRequest.id }) }}"
+                      onsubmit="return confirm('{{ 'my.leave_requests.show.cancel_confirm'|trans }}')"
+                      class="inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cancel-leave-request-' ~ leaveRequest.id) }}">
+                    <button type="submit"
+                            data-testid="leave-request-cancel"
+                            class="inline-flex items-center gap-1 rounded-md border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-100">
+                        {{ 'my.leave_requests.show.cancel'|trans }}
+                    </button>
+                </form>
+            {% endif %}
+            <a href="{{ path('app_my_leave_request_index') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.back_to_list'|trans }}
+            </a>
+        </div>
     </header>
 
     <section class="rounded-xl bg-white p-6 shadow-sm">
@@ -18,6 +33,7 @@
             <dd class="col-span-2">
                 {% set status_classes = {
                     'pending': 'bg-amber-100 text-amber-800',
+                    'recorded': 'bg-sky-100 text-sky-800',
                     'approved': 'bg-green-100 text-green-800',
                     'rejected': 'bg-rose-100 text-rose-800',
                     'cancelled': 'bg-gray-100 text-gray-700',

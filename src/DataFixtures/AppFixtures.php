@@ -133,28 +133,37 @@ final class AppFixtures extends Fixture
             $absenceTypesByName[$absenceType->getName()] = $absenceType;
         }
 
-        // Phase 4: current-year regular entitlement plus a demo carryover from
-        // last year for Maya to showcase the FIFO consumption rules.
-        $manager->persist(new LeaveEntitlement(
-            $maya,
-            $currentYear,
-            LeaveEntitlementType::Regular,
-            240.0,
-        ));
+        // Phase 5: three years of Regular entitlements (previous, current, next)
+        // so manual tests can exercise year-boundary requests and both the
+        // backdated-guard (previous year) and the "no entitlement" edge never
+        // fires just because the seed doesn't cover the range.
+        foreach ([$currentYear - 1, $currentYear, $currentYear + 1] as $year) {
+            $manager->persist(new LeaveEntitlement(
+                $maya,
+                $year,
+                LeaveEntitlementType::Regular,
+                240.0,
+            ));
+            // Erik works 30h/4d so 30 leave days map to 30 * 7.5h = 225h.
+            $manager->persist(new LeaveEntitlement(
+                $erik,
+                $year,
+                LeaveEntitlementType::Regular,
+                225.0,
+            ));
+        }
+
+        // Demo carryover for Maya: 16h still outstanding, expiring 31.03. of
+        // the following year so the profile dashboard keeps showing an active
+        // carryover regardless of when the fixtures are loaded. Admins can
+        // edit the expiry via /admin/entitlements to simulate the abgelaufen-
+        // case.
         $manager->persist(new LeaveEntitlement(
             $maya,
             $currentYear,
             LeaveEntitlementType::Carryover,
             16.0,
-            (new \DateTimeImmutable())->setDate($currentYear, 3, 31)->setTime(0, 0),
-        ));
-
-        // Erik works 30h/4d so 30 leave days map to 30 * 7.5h = 225h.
-        $manager->persist(new LeaveEntitlement(
-            $erik,
-            $currentYear,
-            LeaveEntitlementType::Regular,
-            225.0,
+            (new \DateTimeImmutable())->setDate($currentYear + 1, 3, 31)->setTime(0, 0),
         ));
 
         // Phase 5: demo leave requests so admins and employees see realistic

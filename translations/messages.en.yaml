@@ -407,6 +407,7 @@ my:
             half_day_pm: Half day (afternoon)
         status:
             pending: Pending
+            recorded: Recorded
             approved: Approved
             rejected: Rejected
             cancelled: Cancelled
@@ -424,6 +425,8 @@ my:
             title: Leave request
             heading: Leave request
             days_heading: Day-by-day breakdown
+            cancel: Cancel request
+            cancel_confirm: Do you really want to cancel this request?
         preview:
             heading: "Preview: working hours"
             summary: "<strong>%days%</strong> working days = <strong>%hours%&thinsp;h</strong>"
@@ -431,13 +434,20 @@ my:
             awaiting_dates: Pick start and end date to see the preview.
             end_before_start: The end date is before the start date.
             unknown_federal_state: Your location has no supported federal state.
+            backdated: Backdated requests are not supported. Please pick a start date in the future.
+            half_day_multi_day: Half days are only available on single-day requests. Set start and end to the same date, or file separate requests.
         flash:
             created: "Request for %hours% hours has been submitted."
+            cancelled: "Request has been cancelled."
         error:
             end_before_start: The end date must not precede the start date.
             absence_type_foreign: The selected absence type does not belong to your company.
             no_employee_record: No employee record is linked to your account. Please contact your administrator.
             insufficient_balance: "Your %year% leave balance is insufficient: %requested%h requested, %available%h available (including pending requests)."
+            backdated: Backdated requests are not supported. Please contact your administrator if a correction is needed.
+            no_entitlement_for_year: "No leave entitlement exists for %year% yet. Please contact your administrator."
+            half_day_multi_day: Half days are only available on single-day requests. Please file separate requests for mix scenarios.
+            cancel_not_allowed: "This request cannot be cancelled. Approved requests require a separate cancellation flow via the admin."
 weekday:
     monday: Monday
     tuesday: Tuesday

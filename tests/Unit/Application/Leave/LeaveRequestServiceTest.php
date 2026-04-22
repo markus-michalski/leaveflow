@@ -6,8 +6,11 @@ namespace App\Tests\Unit\Application\Leave;
 
 use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Application\Holiday\HolidayService;
+use App\Application\Leave\BackdatedLeaveRequestException;
 use App\Application\Leave\InsufficientLeaveBalanceException;
 use App\Application\Leave\LeaveRequestService;
+use App\Application\Leave\MultiDayHalfDayException;
+use App\Application\Leave\NoEntitlementForYearException;
 use App\Domain\Calculator\HolidayCalculator;
 use App\Domain\Calculator\LeaveCalculator;
 use App\Domain\Entity\AbsenceType;
@@ -55,7 +58,9 @@ final class LeaveRequestServiceTest extends TestCase
         $this->entitlementRepository = $this->createMock(LeaveEntitlementRepository::class);
         $this->dayRepository = $this->createMock(LeaveRequestDayRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->clock = new MockClock('2026-04-21 10:00:00');
+        // Pin the clock before any of the fixture dates (2025+) so the
+        // backdated-request guard treats them as future.
+        $this->clock = new MockClock('2024-01-01 10:00:00');
 
         $this->acme = new Company('Acme GmbH');
         $location = new Location($this->acme, 'HQ', 'DE', 'DE-BE', 'Berlin');
@@ -212,7 +217,7 @@ final class LeaveRequestServiceTest extends TestCase
             LeaveDayType::FullDay,
         );
 
-        self::assertSame('2026-04-21 10:00:00', $request->getRequestedAt()->format('Y-m-d H:i:s'));
+        self::assertSame('2024-01-01 10:00:00', $request->getRequestedAt()->format('Y-m-d H:i:s'));
     }
 
     #[Test]
@@ -408,6 +413,132 @@ final class LeaveRequestServiceTest extends TestCase
     }
 
     // -----------------------------------------------------------------
+    // Backdating guard + missing entitlement guard
+    // -----------------------------------------------------------------
+
+    #[Test]
+    public function previewRejectsHalfDayOnMultiDayRange(): void
+    {
+        $service = $this->buildService();
+
+        $this->expectException(MultiDayHalfDayException::class);
+
+        $service->preview(
+            $this->employee,
+            new \DateTimeImmutable('2025-02-03'),
+            new \DateTimeImmutable('2025-02-07'),
+            LeaveDayType::HalfDayAm,
+        );
+    }
+
+    #[Test]
+    public function createRejectsHalfDayOnMultiDayRange(): void
+    {
+        $this->entityManager->expects(self::never())->method('persist');
+
+        $service = $this->buildService();
+
+        $this->expectException(MultiDayHalfDayException::class);
+
+        $service->create(
+            $this->employee,
+            $this->urlaub,
+            new \DateTimeImmutable('2025-02-03'),
+            new \DateTimeImmutable('2025-02-07'),
+            LeaveDayType::HalfDayPm,
+        );
+    }
+
+    #[Test]
+    public function createRejectsBackdatedRequest(): void
+    {
+        // Clock stands on 2024-01-01; asking for leave in 2023 is backdated.
+        $this->entityManager->expects(self::never())->method('persist');
+
+        $service = $this->buildService();
+
+        $this->expectException(BackdatedLeaveRequestException::class);
+
+        $service->create(
+            $this->employee,
+            $this->urlaub,
+            new \DateTimeImmutable('2023-12-04'),
+            new \DateTimeImmutable('2023-12-08'),
+            LeaveDayType::FullDay,
+        );
+    }
+
+    #[Test]
+    public function previewRejectsBackdatedRange(): void
+    {
+        // Clock pinned at 2024-01-01. 2023 is yesterday.
+        $service = $this->buildService();
+
+        $this->expectException(BackdatedLeaveRequestException::class);
+
+        $service->preview(
+            $this->employee,
+            new \DateTimeImmutable('2023-12-04'),
+            new \DateTimeImmutable('2023-12-08'),
+            LeaveDayType::FullDay,
+        );
+    }
+
+    #[Test]
+    public function createRejectsYearWithoutAnyEntitlementForDeductingType(): void
+    {
+        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
+
+        // No entitlement row at all for the target year.
+        $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([]);
+        $this->dayRepository->method('sumPendingHoursByYear')->willReturn([]);
+
+        $this->entityManager->expects(self::never())->method('persist');
+
+        $service = $this->buildService();
+
+        try {
+            $service->create(
+                $this->employee,
+                $this->urlaub,
+                new \DateTimeImmutable('2025-02-03'),
+                new \DateTimeImmutable('2025-02-07'),
+                LeaveDayType::FullDay,
+            );
+            self::fail('Expected NoEntitlementForYearException');
+        } catch (NoEntitlementForYearException $e) {
+            self::assertSame(2025, $e->year);
+        }
+    }
+
+    #[Test]
+    public function createAllowsYearWithoutEntitlementForNonDeductingType(): void
+    {
+        // Krankheit: no entitlement needed, should pass.
+        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
+
+        $this->entitlementRepository->expects(self::never())->method('findByEmployeeAndYear');
+        $this->dayRepository->expects(self::never())->method('sumPendingHoursByYear');
+
+        $this->entityManager->expects(self::once())->method('persist');
+        $this->entityManager->expects(self::once())->method('flush');
+
+        $service = $this->buildService();
+
+        $request = $service->create(
+            $this->employee,
+            $this->krankheit,
+            new \DateTimeImmutable('2025-02-03'),
+            new \DateTimeImmutable('2025-02-03'),
+            LeaveDayType::HalfDayAm,
+        );
+
+        self::assertSame(4.0, $request->getTotalHours());
+    }
+
+    // -----------------------------------------------------------------
     // Fixtures
     // -----------------------------------------------------------------
 
@@ -425,6 +556,7 @@ final class LeaveRequestServiceTest extends TestCase
             $holidayService,
             new LeaveCalculator(),
             $balanceReader,
+            $this->entitlementRepository,
             $this->dayRepository,
             $this->entityManager,
             $this->clock,
