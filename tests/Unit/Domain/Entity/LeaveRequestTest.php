@@ -272,56 +272,6 @@ final class LeaveRequestTest extends TestCase
     }
 
     // -----------------------------------------------------------------
-    // Self-service cancel
-    // -----------------------------------------------------------------
-
-    #[Test]
-    public function pendingRequestCanBeCancelled(): void
-    {
-        $request = $this->buildSimpleRequest();
-        self::assertSame(LeaveRequestStatus::Pending, $request->getStatus());
-
-        $request->cancel();
-
-        self::assertSame(LeaveRequestStatus::Cancelled, $request->getStatus());
-    }
-
-    #[Test]
-    public function recordedRequestCanBeCancelled(): void
-    {
-        $krankheit = new AbsenceType(
-            company: $this->acme,
-            name: 'Krankheit',
-            deductsFromLeave: false,
-            requiresApproval: false,
-            color: '#EF4444',
-        );
-        $request = new LeaveRequest(
-            employee: $this->employee,
-            absenceType: $krankheit,
-            startDate: new \DateTimeImmutable('2026-07-06'),
-            endDate: new \DateTimeImmutable('2026-07-06'),
-            dayType: LeaveDayType::HalfDayAm,
-            requestedAt: new \DateTimeImmutable('2026-07-06 08:15:00'),
-        );
-
-        $request->cancel();
-
-        self::assertSame(LeaveRequestStatus::Cancelled, $request->getStatus());
-    }
-
-    #[Test]
-    public function cancelOnAlreadyCancelledRequestThrows(): void
-    {
-        $request = $this->buildSimpleRequest();
-        $request->cancel();
-
-        $this->expectException(\DomainException::class);
-
-        $request->cancel();
-    }
-
-    // -----------------------------------------------------------------
 
     #[Test]
     public function applyBreakdownWithDatesOutsideRangeThrows(): void

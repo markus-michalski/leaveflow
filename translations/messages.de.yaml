@@ -464,6 +464,8 @@ my:
             days_heading: Tagesaufschlüsselung
             cancel: Antrag stornieren
             cancel_confirm: Möchtest du diesen Antrag wirklich stornieren?
+            request_cancel: Stornierung beantragen
+            request_cancel_confirm: Möchtest du wirklich die Stornierung dieses genehmigten Antrags beantragen?
         preview:
             heading: "Vorschau: Arbeitsstunden"
             summary: "<strong>%days%</strong> Arbeitstage = <strong>%hours%&thinsp;h</strong>"
@@ -476,6 +478,7 @@ my:
         flash:
             created: "Antrag über %hours% Stunden wurde eingereicht."
             cancelled: "Antrag wurde storniert."
+            cancel_requested: "Stornierung wurde beantragt. Dein Manager entscheidet darüber."
         error:
             end_before_start: Das Enddatum darf nicht vor dem Startdatum liegen.
             absence_type_foreign: Die gewählte Abwesenheitsart gehört nicht zu deiner Firma.
@@ -485,6 +488,8 @@ my:
             no_entitlement_for_year: "Für %year% wurde noch kein Urlaubsanspruch angelegt. Bitte wende dich an die Administration."
             half_day_multi_day: Halbe Tage sind nur bei Einzeltag-Anträgen möglich. Für Mix-Szenarien bitte mehrere Anträge stellen.
             cancel_not_allowed: "Dieser Antrag kann nicht storniert werden. Bereits genehmigte Anträge erfordern einen separaten Storno-Flow über die Administration."
+            request_cancel_too_late: "Der Urlaub hat bereits begonnen. Bitte wende dich an die Administration."
+            request_cancel_not_allowed: "Für diesen Antrag kann keine Stornierung beantragt werden."
 weekday:
     monday: Montag
     tuesday: Dienstag

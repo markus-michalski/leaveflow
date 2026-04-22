@@ -19,6 +19,18 @@
                         {{ 'my.leave_requests.show.cancel'|trans }}
                     </button>
                 </form>
+            {% elseif leaveRequest.status.value == 'approved' and canRequestCancel %}
+                <form method="post"
+                      action="{{ path('app_my_leave_request_request_cancel', { id: leaveRequest.id }) }}"
+                      onsubmit="return confirm('{{ 'my.leave_requests.show.request_cancel_confirm'|trans }}')"
+                      class="inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('request-cancel-leave-request-' ~ leaveRequest.id) }}">
+                    <button type="submit"
+                            data-testid="leave-request-request-cancel"
+                            class="inline-flex items-center gap-1 rounded-md border border-orange-300 bg-orange-50 px-3 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100">
+                        {{ 'my.leave_requests.show.request_cancel'|trans }}
+                    </button>
+                </form>
             {% endif %}
             <a href="{{ path('app_my_leave_request_index') }}"
                class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">

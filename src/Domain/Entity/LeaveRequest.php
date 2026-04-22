@@ -158,23 +158,6 @@ class LeaveRequest
     }
 
     /**
-     * Self-service cancellation for Pending or Recorded requests.
-     *
-     * Phase 5 scope: employees can withdraw their own requests before a
-     * manager decision was made. Phase 6 adds the Approved → CancelRequested
-     * → Cancelled transition (manager-driven) via Symfony Workflow.
-     */
-    public function cancel(): void
-    {
-        if (LeaveRequestStatus::Pending !== $this->status
-            && LeaveRequestStatus::Recorded !== $this->status) {
-            throw new \DomainException(\sprintf('LeaveRequest cannot be cancelled from status %s; only Pending and Recorded are self-service-cancellable.', $this->status->value));
-        }
-
-        $this->status = LeaveRequestStatus::Cancelled;
-    }
-
-    /**
      * Populate per-day breakdown + total hours from a LeaveCalculator result.
      *
      * Idempotent: replaces any previously stored days (orphanRemoval handles

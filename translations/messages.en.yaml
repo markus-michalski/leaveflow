@@ -464,6 +464,8 @@ my:
             days_heading: Day-by-day breakdown
             cancel: Cancel request
             cancel_confirm: Do you really want to cancel this request?
+            request_cancel: Request cancellation
+            request_cancel_confirm: Do you really want to request cancellation of this approved leave?
         preview:
             heading: "Preview: working hours"
             summary: "<strong>%days%</strong> working days = <strong>%hours%&thinsp;h</strong>"
@@ -476,6 +478,7 @@ my:
         flash:
             created: "Request for %hours% hours has been submitted."
             cancelled: "Request has been cancelled."
+            cancel_requested: "Cancellation has been requested. Your manager will decide."
         error:
             end_before_start: The end date must not precede the start date.
             absence_type_foreign: The selected absence type does not belong to your company.
@@ -485,6 +488,8 @@ my:
             no_entitlement_for_year: "No leave entitlement exists for %year% yet. Please contact your administrator."
             half_day_multi_day: Half days are only available on single-day requests. Please file separate requests for mix scenarios.
             cancel_not_allowed: "This request cannot be cancelled. Approved requests require a separate cancellation flow via the admin."
+            request_cancel_too_late: "The leave has already started. Please contact your administrator."
+            request_cancel_not_allowed: "Cancellation cannot be requested for this leave."
 weekday:
     monday: Monday
     tuesday: Tuesday
