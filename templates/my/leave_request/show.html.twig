@@ -19,6 +19,18 @@
                         {{ 'my.leave_requests.show.cancel'|trans }}
                     </button>
                 </form>
+            {% elseif leaveRequest.status.value == 'approved' and canRequestCancel %}
+                <form method="post"
+                      action="{{ path('app_my_leave_request_request_cancel', { id: leaveRequest.id }) }}"
+                      onsubmit="return confirm('{{ 'my.leave_requests.show.request_cancel_confirm'|trans }}')"
+                      class="inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('request-cancel-leave-request-' ~ leaveRequest.id) }}">
+                    <button type="submit"
+                            data-testid="leave-request-request-cancel"
+                            class="inline-flex items-center gap-1 rounded-md border border-orange-300 bg-orange-50 px-3 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100">
+                        {{ 'my.leave_requests.show.request_cancel'|trans }}
+                    </button>
+                </form>
             {% endif %}
             <a href="{{ path('app_my_leave_request_index') }}"
                class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
@@ -74,6 +86,46 @@
             <dd class="col-span-2 text-gray-900">{{ leaveRequest.requestedAt|date('d.m.Y H:i') }}</dd>
         </dl>
     </section>
+
+    {% if auditEntries is not empty %}
+        <section class="mt-6 rounded-xl bg-white p-6 shadow-sm" data-testid="my-audit-trail">
+            <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'my.leave_requests.show.history_heading'|trans }}</h2>
+            <ul class="divide-y divide-gray-100 text-sm">
+                {% for entry in auditEntries %}
+                    {% set isRejection = entry.transition in ['reject', 'deny_cancel'] %}
+                    <li class="py-3 flex flex-wrap items-start justify-between gap-2">
+                        <div class="flex-1">
+                            <span class="font-medium {{ isRejection ? 'text-rose-900' : 'text-gray-900' }}">
+                                {{ ('my.leave_requests.history.transition.' ~ entry.transition)|trans }}
+                            </span>
+                            <span class="ml-2 text-xs text-gray-500">
+                                {{ ('my.leave_requests.status.' ~ entry.fromStatus.value)|trans }}
+                                →
+                                {{ ('my.leave_requests.status.' ~ entry.toStatus.value)|trans }}
+                            </span>
+                            {% if entry.reason %}
+                                <div class="mt-2 rounded-md {{ isRejection ? 'bg-rose-50 border border-rose-200' : 'bg-gray-50' }} p-3">
+                                    <p class="text-xs font-medium {{ isRejection ? 'text-rose-800' : 'text-gray-600' }} mb-1">
+                                        {{ 'my.leave_requests.history.reason_label'|trans }}
+                                    </p>
+                                    <p class="text-sm {{ isRejection ? 'text-rose-900' : 'text-gray-800' }} whitespace-pre-line">{{ entry.reason }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="text-xs text-gray-500 text-right shrink-0">
+                            {% if entry.actor %}
+                                {{ entry.actor.fullName }}
+                            {% else %}
+                                {{ 'my.leave_requests.history.system'|trans }}
+                            {% endif %}
+                            <br>
+                            {{ entry.occurredAt|date('d.m.Y H:i') }}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
 
     <section class="mt-6 rounded-xl bg-white p-6 shadow-sm">
         <h2 class="mb-3 text-lg font-semibold text-gray-900">{{ 'my.leave_requests.show.days_heading'|trans }}</h2>

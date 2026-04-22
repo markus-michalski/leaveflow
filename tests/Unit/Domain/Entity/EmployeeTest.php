@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Domain\Entity;
 
 use App\Domain\Entity\Company;
+use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
@@ -232,5 +233,59 @@ final class EmployeeTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $employee->reassignLocation($foreignLocation);
+    }
+
+    #[Test]
+    public function departmentIsNullByDefault(): void
+    {
+        $employee = $this->buildEmployee();
+
+        self::assertNull($employee->getDepartment());
+    }
+
+    #[Test]
+    public function assignToDepartmentStoresReference(): void
+    {
+        $employee = $this->buildEmployee();
+        $department = new Department($this->acme, 'Engineering');
+
+        $employee->assignToDepartment($department);
+
+        self::assertSame($department, $employee->getDepartment());
+    }
+
+    #[Test]
+    public function assignToDepartmentAcceptsNullToClear(): void
+    {
+        $employee = $this->buildEmployee();
+        $employee->assignToDepartment(new Department($this->acme, 'Engineering'));
+
+        $employee->assignToDepartment(null);
+
+        self::assertNull($employee->getDepartment());
+    }
+
+    #[Test]
+    public function assignToDepartmentRejectsForeignCompany(): void
+    {
+        $employee = $this->buildEmployee();
+        $otherCompany = new Company('Other GmbH');
+        $foreignDepartment = new Department($otherCompany, 'Sales');
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $employee->assignToDepartment($foreignDepartment);
+    }
+
+    private function buildEmployee(): Employee
+    {
+        return new Employee(
+            $this->acme,
+            'Jane Doe',
+            'EMP-001',
+            $this->hq,
+            WorkSchedule::standardFullTime(),
+            new \DateTimeImmutable('2026-01-01'),
+        );
     }
 }

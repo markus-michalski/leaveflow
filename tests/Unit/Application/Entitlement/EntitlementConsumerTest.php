@@ -209,6 +209,92 @@ final class EntitlementConsumerTest extends TestCase
         self::assertSame(10.0, $fresh->getHoursUsed());
     }
 
+    #[Test]
+    public function releaseReturnsHoursToSingleEntitlement(): void
+    {
+        $regular = $this->entitlement(2026, LeaveEntitlementType::Regular, 240.0);
+        $regular->consume(40.0);
+
+        $this->consumer->release([$regular], 16.0);
+
+        self::assertSame(24.0, $regular->getHoursUsed());
+        self::assertSame(216.0, $regular->getHoursRemaining());
+    }
+
+    #[Test]
+    public function releasePrefersReturningToNewestEntitlementFirst(): void
+    {
+        // Symmetrical to consume (carryover-first): release returns hours to
+        // the *latest*-expiring entitlement first, so carryover stays drained
+        // and won't silently extend past its statutory expiry window.
+        $regular = $this->entitlement(2026, LeaveEntitlementType::Regular, 240.0);
+        $regular->consume(40.0);
+        $carryover = $this->entitlement(
+            2025,
+            LeaveEntitlementType::Carryover,
+            40.0,
+            new \DateTimeImmutable('2026-03-31'),
+        );
+        $carryover->consume(30.0);
+
+        $this->consumer->release([$regular, $carryover], 20.0);
+
+        self::assertSame(20.0, $regular->getHoursUsed(), 'Regular entitlement receives release first.');
+        self::assertSame(30.0, $carryover->getHoursUsed(), 'Carryover untouched when regular can absorb the refund.');
+    }
+
+    #[Test]
+    public function releaseSpillsOverToOlderEntitlementWhenNewerIsEmpty(): void
+    {
+        $regular = $this->entitlement(2026, LeaveEntitlementType::Regular, 240.0);
+        $regular->consume(10.0);
+        $carryover = $this->entitlement(
+            2025,
+            LeaveEntitlementType::Carryover,
+            40.0,
+            new \DateTimeImmutable('2026-03-31'),
+        );
+        $carryover->consume(30.0);
+
+        $this->consumer->release([$regular, $carryover], 25.0);
+
+        self::assertSame(0.0, $regular->getHoursUsed());
+        self::assertSame(15.0, $carryover->getHoursUsed(), 'Remaining 15h spill back into carryover.');
+    }
+
+    #[Test]
+    public function releaseZeroIsNoop(): void
+    {
+        $regular = $this->entitlement(2026, LeaveEntitlementType::Regular, 40.0);
+        $regular->consume(10.0);
+
+        $this->consumer->release([$regular], 0.0);
+
+        self::assertSame(10.0, $regular->getHoursUsed());
+    }
+
+    #[Test]
+    public function releaseRejectsNegativeAmount(): void
+    {
+        $regular = $this->entitlement(2026, LeaveEntitlementType::Regular, 40.0);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->consumer->release([$regular], -1.0);
+    }
+
+    #[Test]
+    public function releaseRejectsMoreThanTotalConsumed(): void
+    {
+        $a = $this->entitlement(2026, LeaveEntitlementType::Regular, 40.0);
+        $a->consume(10.0);
+        $b = $this->entitlement(2027, LeaveEntitlementType::Regular, 40.0);
+
+        $this->expectException(\DomainException::class);
+
+        $this->consumer->release([$a, $b], 20.0);
+    }
+
     private function entitlement(
         int $year,
         LeaveEntitlementType $type,

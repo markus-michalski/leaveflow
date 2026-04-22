@@ -281,7 +281,7 @@ final class MyLeaveRequestControllerTest extends WebTestCase
     public function cancelButtonHiddenForCancelledRequest(): void
     {
         $request = $this->createStoredRequest();
-        $request->cancel();
+        $request->setStatus(LeaveRequestStatus::Cancelled);
         $this->em->flush();
 
         $this->loginAs('employee@leaveflow.test');
@@ -289,6 +289,91 @@ final class MyLeaveRequestControllerTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorNotExists('[data-testid="leave-request-cancel"]');
+        self::assertSelectorNotExists('[data-testid="leave-request-request-cancel"]');
+    }
+
+    #[Test]
+    public function employeeCanRequestCancellationOfApprovedFutureLeave(): void
+    {
+        $request = $this->createStoredRequest();
+        $request->setStatus(LeaveRequestStatus::Approved);
+        $this->em->flush();
+        $id = $request->getId();
+
+        $this->loginAs('employee@leaveflow.test');
+        $crawler = $this->client->request('GET', '/my/leave-requests/'.$id);
+        self::assertResponseIsSuccessful();
+
+        $requestCancelButton = $crawler->filter('[data-testid="leave-request-request-cancel"]');
+        self::assertCount(1, $requestCancelButton, 'Request-cancel button must appear on approved future leave.');
+
+        $this->client->submit($requestCancelButton->form());
+
+        self::assertResponseRedirects('/my/leave-requests/'.$id);
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('[role="alert"]', 'Stornierung');
+
+        $this->em->clear();
+        /** @var LeaveRequest $reloaded */
+        $reloaded = $this->em->getRepository(LeaveRequest::class)->find($id);
+        self::assertSame(LeaveRequestStatus::CancelRequested, $reloaded->getStatus());
+    }
+
+    #[Test]
+    public function requestCancelButtonHiddenWhenLeaveAlreadyStarted(): void
+    {
+        // Build a request whose start date is in the past — clock can't be
+        // moved, so we pick dates before the fixture seed's "now".
+        $request = new LeaveRequest(
+            $this->employee,
+            $this->urlaub,
+            new \DateTimeImmutable('2020-01-06'),
+            new \DateTimeImmutable('2020-01-10'),
+            \App\Domain\Enum\LeaveDayType::FullDay,
+            new \DateTimeImmutable('2019-12-01 09:00:00'),
+        );
+        $request->applyBreakdown(new \App\Domain\ValueObject\LeaveBreakdown([
+            new \App\Domain\ValueObject\LeaveDay(new \DateTimeImmutable('2020-01-06'), 8.0, \App\Domain\Enum\LeaveDayStatus::Working),
+            new \App\Domain\ValueObject\LeaveDay(new \DateTimeImmutable('2020-01-07'), 8.0, \App\Domain\Enum\LeaveDayStatus::Working),
+            new \App\Domain\ValueObject\LeaveDay(new \DateTimeImmutable('2020-01-08'), 8.0, \App\Domain\Enum\LeaveDayStatus::Working),
+            new \App\Domain\ValueObject\LeaveDay(new \DateTimeImmutable('2020-01-09'), 8.0, \App\Domain\Enum\LeaveDayStatus::Working),
+            new \App\Domain\ValueObject\LeaveDay(new \DateTimeImmutable('2020-01-10'), 8.0, \App\Domain\Enum\LeaveDayStatus::Working),
+        ]));
+        $request->setStatus(LeaveRequestStatus::Approved);
+        $this->em->persist($request);
+        $this->em->flush();
+
+        $this->loginAs('employee@leaveflow.test');
+        $this->client->request('GET', '/my/leave-requests/'.$request->getId());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('[data-testid="leave-request-request-cancel"]');
+    }
+
+    #[Test]
+    public function requestingCancellationOnForeignRequestReturnsNotFound(): void
+    {
+        $other = new Employee(
+            $this->company,
+            'Other Olga',
+            'EMP-7777',
+            $this->employee->getLocation(),
+            $this->employee->getWorkSchedule(),
+            new \DateTimeImmutable('2020-01-01'),
+        );
+        $this->em->persist($other);
+        $this->em->flush();
+
+        $foreignRequest = $this->createStoredRequestFor($other);
+        $foreignRequest->setStatus(LeaveRequestStatus::Approved);
+        $this->em->flush();
+
+        $this->loginAs('employee@leaveflow.test');
+        $this->client->request('POST', '/my/leave-requests/'.$foreignRequest->getId().'/request-cancel', [
+            '_token' => 'ignored',
+        ]);
+
+        self::assertResponseStatusCodeSame(404);
     }
 
     #[Test]

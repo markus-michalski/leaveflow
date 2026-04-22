@@ -133,6 +133,17 @@ class LeaveRequest
         return $this->status;
     }
 
+    /**
+     * Workflow marking setter. Invoked by Symfony Workflow's MethodMarkingStore
+     * when a transition is applied. Business code must not call this directly —
+     * go through {@see \App\Application\Approval\ApprovalWorkflow} so audit trail
+     * and notifications fire.
+     */
+    public function setStatus(LeaveRequestStatus $status): void
+    {
+        $this->status = $status;
+    }
+
     public function getTotalHours(): float
     {
         return $this->totalHours;
@@ -144,23 +155,6 @@ class LeaveRequest
     public function getDays(): Collection
     {
         return $this->days;
-    }
-
-    /**
-     * Self-service cancellation for Pending or Recorded requests.
-     *
-     * Phase 5 scope: employees can withdraw their own requests before a
-     * manager decision was made. Phase 6 adds the Approved → CancelRequested
-     * → Cancelled transition (manager-driven) via Symfony Workflow.
-     */
-    public function cancel(): void
-    {
-        if (LeaveRequestStatus::Pending !== $this->status
-            && LeaveRequestStatus::Recorded !== $this->status) {
-            throw new \DomainException(\sprintf('LeaveRequest cannot be cancelled from status %s; only Pending and Recorded are self-service-cancellable.', $this->status->value));
-        }
-
-        $this->status = LeaveRequestStatus::Cancelled;
     }
 
     /**

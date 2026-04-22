@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presentation\Controller\Admin;
 
 use App\Domain\Entity\Company;
+use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
@@ -74,6 +75,8 @@ final class AdminEmployeeController extends AbstractController
                         $this->optionalDate($form, 'leftAt'),
                     );
 
+                    $employee->assignToDepartment($this->optionalDepartment($form));
+
                     $this->entityManager->persist($employee);
                     $this->entityManager->flush();
 
@@ -134,6 +137,8 @@ final class AdminEmployeeController extends AbstractController
                     } elseif (null !== $user && $user !== $employee->getUser()) {
                         $employee->linkUser($user);
                     }
+
+                    $employee->assignToDepartment($this->optionalDepartment($form));
 
                     $this->entityManager->flush();
 
@@ -199,6 +204,16 @@ final class AdminEmployeeController extends AbstractController
     /**
      * @param FormInterface<mixed> $form
      */
+    private function optionalDepartment(FormInterface $form): ?Department
+    {
+        $department = $form->get('department')->getData();
+
+        return $department instanceof Department ? $department : null;
+    }
+
+    /**
+     * @param FormInterface<mixed> $form
+     */
     private function requireDate(FormInterface $form, string $field): \DateTimeImmutable
     {
         $raw = $form->get($field)->getData();
@@ -256,5 +271,6 @@ final class AdminEmployeeController extends AbstractController
         $form->get('joinedAt')->setData($employee->getJoinedAt());
         $form->get('leftAt')->setData($employee->getLeftAt());
         $form->get('user')->setData($employee->getUser());
+        $form->get('department')->setData($employee->getDepartment());
     }
 }

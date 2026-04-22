@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.departments.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-6xl p-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.departments.heading'|trans }}</h1>
+            <p class="mt-1 max-w-3xl text-sm text-gray-500">{{ 'admin.departments.intro'|trans }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+            <a href="{{ path('app_admin_department_new') }}"
+               class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ 'admin.departments.create'|trans }}
+            </a>
+        </div>
+    </header>
+
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th class="px-6 py-3">{{ 'admin.departments.name'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.departments.lead'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.departments.deputy'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.departments.active'|trans }}</th>
+                    <th class="px-6 py-3 text-right">{{ 'admin.departments.actions'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
+                {% for department in departments %}
+                    <tr data-testid="department-row-{{ department.id }}">
+                        <td class="px-6 py-3 font-medium text-gray-900">{{ department.name }}</td>
+                        <td class="px-6 py-3">
+                            {% if department.lead %}
+                                {{ department.lead.fullName }}
+                            {% else %}
+                                <span class="text-gray-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3">
+                            {% if department.deputy %}
+                                {{ department.deputy.fullName }}
+                            {% else %}
+                                <span class="text-gray-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3">
+                            <form method="post" action="{{ path('app_admin_department_toggle', { id: department.id }) }}" class="inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('toggle-department-' ~ department.id) }}">
+                                {% if department.active %}
+                                    <button type="submit" class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100">
+                                        {{ 'admin.departments.status.active'|trans }}
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-200">
+                                        {{ 'admin.departments.status.inactive'|trans }}
+                                    </button>
+                                {% endif %}
+                            </form>
+                        </td>
+                        <td class="px-6 py-3 text-right">
+                            <div class="inline-flex items-center gap-2">
+                                <a href="{{ path('app_admin_department_edit', { id: department.id }) }}"
+                                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                    {{ 'admin.departments.edit'|trans }}
+                                </a>
+                                <form method="post" action="{{ path('app_admin_department_delete', { id: department.id }) }}"
+                                      onsubmit="return confirm('{{ 'admin.departments.delete_confirm'|trans({ '%name%': department.name }) }}');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-department-' ~ department.id) }}">
+                                    <button type="submit" class="inline-flex items-center rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100">
+                                        {{ 'admin.departments.delete'|trans }}
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-6 text-center text-gray-500" data-testid="departments-empty">{{ 'admin.departments.empty'|trans }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

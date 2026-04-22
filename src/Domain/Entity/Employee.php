@@ -27,6 +27,10 @@ class Employee
     #[ORM\Embedded(class: WorkSchedule::class, columnPrefix: 'schedule_')]
     private WorkSchedule $workSchedule;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(name: 'department_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Department $department = null;
+
     public function __construct(
         #[ORM\ManyToOne]
         #[ORM\JoinColumn(name: 'company_id', nullable: false)]
@@ -147,6 +151,19 @@ class Employee
     public function unlinkUser(): void
     {
         $this->user = null;
+    }
+
+    public function getDepartment(): ?Department
+    {
+        return $this->department;
+    }
+
+    public function assignToDepartment(?Department $department): void
+    {
+        if (null !== $department && $department->getCompany() !== $this->company) {
+            throw new \InvalidArgumentException('Department must belong to the employee\'s company.');
+        }
+        $this->department = $department;
     }
 
     private function normalizeName(string $fullName): string

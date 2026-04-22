@@ -1,0 +1,41 @@
+framework:
+    workflows:
+        leave_request_approval:
+            type: state_machine
+            audit_trail:
+                enabled: '%kernel.debug%'
+            marking_store:
+                type: method
+                property: status
+            supports:
+                - App\Domain\Entity\LeaveRequest
+            initial_marking: pending
+            places:
+                - pending
+                - recorded
+                - approved
+                - rejected
+                - cancelled
+                - cancel_requested
+            transitions:
+                approve:
+                    from: pending
+                    to:   approved
+                reject:
+                    from: pending
+                    to:   rejected
+                cancel_pending:
+                    from: pending
+                    to:   cancelled
+                cancel_recorded:
+                    from: recorded
+                    to:   cancelled
+                request_cancel:
+                    from: approved
+                    to:   cancel_requested
+                confirm_cancel:
+                    from: cancel_requested
+                    to:   cancelled
+                deny_cancel:
+                    from: cancel_requested
+                    to:   approved

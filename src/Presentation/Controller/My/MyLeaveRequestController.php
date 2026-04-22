@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\My;
 
+use App\Application\Approval\ApprovalWorkflow;
+use App\Application\Approval\CancellationNotAllowedException;
+use App\Application\Approval\InvalidTransitionException;
 use App\Application\Leave\BackdatedLeaveRequestException;
 use App\Application\Leave\InsufficientLeaveBalanceException;
 use App\Application\Leave\LeaveRequestService;
@@ -13,11 +16,14 @@ use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\User;
 use App\Domain\Enum\LeaveDayType;
+use App\Domain\Enum\LeaveRequestStatus;
 use App\Domain\Repository\EmployeeRepository;
+use App\Domain\Repository\LeaveRequestAuditEntryRepository;
 use App\Domain\Repository\LeaveRequestRepository;
 use App\Presentation\Form\LeaveRequestFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,7 +38,10 @@ final class MyLeaveRequestController extends AbstractController
     public function __construct(
         private readonly EmployeeRepository $employeeRepository,
         private readonly LeaveRequestRepository $leaveRequestRepository,
+        private readonly LeaveRequestAuditEntryRepository $auditRepository,
         private readonly LeaveRequestService $service,
+        private readonly ApprovalWorkflow $approvalWorkflow,
+        private readonly ClockInterface $clock,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
     ) {
@@ -189,6 +198,8 @@ final class MyLeaveRequestController extends AbstractController
 
         return $this->render('my/leave_request/show.html.twig', [
             'leaveRequest' => $leaveRequest,
+            'canRequestCancel' => $this->canRequestCancel($leaveRequest),
+            'auditEntries' => $this->auditRepository->findByLeaveRequest($leaveRequest),
         ]);
     }
 
@@ -210,14 +221,53 @@ final class MyLeaveRequestController extends AbstractController
         }
 
         try {
-            $leaveRequest->cancel();
+            $this->approvalWorkflow->cancelDirect($leaveRequest, $employee);
             $this->entityManager->flush();
             $this->addFlash('success', $this->translator->trans('my.leave_requests.flash.cancelled'));
-        } catch (\DomainException) {
+        } catch (InvalidTransitionException) {
             $this->addFlash('error', $this->translator->trans('my.leave_requests.error.cancel_not_allowed'));
         }
 
         return $this->redirectToRoute('app_my_leave_request_show', ['id' => $id]);
+    }
+
+    #[Route('/{id}/request-cancel', name: 'request_cancel', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function requestCancel(int $id, Request $request): Response
+    {
+        $employee = $this->getEmployeeOrRedirect();
+        if ($employee instanceof Response) {
+            return $employee;
+        }
+
+        $leaveRequest = $this->leaveRequestRepository->find($id);
+        if (null === $leaveRequest || $leaveRequest->getEmployee() !== $employee) {
+            throw $this->createNotFoundException();
+        }
+
+        if (!$this->isCsrfTokenValid('request-cancel-leave-request-'.$id, (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        try {
+            $this->approvalWorkflow->requestCancel($leaveRequest, $employee);
+            $this->entityManager->flush();
+            $this->addFlash('success', $this->translator->trans('my.leave_requests.flash.cancel_requested'));
+        } catch (CancellationNotAllowedException) {
+            $this->addFlash('error', $this->translator->trans('my.leave_requests.error.request_cancel_too_late'));
+        } catch (InvalidTransitionException) {
+            $this->addFlash('error', $this->translator->trans('my.leave_requests.error.request_cancel_not_allowed'));
+        }
+
+        return $this->redirectToRoute('app_my_leave_request_show', ['id' => $id]);
+    }
+
+    private function canRequestCancel(\App\Domain\Entity\LeaveRequest $leaveRequest): bool
+    {
+        if (LeaveRequestStatus::Approved !== $leaveRequest->getStatus()) {
+            return false;
+        }
+
+        return $leaveRequest->getStartDate() > $this->clock->now()->setTime(0, 0);
     }
 
     private function getEmployeeOrRedirect(): Employee|Response
