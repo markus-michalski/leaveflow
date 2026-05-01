@@ -40,4 +40,8 @@ return [
         'version' => '4.0.1',
         'type' => 'css',
     ],
+    // FullCalendar is loaded as a single bundled <script> in the team
+    // calendar template (see templates/team/calendar/index.html.twig).
+    // The split-package importmap approach hits a Preact dual-instance bug
+    // in v6.1.x — using the prebuilt global bundle sidesteps it entirely.
 ];

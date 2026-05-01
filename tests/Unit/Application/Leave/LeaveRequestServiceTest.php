@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\Leave;
 
+use App\Application\Calendar\BlackoutPeriodChecker;
+use App\Application\Calendar\BlackoutPeriodViolationException;
 use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Application\Holiday\HolidayService;
 use App\Application\Leave\BackdatedLeaveRequestException;
@@ -14,6 +16,7 @@ use App\Application\Leave\NoEntitlementForYearException;
 use App\Domain\Calculator\HolidayCalculator;
 use App\Domain\Calculator\LeaveCalculator;
 use App\Domain\Entity\AbsenceType;
+use App\Domain\Entity\BlackoutPeriod;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
@@ -23,6 +26,7 @@ use App\Domain\Enum\FederalState;
 use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Enum\LeaveRequestStatus;
+use App\Domain\Repository\BlackoutPeriodRepository;
 use App\Domain\Repository\CompanyHolidayRepository;
 use App\Domain\Repository\HolidayOverrideRepository;
 use App\Domain\Repository\LeaveEntitlementRepository;
@@ -45,6 +49,9 @@ final class LeaveRequestServiceTest extends TestCase
     private LeaveEntitlementRepository&MockObject $entitlementRepository;
     private LeaveRequestDayRepository&MockObject $dayRepository;
     private EntityManagerInterface&MockObject $entityManager;
+    private BlackoutPeriodRepository&MockObject $blackoutRepository;
+    /** @var list<BlackoutPeriod> */
+    private array $overlappingBlackouts = [];
     private MockClock $clock;
     private Company $acme;
     private Employee $employee;
@@ -58,6 +65,11 @@ final class LeaveRequestServiceTest extends TestCase
         $this->entitlementRepository = $this->createMock(LeaveEntitlementRepository::class);
         $this->dayRepository = $this->createMock(LeaveRequestDayRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->blackoutRepository = $this->createMock(BlackoutPeriodRepository::class);
+        $this->overlappingBlackouts = [];
+        // Tests can populate $this->overlappingBlackouts to simulate a hit.
+        $this->blackoutRepository->method('findOverlapping')
+            ->willReturnCallback(fn (): array => $this->overlappingBlackouts);
         // Pin the clock before any of the fixture dates (2025+) so the
         // backdated-request guard treats them as future.
         $this->clock = new MockClock('2024-01-01 10:00:00');
@@ -485,6 +497,48 @@ final class LeaveRequestServiceTest extends TestCase
     }
 
     #[Test]
+    public function previewPropagatesBlackoutPeriodViolation(): void
+    {
+        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
+        $this->stubOverlappingBlackout();
+
+        $service = $this->buildService();
+
+        $this->expectException(BlackoutPeriodViolationException::class);
+
+        $service->preview(
+            $this->employee,
+            new \DateTimeImmutable('2026-12-23'),
+            new \DateTimeImmutable('2026-12-31'),
+            LeaveDayType::FullDay,
+        );
+    }
+
+    #[Test]
+    public function createDoesNotPersistWhenBlackoutCheckerThrows(): void
+    {
+        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
+        $this->stubOverlappingBlackout();
+
+        // The blackout fires inside preview() — long before persist.
+        $this->entityManager->expects(self::never())->method('persist');
+
+        $service = $this->buildService();
+
+        $this->expectException(BlackoutPeriodViolationException::class);
+
+        $service->create(
+            $this->employee,
+            $this->urlaub,
+            new \DateTimeImmutable('2026-12-23'),
+            new \DateTimeImmutable('2026-12-31'),
+            LeaveDayType::FullDay,
+        );
+    }
+
+    #[Test]
     public function createRejectsYearWithoutAnyEntitlementForDeductingType(): void
     {
         $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
@@ -560,6 +614,7 @@ final class LeaveRequestServiceTest extends TestCase
             $this->dayRepository,
             $this->entityManager,
             $this->clock,
+            new BlackoutPeriodChecker($this->blackoutRepository),
         );
     }
 
@@ -580,5 +635,17 @@ final class LeaveRequestServiceTest extends TestCase
         }
         $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn($entitlements);
         $this->dayRepository->method('sumPendingHoursByYear')->willReturn([]);
+    }
+
+    private function stubOverlappingBlackout(): void
+    {
+        $this->overlappingBlackouts = [
+            new BlackoutPeriod(
+                company: $this->acme,
+                startDate: new \DateTimeImmutable('2026-12-23'),
+                endDate: new \DateTimeImmutable('2026-12-31'),
+                reason: 'Werksferien',
+            ),
+        ];
     }
 }

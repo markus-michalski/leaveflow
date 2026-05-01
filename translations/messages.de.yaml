@@ -43,8 +43,11 @@ nav:
         leave_requests: Urlaubsanträge
         absence_types: Urlaubsarten
         entitlements: Urlaubskonten
+        blackout_periods: Sperrfristen
     manager:
         approvals: Genehmigungen
+    team:
+        calendar: Team-Kalender
     logout: Abmelden
 welcome:
     title: Willkommen bei LeaveFlow
@@ -165,6 +168,29 @@ admin:
             activated: Team %name% ist jetzt aktiv.
             deactivated: Team %name% wurde deaktiviert.
             deleted: Team %name% wurde gelöscht.
+    blackout_periods:
+        title: Sperrfristen
+        heading: Sperrfristen
+        description: "Zeiträume in denen keine Urlaubsanträge möglich sind. Pro Team oder firmenweit (z.B. Werksferien, Release-Freeze)."
+        create: Sperrfrist anlegen
+        edit: Bearbeiten
+        delete: Löschen
+        save: Speichern
+        back: Zurück
+        actions: Aktionen
+        start_date: Beginn
+        end_date: Ende
+        reason: Grund
+        department: Team
+        department_company_wide: "— Firmenweit —"
+        scope: Geltungsbereich
+        scope_company_wide: Firmenweit
+        empty: "Noch keine Sperrfristen — Werksferien oder Release-Freezes hier hinterlegen."
+        confirm_delete: "Diese Sperrfrist wirklich löschen?"
+        flash:
+            created: Sperrfrist wurde angelegt.
+            updated: Sperrfrist wurde aktualisiert.
+            deleted: Sperrfrist wurde gelöscht.
     locations:
         title: Standorte
         heading: Standorte
@@ -488,6 +514,8 @@ my:
             unknown_federal_state: Dein Standort hat kein unterstütztes Bundesland.
             backdated: Anträge können nicht rückwirkend gestellt werden. Bitte wähle ein Startdatum ab heute.
             half_day_multi_day: Halbe Tage sind nur bei Einzeltag-Anträgen möglich. Setze Start und Ende auf dasselbe Datum oder stelle mehrere Anträge.
+            blackout_period: Im gewählten Zeitraum liegt eine Sperrfrist. Bitte wähle ein anderes Datum.
+            capacity_warning: "{1}Im gewählten Zeitraum ist bereits 1 Kollege/in aus deinem Team abwesend.|]1,Inf[ Im gewählten Zeitraum sind bereits %count% Kolleg:innen aus deinem Team abwesend."
         flash:
             created: "Antrag über %hours% Stunden wurde eingereicht."
             cancelled: "Antrag wurde storniert."
@@ -500,6 +528,7 @@ my:
             backdated: Anträge können nicht rückwirkend gestellt werden. Wende dich an die Administration, falls eine Korrektur nötig ist.
             no_entitlement_for_year: "Für %year% wurde noch kein Urlaubsanspruch angelegt. Bitte wende dich an die Administration."
             half_day_multi_day: Halbe Tage sind nur bei Einzeltag-Anträgen möglich. Für Mix-Szenarien bitte mehrere Anträge stellen.
+            blackout_period: "Der gewählte Zeitraum überschneidet eine Sperrfrist: %reasons%."
             cancel_not_allowed: "Dieser Antrag kann nicht storniert werden. Bereits genehmigte Anträge erfordern einen separaten Storno-Flow über die Administration."
             request_cancel_too_late: "Der Urlaub hat bereits begonnen. Bitte wende dich an die Administration."
             request_cancel_not_allowed: "Für diesen Antrag kann keine Stornierung beantragt werden."
@@ -562,3 +591,13 @@ manager:
             cancel_denied: Stornierung für %name% abgelehnt.
             invalid_transition: Dieser Übergang ist nicht mehr gültig — der Antrag wurde zwischenzeitlich verändert.
             cancellation_not_allowed: Stornierung ist für diesen Antrag nicht mehr möglich.
+team:
+    calendar:
+        title: Team-Kalender
+        heading: Team-Kalender
+        description: "Übersicht aller genehmigten Abwesenheiten in deinem Team. Sperrfristen sind rot hinterlegt."
+        filter:
+            team: Team
+            team_all: Alle Teams
+            type: Abwesenheitsart
+            type_all: Alle Arten

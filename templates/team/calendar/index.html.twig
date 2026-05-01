@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'team.calendar.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {# FullCalendar global bundle — sidesteps the Preact dual-instance bug
+       you get with the split @fullcalendar/* importmap packages in v6.1.x.
+       Bundles live in assets/fullcalendar/ (tracked) instead of
+       assets/vendor/ (gitignored, importmap territory).
+       Locale must load AFTER the main bundle to register with the global. #}
+    <script src="{{ asset('fullcalendar/global.min.js') }}" defer></script>
+    <script src="{{ asset('fullcalendar/locale.de.global.min.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-6xl p-6"
+     data-controller="team-calendar"
+     data-team-calendar-feed-url-value="{{ path('app_team_calendar_events') }}"
+     data-team-calendar-default-team-value="{{ defaultDepartmentId|default('') }}">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'team.calendar.heading'|trans }}</h1>
+            <p class="mt-1 max-w-3xl text-sm text-gray-500">{{ 'team.calendar.description'|trans }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+            {% if app.user.hasEmployee %}
+                <a href="{{ path('app_my_leave_request_new') }}"
+                   data-testid="team-calendar-new-request"
+                   class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    {{ 'my.leave_requests.create'|trans }}
+                </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <form class="mb-4 flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow-sm"
+          data-testid="team-calendar-filters"
+          onsubmit="return false;">
+        <div>
+            <label for="team-calendar-team" class="block text-sm font-medium text-gray-700">
+                {{ 'team.calendar.filter.team'|trans }}
+            </label>
+            <select id="team-calendar-team"
+                    data-team-calendar-target="team"
+                    data-action="change->team-calendar#refresh"
+                    class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                {% if isAdmin %}
+                    <option value="">{{ 'team.calendar.filter.team_all'|trans }}</option>
+                {% endif %}
+                {% for department in departments %}
+                    <option value="{{ department.id }}"
+                            {% if defaultDepartmentId == department.id %}selected{% endif %}>
+                        {{ department.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="team-calendar-type" class="block text-sm font-medium text-gray-700">
+                {{ 'team.calendar.filter.type'|trans }}
+            </label>
+            <select id="team-calendar-type"
+                    data-team-calendar-target="type"
+                    data-action="change->team-calendar#refresh"
+                    class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                <option value="">{{ 'team.calendar.filter.type_all'|trans }}</option>
+                {% for absenceType in absenceTypes %}
+                    <option value="{{ absenceType.id }}">{{ absenceType.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+
+    <div class="rounded-xl bg-white p-4 shadow-sm">
+        <div data-team-calendar-target="calendar"
+             data-testid="team-calendar"></div>
+    </div>
+</div>
+{% endblock %}
