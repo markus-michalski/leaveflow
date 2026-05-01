@@ -595,7 +595,7 @@ team:
     calendar:
         title: Team-Kalender
         heading: Team-Kalender
-        description: "Übersicht aller genehmigten Abwesenheiten in deiner Department. Sperrfristen sind rot hinterlegt."
+        description: "Übersicht aller genehmigten Abwesenheiten in deinem Team. Sperrfristen sind rot hinterlegt."
         filter:
             team: Team
             team_all: Alle Teams

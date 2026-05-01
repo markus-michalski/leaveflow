@@ -32,3 +32,70 @@ textarea[aria-invalid="true"]:focus {
     outline: 2px solid var(--color-red-500);
     outline-offset: 1px;
 }
+
+/*
+ * FullCalendar grid restoration.
+ * Tailwind v4 preflight resets `border-width: 0` on all elements, which
+ * strips FullCalendar's day-grid lines and collapses cells visually.
+ * Re-establish the borders + table layout FullCalendar expects.
+ */
+.fc table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.fc th,
+.fc td {
+    border: 1px solid var(--fc-border-color, #e5e7eb);
+    padding: 0;
+}
+
+.fc .fc-scrollgrid {
+    border: 1px solid var(--fc-border-color, #e5e7eb);
+}
+
+.fc-daygrid-day-frame {
+    min-height: 5rem;
+    padding: 4px;
+}
+
+.fc-daygrid-day-number {
+    padding: 4px 6px;
+    color: var(--color-gray-700);
+    text-decoration: none;
+}
+
+.fc-day-today {
+    background-color: var(--color-blue-50);
+}
+
+.fc-event {
+    cursor: default;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.75rem;
+}
+
+.fc-toolbar-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+/* Blackout periods are rendered as background events. The default
+   light italic title is unreadable on our red overlay — bump weight,
+   drop italic, darken the text.
+   FullCalendar's CSS-in-JS injects styles AFTER app.css, so we need
+   !important to win the cascade. */
+.fc-bg-event {
+    opacity: 1 !important;
+    background-color: #FCA5A5 !important;
+}
+
+.fc-bg-event .fc-event-title,
+.fc .fc-bg-event .fc-event-title {
+    font-style: normal !important;
+    font-weight: 700 !important;
+    color: #881337 !important;
+    font-size: 0.8125rem !important;
+    padding: 2px 4px !important;
+}
