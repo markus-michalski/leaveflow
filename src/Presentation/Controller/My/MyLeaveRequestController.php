@@ -7,6 +7,8 @@ namespace App\Presentation\Controller\My;
 use App\Application\Approval\ApprovalWorkflow;
 use App\Application\Approval\CancellationNotAllowedException;
 use App\Application\Approval\InvalidTransitionException;
+use App\Application\Calendar\BlackoutPeriodViolationException;
+use App\Application\Calendar\TeamCapacityQuery;
 use App\Application\Leave\BackdatedLeaveRequestException;
 use App\Application\Leave\InsufficientLeaveBalanceException;
 use App\Application\Leave\LeaveRequestService;
@@ -44,6 +46,7 @@ final class MyLeaveRequestController extends AbstractController
         private readonly ClockInterface $clock,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
+        private readonly TeamCapacityQuery $teamCapacityQuery,
     ) {
     }
 
@@ -112,6 +115,16 @@ final class MyLeaveRequestController extends AbstractController
                     $form->get('dayType')->addError(new FormError(
                         $this->translator->trans('my.leave_requests.error.half_day_multi_day'),
                     ));
+                } catch (BlackoutPeriodViolationException $e) {
+                    $reasons = array_map(
+                        static fn ($period) => $period->getReason(),
+                        $e->blackoutPeriods,
+                    );
+                    $form->get('startDate')->addError(new FormError(
+                        $this->translator->trans('my.leave_requests.error.blackout_period', [
+                            '%reasons%' => implode(', ', $reasons),
+                        ]),
+                    ));
                 } catch (NoEntitlementForYearException $e) {
                     $form->addError(new FormError(
                         $this->translator->trans('my.leave_requests.error.no_entitlement_for_year', [
@@ -155,6 +168,7 @@ final class MyLeaveRequestController extends AbstractController
 
         $breakdown = null;
         $errorKey = null;
+        $peerAbsenceCount = 0;
 
         $start = $this->parseDate($startRaw);
         $end = $this->parseDate($endRaw);
@@ -168,10 +182,13 @@ final class MyLeaveRequestController extends AbstractController
 
             try {
                 $breakdown = $this->service->preview($employee, $start, $end, $dayType);
+                $peerAbsenceCount = $this->teamCapacityQuery->countOverlappingPeers($employee, $start, $end);
             } catch (BackdatedLeaveRequestException) {
                 $errorKey = 'my.leave_requests.preview.backdated';
             } catch (MultiDayHalfDayException) {
                 $errorKey = 'my.leave_requests.preview.half_day_multi_day';
+            } catch (BlackoutPeriodViolationException) {
+                $errorKey = 'my.leave_requests.preview.blackout_period';
             } catch (\ValueError) {
                 $errorKey = 'my.leave_requests.preview.unknown_federal_state';
             }
@@ -180,6 +197,7 @@ final class MyLeaveRequestController extends AbstractController
         return $this->render('my/leave_request/_preview.html.twig', [
             'breakdown' => $breakdown,
             'errorKey' => $errorKey,
+            'peerAbsenceCount' => $peerAbsenceCount,
         ]);
     }
 

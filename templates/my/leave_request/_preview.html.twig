@@ -8,6 +8,13 @@
         {% set total = breakdown.totalHours %}
         {% set workingCount = breakdown.workingDays|length %}
 
+        {% if peerAbsenceCount|default(0) > 0 %}
+            <div class="mb-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                 data-testid="leave-preview-capacity-warning">
+                {{ 'my.leave_requests.preview.capacity_warning'|trans({ '%count%': peerAbsenceCount }) }}
+            </div>
+        {% endif %}
+
         <div class="rounded-md border border-gray-200 bg-white" data-testid="leave-preview-content">
             <div class="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3">
                 <div class="text-sm">

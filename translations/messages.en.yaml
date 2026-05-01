@@ -43,8 +43,11 @@ nav:
         absence_types: Absence types
         entitlements: Leave balances
         leave_requests: Leave requests
+        blackout_periods: Blackout periods
     manager:
         approvals: Approvals
+    team:
+        calendar: Team calendar
     logout: Log out
 welcome:
     title: Welcome to LeaveFlow
@@ -165,6 +168,29 @@ admin:
             activated: Department %name% has been activated.
             deactivated: Department %name% has been deactivated.
             deleted: Department %name% has been deleted.
+    blackout_periods:
+        title: Blackout periods
+        heading: Blackout periods
+        description: "Date ranges where leave requests are blocked. Company-wide or per team (e.g. plant shutdowns, release freezes)."
+        create: Add blackout
+        edit: Edit
+        delete: Delete
+        save: Save
+        back: Back
+        actions: Actions
+        start_date: Start
+        end_date: End
+        reason: Reason
+        department: Team
+        department_company_wide: "— Company-wide —"
+        scope: Scope
+        scope_company_wide: Company-wide
+        empty: "No blackouts yet — record plant shutdowns or release freezes here."
+        confirm_delete: "Really delete this blackout?"
+        flash:
+            created: Blackout period has been created.
+            updated: Blackout period has been updated.
+            deleted: Blackout period has been deleted.
     locations:
         title: Locations
         heading: Locations
@@ -488,6 +514,8 @@ my:
             unknown_federal_state: Your location has no supported federal state.
             backdated: Backdated requests are not supported. Please pick a start date in the future.
             half_day_multi_day: Half days are only available on single-day requests. Set start and end to the same date, or file separate requests.
+            blackout_period: A blackout period applies in the selected range. Please choose a different date.
+            capacity_warning: "{1}1 colleague from your team is already absent in this range.|]1,Inf[ %count% colleagues from your team are already absent in this range."
         flash:
             created: "Request for %hours% hours has been submitted."
             cancelled: "Request has been cancelled."
@@ -500,6 +528,7 @@ my:
             backdated: Backdated requests are not supported. Please contact your administrator if a correction is needed.
             no_entitlement_for_year: "No leave entitlement exists for %year% yet. Please contact your administrator."
             half_day_multi_day: Half days are only available on single-day requests. Please file separate requests for mix scenarios.
+            blackout_period: "The selected range overlaps a blackout period: %reasons%."
             cancel_not_allowed: "This request cannot be cancelled. Approved requests require a separate cancellation flow via the admin."
             request_cancel_too_late: "The leave has already started. Please contact your administrator."
             request_cancel_not_allowed: "Cancellation cannot be requested for this leave."
@@ -562,3 +591,13 @@ manager:
             cancel_denied: Cancellation for %name% denied.
             invalid_transition: This transition is no longer valid — the request has been updated elsewhere.
             cancellation_not_allowed: Cancellation is no longer allowed for this request.
+team:
+    calendar:
+        title: Team calendar
+        heading: Team calendar
+        description: "Overview of all approved absences in your department. Blackout periods are highlighted in red."
+        filter:
+            team: Team
+            team_all: All teams
+            type: Absence type
+            type_all: All types

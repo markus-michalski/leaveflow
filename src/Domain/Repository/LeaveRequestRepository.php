@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Repository;
 
+use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Company;
+use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveRequest;
 use App\Domain\Enum\LeaveRequestStatus;
@@ -68,5 +70,56 @@ class LeaveRequestRepository extends ServiceEntityRepository
             ->orderBy('r.requestedAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Approved leave requests overlapping the given range. Optional filters
+     * narrow the result for the team-calendar view and capacity checks.
+     *
+     * Two ranges overlap when start_a <= end_b AND end_a >= start_b. The
+     * employee/department joins are always present so callers can rely on
+     * a consistent shape.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findApprovedOverlapping(
+        Company $company,
+        \DateTimeImmutable $rangeStart,
+        \DateTimeImmutable $rangeEnd,
+        ?Department $department = null,
+        ?AbsenceType $absenceType = null,
+        ?Employee $excludingEmployee = null,
+    ): array {
+        $qb = $this->createQueryBuilder('r')
+            ->innerJoin('r.employee', 'e')
+            ->where('r.status = :approved')
+            ->andWhere('e.company = :company')
+            ->andWhere('r.startDate <= :rangeEnd')
+            ->andWhere('r.endDate >= :rangeStart')
+            ->setParameter('approved', LeaveRequestStatus::Approved->value)
+            ->setParameter('company', $company)
+            ->setParameter('rangeStart', $rangeStart->setTime(0, 0))
+            ->setParameter('rangeEnd', $rangeEnd->setTime(0, 0))
+            ->orderBy('r.startDate', 'ASC');
+
+        if (null !== $department) {
+            $qb->andWhere('e.department = :department')
+                ->setParameter('department', $department);
+        }
+
+        if (null !== $absenceType) {
+            $qb->andWhere('r.absenceType = :absenceType')
+                ->setParameter('absenceType', $absenceType);
+        }
+
+        if (null !== $excludingEmployee) {
+            $qb->andWhere('e != :excluding')
+                ->setParameter('excluding', $excludingEmployee);
+        }
+
+        /** @var list<LeaveRequest> $result */
+        $result = $qb->getQuery()->getResult();
+
+        return $result;
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Leave;
 
+use App\Application\Calendar\BlackoutPeriodChecker;
 use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Application\Holiday\HolidayService;
 use App\Domain\Calculator\LeaveCalculator;
@@ -49,6 +50,7 @@ final readonly class LeaveRequestService
         private LeaveRequestDayRepository $dayRepository,
         private EntityManagerInterface $entityManager,
         private ClockInterface $clock,
+        private BlackoutPeriodChecker $blackoutChecker,
     ) {
     }
 
@@ -60,6 +62,7 @@ final readonly class LeaveRequestService
     ): LeaveBreakdown {
         $this->assertNotBackdated($startDate);
         $this->assertHalfDayOnlyOnSingleDay($startDate, $endDate, $dayType);
+        $this->blackoutChecker->ensureRangeIsClear($employee, $startDate, $endDate);
         $holidays = $this->resolveHolidays($employee, $startDate, $endDate);
 
         return $this->calculator->calculate($employee, $startDate, $endDate, $dayType, $holidays);
