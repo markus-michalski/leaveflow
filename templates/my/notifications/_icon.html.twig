@@ -1,0 +1,16 @@
+{# Color-coded icon tile per NotificationType. Falls back to a neutral bell. #}
+{% set tileClasses = {
+    'approval_requested':       'bg-blue-100 text-blue-600',
+    'approval_decided':         'bg-green-100 text-green-600',
+    'cancel_requested':         'bg-amber-100 text-amber-600',
+    'cancel_decided':           'bg-purple-100 text-purple-600',
+    'entitlement_expiring_soon': 'bg-red-100 text-red-600',
+    'escalation_triggered':      'bg-orange-100 text-orange-600',
+}[type]|default('bg-gray-100 text-gray-600') %}
+
+<span class="inline-flex h-9 w-9 items-center justify-center rounded-full {{ tileClasses }}">
+    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+    </svg>
+</span>

@@ -1,0 +1,25 @@
+{% extends 'emails/notifications/base.html.twig' %}
+
+{% block title %}{{ ('email.approval_decided.' ~ payload.decision ~ '.subject')|trans(payload, 'notifications') }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin: 0 0 16px; font-size: 18px; color: #111827;">
+        {{ ('email.approval_decided.' ~ payload.decision ~ '.heading')|trans({}, 'notifications') }}
+    </h2>
+    <p style="margin: 0 0 16px;">
+        {{ ('email.approval_decided.' ~ payload.decision ~ '.intro')|trans({
+            '%approverName%': payload.approverName,
+            '%absenceTypeName%': payload.absenceTypeName,
+            '%startDate%': payload.startDate,
+            '%endDate%': payload.endDate,
+        }, 'notifications')|raw }}
+    </p>
+    {% if payload.reason is defined %}
+        <div style="margin: 16px 0; padding: 12px 16px; background-color: #fef3c7; border-left: 3px solid #f59e0b;">
+            <p style="margin: 0 0 4px; font-size: 13px; color: #6b7280;">
+                {{ 'email.field.reason'|trans({}, 'notifications') }}
+            </p>
+            <p style="margin: 0;">{{ payload.reason }}</p>
+        </div>
+    {% endif %}
+{% endblock %}

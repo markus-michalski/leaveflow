@@ -48,6 +48,15 @@ class LeaveRequest
     private float $totalHours = 0.0;
 
     /**
+     * Idempotency timestamp for the EscalationTriggered notification.
+     * Set the first time the scheduler decides this Pending request has
+     * exceeded its company's approvalEscalationDays threshold; null
+     * thereafter prevents repeated escalations on the same request.
+     */
+    #[ORM\Column(name: 'escalation_notified_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $escalationNotifiedAt = null;
+
+    /**
      * @var Collection<int, LeaveRequestDay>
      */
     #[ORM\OneToMany(
@@ -147,6 +156,16 @@ class LeaveRequest
     public function getTotalHours(): float
     {
         return $this->totalHours;
+    }
+
+    public function getEscalationNotifiedAt(): ?\DateTimeImmutable
+    {
+        return $this->escalationNotifiedAt;
+    }
+
+    public function markEscalationNotified(\DateTimeImmutable $now): void
+    {
+        $this->escalationNotifiedAt = $now;
     }
 
     /**

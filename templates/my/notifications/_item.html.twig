@@ -1,0 +1,32 @@
+{# One notification row. Wrapped as a form-button so clicking marks-as-read +
+   redirects to the deeplink (resolved by the controller). Visual state
+   reflects read/unread. #}
+{% set typeValue = notification.type.value %}
+<li class="relative {{ notification.isRead ? 'bg-white' : 'bg-blue-50' }}">
+    <form method="post"
+          action="{{ path('app_my_notification_read', { id: notification.id }) }}"
+          class="block hover:bg-gray-50 focus-within:bg-gray-50">
+        <input type="hidden" name="_token" value="{{ csrf_token('notification-read-' ~ notification.id) }}">
+        <button type="submit"
+                class="block w-full px-4 py-4 text-left focus:outline-none"
+                data-testid="notification-item-{{ notification.id }}">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 pt-1">
+                    {{ include('my/notifications/_icon.html.twig', { type: typeValue }) }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    {{ include('my/notifications/_item_' ~ typeValue ~ '.html.twig', { payload: notification.payload }) }}
+                    <p class="mt-1 text-xs text-gray-500" data-testid="notification-time">
+                        {{ notification.createdAt|date('d.m.Y H:i') }}
+                    </p>
+                </div>
+                {% if not notification.isRead %}
+                    <span class="ml-2 flex-shrink-0 rounded-full bg-blue-600 px-2 py-0.5 text-xs font-medium text-white"
+                          data-testid="notification-unread-badge">
+                        {{ 'notifications.inbox.unread_label'|trans({}, 'notifications') }}
+                    </span>
+                {% endif %}
+            </div>
+        </button>
+    </form>
+</li>

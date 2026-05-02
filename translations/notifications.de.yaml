@@ -1,0 +1,126 @@
+# Translations for the Phase 8 notification system.
+#
+# Subject lines use the convention `email.{notification_type.value}.subject`.
+# Each NotificationType case ships with a corresponding `email.<value>.subject`
+# entry plus optional body strings used by the per-type Twig template.
+
+notifications:
+    bell:
+        aria_label: "Benachrichtigungen (%count% ungelesen)"
+        aria_loading: "Benachrichtigungen werden geladen"
+    inbox:
+        title: "Benachrichtigungen"
+        heading: "Deine Benachrichtigungen"
+        unread_count: "{0}Keine ungelesenen Nachrichten|{1}Eine ungelesene Nachricht|]1,Inf[ %count% ungelesene Nachrichten"
+        unread_label: "Neu"
+        mark_all_read: "Alle als gelesen markieren"
+        empty: "Du hast noch keine Benachrichtigungen erhalten."
+        preferences_link: "Einstellungen"
+    preferences:
+        title: "Benachrichtigungs-Einstellungen"
+        heading: "Benachrichtigungs-Einstellungen"
+        intro: "Lege fest, für welche Ereignisse du E-Mails erhalten möchtest. Die App-Inbox bleibt immer aktiv."
+        back_to_inbox: "Zur Inbox"
+        save: "Speichern"
+        saved: "Deine Einstellungen wurden gespeichert."
+        email_section:
+            heading: "E-Mail-Benachrichtigungen"
+            hint: "Häkchen gesetzt = E-Mail wird verschickt. Häkchen entfernt = nur App-Inbox."
+        types:
+            approval_requested:
+                label: "Neue Anträge in deinem Team"
+                description: "Wirst informiert, wenn ein Mitarbeiter aus deinem Team einen Antrag einreicht (gilt nur für Manager)."
+            approval_decided:
+                label: "Entscheidung zu deinen Anträgen"
+                description: "Du erhältst eine Mail, wenn dein Antrag genehmigt oder abgelehnt wurde."
+            cancel_requested:
+                label: "Stornierungsanfragen aus deinem Team"
+                description: "Manager erhalten eine Mail, wenn jemand einen genehmigten Antrag stornieren möchte."
+            cancel_decided:
+                label: "Entscheidung zu Stornierungsanfragen"
+                description: "Du erhältst eine Mail, wenn deine Stornierungsanfrage bestätigt oder abgelehnt wurde."
+            escalation_triggered:
+                label: "Eskalierte Anträge"
+                description: "Admins erhalten eine Mail, wenn ein Antrag länger als der Schwellenwert wartet."
+            entitlement_expiring_soon:
+                label: "Resturlaub-Verfall"
+                description: "Du erhältst eine Mail, wenn dein Resturlaub bald verfällt (30 Tage vorher)."
+    item:
+        escalation_triggered:
+            title: "Eskalation: Antrag wartet seit %daysWaiting% Tagen"
+            summary: "Der Antrag von %employeeName% auf %absenceTypeName% (%startDate% - %endDate%) wartet seit %daysWaiting% Tagen auf Bearbeitung. Bitte kläre, wer ihn bearbeitet."
+        entitlement_expiring_soon:
+            title: "Resturlaub läuft bald ab"
+            summary: "Du hast noch %hoursRemaining%h offen, die am %expiresAt% verfallen (in %daysRemaining% Tagen)."
+        approval_requested:
+            title: "Neuer Urlaubsantrag"
+            summary: "%employeeName% hat einen Antrag auf %absenceTypeName% vom %startDate% bis %endDate% eingereicht."
+        approval_decided:
+            approved:
+                title: "Antrag genehmigt"
+                summary: "%approverName% hat deinen Antrag auf %absenceTypeName% (%startDate% - %endDate%) genehmigt."
+            rejected:
+                title: "Antrag abgelehnt"
+                summary: "%approverName% hat deinen Antrag auf %absenceTypeName% (%startDate% - %endDate%) abgelehnt."
+        cancel_requested:
+            title: "Stornierungsanfrage"
+            summary: "%employeeName% möchte den genehmigten Antrag auf %absenceTypeName% (%startDate% - %endDate%) stornieren."
+        cancel_decided:
+            confirmed:
+                title: "Stornierung bestätigt"
+                summary: "%approverName% hat die Stornierung deines %absenceTypeName%-Antrags (%startDate% - %endDate%) bestätigt."
+            denied:
+                title: "Stornierung abgelehnt"
+                summary: "%approverName% hat die Stornierung deines %absenceTypeName%-Antrags (%startDate% - %endDate%) abgelehnt. Der Antrag bleibt gültig."
+
+email:
+    field:
+        start_date: "Von"
+        end_date: "Bis"
+        reason: "Begründung"
+        expires_at: "Verfällt am"
+        hours_remaining: "Verbleibende Stunden"
+    footer:
+        notification_preferences_hint: "Du erhältst diese E-Mail, weil deine Benachrichtigungseinstellungen es erlauben. Du kannst die Einstellungen in deinem Profil anpassen."
+
+    approval_requested:
+        subject: "Neuer Urlaubsantrag von %employeeName%"
+        heading: "Ein neuer Antrag wartet auf deine Entscheidung"
+        intro: "<strong>%employeeName%</strong> hat einen Antrag auf <strong>%absenceTypeName%</strong> eingereicht und benötigt deine Genehmigung."
+
+    approval_decided:
+        approved:
+            subject: "Dein Antrag auf %absenceTypeName% wurde genehmigt"
+            heading: "Antrag genehmigt"
+            intro: "<strong>%approverName%</strong> hat deinen Antrag auf <strong>%absenceTypeName%</strong> vom %startDate% bis %endDate% genehmigt."
+        rejected:
+            subject: "Dein Antrag auf %absenceTypeName% wurde abgelehnt"
+            heading: "Antrag abgelehnt"
+            intro: "<strong>%approverName%</strong> hat deinen Antrag auf <strong>%absenceTypeName%</strong> vom %startDate% bis %endDate% leider abgelehnt."
+
+    cancel_requested:
+        subject: "%employeeName% möchte einen genehmigten Antrag stornieren"
+        heading: "Stornierungsanfrage zu einem genehmigten Antrag"
+        intro: "<strong>%employeeName%</strong> möchte den bereits genehmigten Antrag auf <strong>%absenceTypeName%</strong> stornieren. Bitte entscheide, ob die Stornierung bestätigt wird."
+
+    cancel_decided:
+        confirmed:
+            subject: "Stornierung deines Antrags auf %absenceTypeName% bestätigt"
+            heading: "Stornierung bestätigt"
+            intro: "<strong>%approverName%</strong> hat die Stornierung deines genehmigten Antrags auf <strong>%absenceTypeName%</strong> vom %startDate% bis %endDate% bestätigt."
+        denied:
+            subject: "Stornierung deines Antrags auf %absenceTypeName% abgelehnt"
+            heading: "Stornierung abgelehnt"
+            intro: "<strong>%approverName%</strong> hat deinen Antrag auf Stornierung des bereits genehmigten Antrags auf <strong>%absenceTypeName%</strong> vom %startDate% bis %endDate% abgelehnt. Der ursprüngliche Antrag bleibt gültig."
+
+    entitlement_expiring_soon:
+        subject: "Dein Resturlaub %year% verfällt in %daysRemaining% Tagen"
+        heading: "Dein Resturlaub läuft bald ab"
+        intro: "Du hast noch <strong>%hoursRemaining%h</strong> Resturlaub aus %year%, die am <strong>%expiresAt%</strong> verfallen — also in <strong>%daysRemaining% Tagen</strong>."
+        outro: "Reiche rechtzeitig einen Antrag ein, um deinen Resturlaub nicht zu verlieren."
+
+    escalation_triggered:
+        subject: "Eskalation: Antrag von %employeeName% wartet seit %daysWaiting% Tagen"
+        heading: "Ein Antrag braucht Aufmerksamkeit"
+        intro: "Der Antrag von <strong>%employeeName%</strong> auf <strong>%absenceTypeName%</strong> wartet seit <strong>%daysWaiting% Tagen</strong> auf eine Entscheidung — über dem Schwellenwert von %thresholdDays% Tagen."
+        outro: "Bitte kläre intern, wer den Antrag bearbeitet — als Admin kannst du ihn auch direkt selbst genehmigen oder ablehnen."

@@ -1,0 +1,14 @@
+<p class="text-sm font-medium text-gray-900">
+    {{ ('notifications.item.cancel_decided.' ~ payload.decision ~ '.title')|trans(payload, 'notifications') }}
+</p>
+<p class="mt-0.5 text-sm text-gray-600">
+    {{ ('notifications.item.cancel_decided.' ~ payload.decision ~ '.summary')|trans({
+        '%approverName%': payload.approverName,
+        '%absenceTypeName%': payload.absenceTypeName,
+        '%startDate%': payload.startDate,
+        '%endDate%': payload.endDate,
+    }, 'notifications') }}
+</p>
+{% if payload.reason is defined %}
+    <p class="mt-1 text-sm italic text-gray-500">{{ payload.reason }}</p>
+{% endif %}

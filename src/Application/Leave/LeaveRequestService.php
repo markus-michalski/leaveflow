@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\Leave;
 
+use App\Application\Approval\ApproverResolverInterface;
 use App\Application\Calendar\BlackoutPeriodChecker;
 use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Application\Holiday\HolidayService;
+use App\Application\Notification\NotificationDispatcherInterface;
 use App\Domain\Calculator\LeaveCalculator;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Employee;
@@ -14,6 +16,8 @@ use App\Domain\Entity\LeaveRequest;
 use App\Domain\Enum\FederalState;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
+use App\Domain\Enum\LeaveRequestStatus;
+use App\Domain\Enum\NotificationType;
 use App\Domain\Repository\LeaveEntitlementRepository;
 use App\Domain\Repository\LeaveRequestDayRepository;
 use App\Domain\ValueObject\Holiday;
@@ -51,6 +55,8 @@ final readonly class LeaveRequestService
         private EntityManagerInterface $entityManager,
         private ClockInterface $clock,
         private BlackoutPeriodChecker $blackoutChecker,
+        private NotificationDispatcherInterface $notificationDispatcher,
+        private ApproverResolverInterface $approverResolver,
     ) {
     }
 
@@ -94,7 +100,49 @@ final readonly class LeaveRequestService
         $this->entityManager->persist($request);
         $this->entityManager->flush();
 
+        $this->notifyApprovalRequested($request);
+
         return $request;
+    }
+
+    /**
+     * Fires the ApprovalRequested in-app + email notification when a Pending
+     * request needs an approver. No-op for Recorded requests (informational
+     * absences like Krankheit don't have an approver).
+     *
+     * Silently skipped if there's no resolvable approver (department without
+     * lead/deputy, or approver without User account) — Phase 8 doesn't
+     * escalate to Admin here; that's the scheduler's job (Slice 6).
+     */
+    private function notifyApprovalRequested(LeaveRequest $request): void
+    {
+        if (LeaveRequestStatus::Pending !== $request->getStatus()) {
+            return;
+        }
+
+        $approver = $this->approverResolver->resolve($request);
+        if (null === $approver) {
+            return;
+        }
+
+        $approverUser = $approver->getUser();
+        if (null === $approverUser) {
+            return;
+        }
+
+        $this->notificationDispatcher->dispatch(
+            type: NotificationType::ApprovalRequested,
+            recipient: $approverUser,
+            payload: [
+                'employeeName' => $request->getEmployee()->getFullName(),
+                'absenceTypeName' => $request->getAbsenceType()->getName(),
+                'startDate' => $request->getStartDate()->format('d.m.Y'),
+                'endDate' => $request->getEndDate()->format('d.m.Y'),
+            ],
+            relatedEntityType: LeaveRequest::class,
+            relatedEntityId: $request->getId(),
+        );
+        $this->entityManager->flush();
     }
 
     /**

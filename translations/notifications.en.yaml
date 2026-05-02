@@ -1,0 +1,126 @@
+# Translations for the Phase 8 notification system.
+#
+# Subject lines use the convention `email.{notification_type.value}.subject`.
+# Each NotificationType case ships with a corresponding `email.<value>.subject`
+# entry plus optional body strings used by the per-type Twig template.
+
+notifications:
+    bell:
+        aria_label: "Notifications (%count% unread)"
+        aria_loading: "Loading notifications"
+    inbox:
+        title: "Notifications"
+        heading: "Your notifications"
+        unread_count: "{0}No unread messages|{1}One unread message|]1,Inf[ %count% unread messages"
+        unread_label: "New"
+        mark_all_read: "Mark all as read"
+        empty: "You have not received any notifications yet."
+        preferences_link: "Preferences"
+    preferences:
+        title: "Notification preferences"
+        heading: "Notification preferences"
+        intro: "Choose which events you want to receive emails for. The in-app inbox stays active for all events."
+        back_to_inbox: "Back to inbox"
+        save: "Save"
+        saved: "Your preferences have been saved."
+        email_section:
+            heading: "Email notifications"
+            hint: "Checked = email is sent. Unchecked = in-app inbox only."
+        types:
+            approval_requested:
+                label: "New requests in your team"
+                description: "Get an email when a team member submits a request (managers only)."
+            approval_decided:
+                label: "Decisions on your requests"
+                description: "Get an email when your request is approved or rejected."
+            cancel_requested:
+                label: "Cancellation requests from your team"
+                description: "Managers get an email when someone wants to cancel an approved request."
+            cancel_decided:
+                label: "Decisions on cancellation requests"
+                description: "Get an email when your cancellation request is confirmed or denied."
+            escalation_triggered:
+                label: "Escalated requests"
+                description: "Admins get an email when a request waits longer than the threshold."
+            entitlement_expiring_soon:
+                label: "Expiring leave balance"
+                description: "Get an email when your remaining leave is about to expire (30 days ahead)."
+    item:
+        escalation_triggered:
+            title: "Escalation: request waiting for %daysWaiting% days"
+            summary: "The request from %employeeName% for %absenceTypeName% (%startDate% - %endDate%) has been waiting for %daysWaiting% days. Please clarify who's handling it."
+        entitlement_expiring_soon:
+            title: "Your remaining leave is about to expire"
+            summary: "You still have %hoursRemaining%h that expire on %expiresAt% (in %daysRemaining% days)."
+        approval_requested:
+            title: "New leave request"
+            summary: "%employeeName% has submitted a request for %absenceTypeName% from %startDate% to %endDate%."
+        approval_decided:
+            approved:
+                title: "Request approved"
+                summary: "%approverName% approved your %absenceTypeName% request (%startDate% - %endDate%)."
+            rejected:
+                title: "Request rejected"
+                summary: "%approverName% rejected your %absenceTypeName% request (%startDate% - %endDate%)."
+        cancel_requested:
+            title: "Cancellation request"
+            summary: "%employeeName% wants to cancel the approved %absenceTypeName% request (%startDate% - %endDate%)."
+        cancel_decided:
+            confirmed:
+                title: "Cancellation confirmed"
+                summary: "%approverName% confirmed the cancellation of your %absenceTypeName% request (%startDate% - %endDate%)."
+            denied:
+                title: "Cancellation denied"
+                summary: "%approverName% denied the cancellation of your %absenceTypeName% request (%startDate% - %endDate%). The request remains valid."
+
+email:
+    field:
+        start_date: "From"
+        end_date: "Until"
+        reason: "Reason"
+        expires_at: "Expires on"
+        hours_remaining: "Hours remaining"
+    footer:
+        notification_preferences_hint: "You receive this email because your notification settings allow it. You can adjust your preferences in your profile."
+
+    approval_requested:
+        subject: "New leave request from %employeeName%"
+        heading: "A new request is waiting for your decision"
+        intro: "<strong>%employeeName%</strong> has submitted a request for <strong>%absenceTypeName%</strong> and needs your approval."
+
+    approval_decided:
+        approved:
+            subject: "Your request for %absenceTypeName% was approved"
+            heading: "Request approved"
+            intro: "<strong>%approverName%</strong> approved your request for <strong>%absenceTypeName%</strong> from %startDate% to %endDate%."
+        rejected:
+            subject: "Your request for %absenceTypeName% was rejected"
+            heading: "Request rejected"
+            intro: "<strong>%approverName%</strong> rejected your request for <strong>%absenceTypeName%</strong> from %startDate% to %endDate%."
+
+    cancel_requested:
+        subject: "%employeeName% wants to cancel an approved request"
+        heading: "Cancellation request for an approved leave"
+        intro: "<strong>%employeeName%</strong> wants to cancel the approved request for <strong>%absenceTypeName%</strong>. Please decide whether to confirm the cancellation."
+
+    cancel_decided:
+        confirmed:
+            subject: "Cancellation of your %absenceTypeName% request confirmed"
+            heading: "Cancellation confirmed"
+            intro: "<strong>%approverName%</strong> confirmed the cancellation of your approved request for <strong>%absenceTypeName%</strong> from %startDate% to %endDate%."
+        denied:
+            subject: "Cancellation of your %absenceTypeName% request denied"
+            heading: "Cancellation denied"
+            intro: "<strong>%approverName%</strong> denied your request to cancel the approved request for <strong>%absenceTypeName%</strong> from %startDate% to %endDate%. The original request remains valid."
+
+    entitlement_expiring_soon:
+        subject: "Your %year% leave balance expires in %daysRemaining% days"
+        heading: "Your remaining leave is about to expire"
+        intro: "You still have <strong>%hoursRemaining%h</strong> of remaining leave from %year%, expiring on <strong>%expiresAt%</strong> — that's in <strong>%daysRemaining% days</strong>."
+        outro: "Submit a request in time so you don't lose any of your remaining balance."
+
+    escalation_triggered:
+        subject: "Escalation: request from %employeeName% waiting for %daysWaiting% days"
+        heading: "A request needs attention"
+        intro: "The request from <strong>%employeeName%</strong> for <strong>%absenceTypeName%</strong> has been waiting for <strong>%daysWaiting% days</strong> — past the %thresholdDays%-day threshold."
+        outro: "Please clarify internally who's handling this. As an admin, you can also approve or reject it directly."

@@ -1,0 +1,17 @@
+{% extends 'emails/notifications/base.txt.twig' %}
+
+{% block body %}
+{{ 'email.escalation_triggered.heading'|trans({}, 'notifications') }}
+
+{{ 'email.escalation_triggered.intro'|trans({
+    '%employeeName%': payload.employeeName,
+    '%absenceTypeName%': payload.absenceTypeName,
+    '%daysWaiting%': payload.daysWaiting,
+    '%thresholdDays%': payload.thresholdDays,
+}, 'notifications') }}
+
+{{ 'email.field.start_date'|trans({}, 'notifications') }}: {{ payload.startDate }}
+{{ 'email.field.end_date'|trans({}, 'notifications') }}: {{ payload.endDate }}
+
+{{ 'email.escalation_triggered.outro'|trans({}, 'notifications') }}
+{% endblock %}

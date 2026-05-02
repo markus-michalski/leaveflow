@@ -1,0 +1,8 @@
+{# Plaintext fallback frame. Per-type templates extend and override `body`. #}
+{{ 'app.name'|trans }}
+==========
+
+{% block body %}{% endblock %}
+
+--
+{{ 'email.footer.notification_preferences_hint'|trans({}, 'notifications') }}

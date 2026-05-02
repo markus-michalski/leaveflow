@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\Leave;
 
+use App\Application\Approval\ApproverResolverInterface;
 use App\Application\Calendar\BlackoutPeriodChecker;
 use App\Application\Calendar\BlackoutPeriodViolationException;
 use App\Application\Entitlement\EntitlementBalanceReader;
@@ -13,6 +14,7 @@ use App\Application\Leave\InsufficientLeaveBalanceException;
 use App\Application\Leave\LeaveRequestService;
 use App\Application\Leave\MultiDayHalfDayException;
 use App\Application\Leave\NoEntitlementForYearException;
+use App\Application\Notification\NotificationDispatcherInterface;
 use App\Domain\Calculator\HolidayCalculator;
 use App\Domain\Calculator\LeaveCalculator;
 use App\Domain\Entity\AbsenceType;
@@ -50,6 +52,8 @@ final class LeaveRequestServiceTest extends TestCase
     private LeaveRequestDayRepository&MockObject $dayRepository;
     private EntityManagerInterface&MockObject $entityManager;
     private BlackoutPeriodRepository&MockObject $blackoutRepository;
+    private NotificationDispatcherInterface&MockObject $notificationDispatcher;
+    private ApproverResolverInterface&MockObject $approverResolver;
     /** @var list<BlackoutPeriod> */
     private array $overlappingBlackouts = [];
     private MockClock $clock;
@@ -66,6 +70,8 @@ final class LeaveRequestServiceTest extends TestCase
         $this->dayRepository = $this->createMock(LeaveRequestDayRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->blackoutRepository = $this->createMock(BlackoutPeriodRepository::class);
+        $this->notificationDispatcher = $this->createMock(NotificationDispatcherInterface::class);
+        $this->approverResolver = $this->createMock(ApproverResolverInterface::class);
         $this->overlappingBlackouts = [];
         // Tests can populate $this->overlappingBlackouts to simulate a hit.
         $this->blackoutRepository->method('findOverlapping')
@@ -615,6 +621,8 @@ final class LeaveRequestServiceTest extends TestCase
             $this->entityManager,
             $this->clock,
             new BlackoutPeriodChecker($this->blackoutRepository),
+            $this->notificationDispatcher,
+            $this->approverResolver,
         );
     }
 
