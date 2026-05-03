@@ -220,18 +220,20 @@ final class NotificationDispatcherTest extends TestCase
     }
 
     #[Test]
-    public function passesPayloadAsTranslationParameters(): void
+    public function wrapsPayloadKeysWithPercentSignsForTranslator(): void
     {
-        // The subject line often interpolates payload data ("Vacation request
-        // by %employeeName% needs approval"). Translator gets the payload as
-        // its parameters array — keys map 1:1 to %placeholder%.
+        // Symfony's default MessageFormatter does strtr-based substitution.
+        // Bare keys ('employeeName') match as substrings inside the
+        // '%employeeName%' placeholder and produce '%Erik Employee%' — only
+        // the inner portion gets replaced. Wrapping keys to '%employeeName%'
+        // before calling the translator avoids that.
         $this->preferences->method('isEmailEnabledFor')->willReturn(true);
 
         $this->translator->expects(self::once())
             ->method('trans')
             ->with(
                 'email.approval_requested.subject',
-                ['employeeName' => 'Jane Doe', 'startDate' => '06.07.2026'],
+                ['%employeeName%' => 'Jane Doe', '%startDate%' => '06.07.2026'],
                 'notifications',
             )
             ->willReturn('Antrag von Jane Doe ab 06.07.2026');

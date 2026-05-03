@@ -83,7 +83,7 @@ final readonly class NotificationDispatcher implements NotificationDispatcherInt
     {
         $subject = $this->translator->trans(
             \sprintf('email.%s.subject', $type->value),
-            $payload,
+            $this->wrapTranslationPlaceholders($payload),
             self::TRANSLATION_DOMAIN,
         );
 
@@ -99,5 +99,28 @@ final readonly class NotificationDispatcher implements NotificationDispatcherInt
             ]);
 
         $this->mailer->send($email);
+    }
+
+    /**
+     * Wraps array keys with %…% so Symfony's default MessageFormatter (strtr-
+     * based) substitutes the placeholders correctly. Without this, strtr
+     * matches the bare key as a substring of the %key% placeholder and only
+     * replaces the inner portion — producing "%Erik%" instead of "Erik".
+     *
+     * The Twig `trans` filter does the wrapping itself, so this only matters
+     * for the subject which we resolve in PHP.
+     *
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
+    private function wrapTranslationPlaceholders(array $payload): array
+    {
+        $wrapped = [];
+        foreach ($payload as $key => $value) {
+            $wrapped['%'.$key.'%'] = $value;
+        }
+
+        return $wrapped;
     }
 }

@@ -2,6 +2,7 @@
    Renders the bell button with its unread badge. Clicking goes to the inbox. #}
 <turbo-frame id="notification-bell">
     <a href="{{ path('app_my_notification_index') }}"
+       data-turbo-frame="_top"
        class="relative inline-flex items-center justify-center rounded-full bg-white p-2 shadow ring-1 ring-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
        aria-label="{{ 'notifications.bell.aria_label'|trans({ '%count%': unreadCount }, 'notifications') }}"
        data-testid="notification-bell">
