@@ -49,6 +49,16 @@ class LeaveEntitlement
     #[ORM\Column(name: 'hours_used', type: Types::FLOAT)]
     private float $hoursUsed = 0.0;
 
+    /**
+     * Idempotency timestamp for the EntitlementExpiringSoon notification.
+     * Set by the scheduler handler the first time the 30-day window opens
+     * for this entitlement; null thereafter prevents daily re-notification.
+     * adjustExpiresAt resets this so admin-extended deadlines re-arm the
+     * warning at the new threshold.
+     */
+    #[ORM\Column(name: 'expiry_warning_sent_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $expiryWarningSentAt = null;
+
     public function __construct(
         #[ORM\ManyToOne]
         #[ORM\JoinColumn(name: 'employee_id', nullable: false)]
@@ -159,6 +169,19 @@ class LeaveEntitlement
     public function adjustExpiresAt(?\DateTimeImmutable $expiresAt): void
     {
         $this->expiresAt = $expiresAt?->setTime(0, 0);
+        // Reset idempotency: the deadline changed, so a new 30-day window
+        // earns a new warning. Phase 9 admin-driven extensions rely on this.
+        $this->expiryWarningSentAt = null;
+    }
+
+    public function getExpiryWarningSentAt(): ?\DateTimeImmutable
+    {
+        return $this->expiryWarningSentAt;
+    }
+
+    public function markExpiryWarningSent(\DateTimeImmutable $now): void
+    {
+        $this->expiryWarningSentAt = $now;
     }
 
     private function assertYearInRange(int $year): void

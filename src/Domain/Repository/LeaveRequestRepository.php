@@ -24,6 +24,32 @@ class LeaveRequestRepository extends ServiceEntityRepository
     }
 
     /**
+     * Pending requests that have exceeded their company's escalation
+     * threshold and have not been escalated yet. Drives the
+     * ApprovalEscalationCheck scheduler.
+     *
+     * The threshold is per-company (Company.approvalEscalationDays), so we
+     * compare requestedAt against `now - company.approvalEscalationDays
+     * days` directly via DQL/SQL date arithmetic.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findPendingNeedingEscalation(\DateTimeImmutable $now): array
+    {
+        return $this->createQueryBuilder('r')
+            ->innerJoin('r.employee', 'e')
+            ->innerJoin('e.company', 'c')
+            ->where('r.status = :status')
+            ->andWhere('r.escalationNotifiedAt IS NULL')
+            ->andWhere("DATE_ADD(r.requestedAt, c.approvalEscalationDays, 'day') <= :now")
+            ->setParameter('status', LeaveRequestStatus::Pending)
+            ->setParameter('now', $now)
+            ->orderBy('r.requestedAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Requests awaiting a manager decision, scoped to the approver's
      * department: Pending and CancelRequested. Four-eyes is enforced by
      * excluding the approver's own requests.

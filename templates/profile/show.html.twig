@@ -39,6 +39,23 @@
         </section>
     {% endif %}
 
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-settings">
+        <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'profile.settings.heading'|trans }}</h2>
+        <ul class="divide-y divide-gray-100">
+            <li class="flex items-center justify-between gap-4 py-3">
+                <div>
+                    <p class="text-sm font-medium text-gray-900">{{ 'profile.settings.notifications.label'|trans }}</p>
+                    <p class="mt-0.5 text-xs text-gray-600">{{ 'profile.settings.notifications.description'|trans }}</p>
+                </div>
+                <a href="{{ path('app_my_notification_preferences') }}"
+                   class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                   data-testid="profile-settings-notifications">
+                    {{ 'profile.settings.adjust'|trans }}
+                </a>
+            </li>
+        </ul>
+    </section>
+
     <section class="rounded-xl bg-white p-6 shadow-sm space-y-4">
         <dl class="grid grid-cols-3 gap-y-3 text-sm">
             <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.email'|trans }}</dt>

@@ -1,0 +1,16 @@
+{% extends 'emails/notifications/base.txt.twig' %}
+
+{% block body %}
+{{ ('email.approval_decided.' ~ payload.decision ~ '.heading')|trans({}, 'notifications') }}
+
+{{ ('email.approval_decided.' ~ payload.decision ~ '.intro')|trans({
+    '%approverName%': payload.approverName,
+    '%absenceTypeName%': payload.absenceTypeName,
+    '%startDate%': payload.startDate,
+    '%endDate%': payload.endDate,
+}, 'notifications') }}
+{% if payload.reason is defined %}
+
+{{ 'email.field.reason'|trans({}, 'notifications') }}: {{ payload.reason }}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'emails/notifications/base.txt.twig' %}
+
+{% block body %}
+{{ 'email.cancel_requested.heading'|trans({}, 'notifications') }}
+
+{{ 'email.cancel_requested.intro'|trans({
+    '%employeeName%': payload.employeeName,
+    '%absenceTypeName%': payload.absenceTypeName,
+}, 'notifications') }}
+
+{{ 'email.field.start_date'|trans({}, 'notifications') }}: {{ payload.startDate }}
+{{ 'email.field.end_date'|trans({}, 'notifications') }}: {{ payload.endDate }}
+{% endblock %}

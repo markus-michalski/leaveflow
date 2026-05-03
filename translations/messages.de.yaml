@@ -446,6 +446,12 @@ profile:
         total: Gesamt verfügbar
         next_expiry: Resturlaub verfällt am
         my_requests: Meine Anträge
+    settings:
+        heading: Einstellungen
+        adjust: Anpassen
+        notifications:
+            label: Benachrichtigungen
+            description: "Steuere, für welche Ereignisse du E-Mails erhältst. Die App-Inbox bleibt immer aktiv."
 my:
     leave_requests:
         title: Meine Urlaubsanträge

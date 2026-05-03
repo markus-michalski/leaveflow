@@ -1,0 +1,25 @@
+{% extends 'emails/notifications/base.html.twig' %}
+
+{% block title %}{{ 'email.cancel_requested.subject'|trans(payload, 'notifications') }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin: 0 0 16px; font-size: 18px; color: #111827;">
+        {{ 'email.cancel_requested.heading'|trans({}, 'notifications') }}
+    </h2>
+    <p style="margin: 0 0 16px;">
+        {{ 'email.cancel_requested.intro'|trans({
+            '%employeeName%': payload.employeeName,
+            '%absenceTypeName%': payload.absenceTypeName,
+        }, 'notifications')|raw }}
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 16px 0; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 16px 8px 0; color: #6b7280;">{{ 'email.field.start_date'|trans({}, 'notifications') }}</td>
+            <td style="padding: 8px 0; font-weight: 500;">{{ payload.startDate }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 16px 8px 0; color: #6b7280;">{{ 'email.field.end_date'|trans({}, 'notifications') }}</td>
+            <td style="padding: 8px 0; font-weight: 500;">{{ payload.endDate }}</td>
+        </tr>
+    </table>
+{% endblock %}

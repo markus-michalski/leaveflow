@@ -61,4 +61,29 @@ class LeaveEntitlementRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Drives the EntitlementExpiringSoon scheduler. Returns entitlements
+     * whose expiresAt falls within [today, today+daysAhead] AND have not yet
+     * triggered an expiry warning AND still have hours remaining (no point
+     * warning about a fully-consumed carryover).
+     *
+     * @return list<LeaveEntitlement>
+     */
+    public function findExpiringWithoutWarning(\DateTimeImmutable $today, int $daysAhead = 30): array
+    {
+        $threshold = $today->setTime(0, 0)->modify(\sprintf('+%d days', $daysAhead));
+
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.expiresAt IS NOT NULL')
+            ->andWhere('e.expiresAt >= :today')
+            ->andWhere('e.expiresAt <= :threshold')
+            ->andWhere('e.expiryWarningSentAt IS NULL')
+            ->andWhere('(e.hoursGranted - e.hoursUsed) > 0')
+            ->setParameter('today', $today->setTime(0, 0))
+            ->setParameter('threshold', $threshold)
+            ->orderBy('e.expiresAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

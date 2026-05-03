@@ -446,6 +446,12 @@ profile:
         total: Total available
         next_expiry: Carryover expires on
         my_requests: My requests
+    settings:
+        heading: Settings
+        adjust: Adjust
+        notifications:
+            label: Notifications
+            description: "Control which events you receive emails for. The in-app inbox stays active for all events."
 my:
     leave_requests:
         title: My leave requests

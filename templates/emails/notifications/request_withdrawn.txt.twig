@@ -1,0 +1,14 @@
+{% extends 'emails/notifications/base.txt.twig' %}
+
+{% block body %}
+{{ 'email.request_withdrawn.heading'|trans({}, 'notifications') }}
+
+{{ 'email.request_withdrawn.intro'|trans({
+    '%employeeName%': payload.employeeName,
+    '%absenceTypeName%': payload.absenceTypeName,
+    '%startDate%': payload.startDate,
+    '%endDate%': payload.endDate,
+}, 'notifications') }}
+
+{{ 'email.request_withdrawn.outro'|trans({}, 'notifications') }}
+{% endblock %}

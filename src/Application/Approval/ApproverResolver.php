@@ -20,7 +20,7 @@ use Symfony\Component\Clock\ClockInterface;
  * Intentionally no skip-level walk (dept.lead → dept.lead's dept.lead).
  * Nested departments are deferred; for now Admin is the ultimate backstop.
  */
-final readonly class ApproverResolver
+final readonly class ApproverResolver implements ApproverResolverInterface
 {
     public function __construct(
         private ClockInterface $clock,

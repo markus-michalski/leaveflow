@@ -1,0 +1,17 @@
+{% extends 'emails/notifications/base.txt.twig' %}
+
+{% block body %}
+{{ 'email.entitlement_expiring_soon.heading'|trans({}, 'notifications') }}
+
+{{ 'email.entitlement_expiring_soon.intro'|trans({
+    '%hoursRemaining%': payload.hoursRemaining,
+    '%expiresAt%': payload.expiresAt,
+    '%daysRemaining%': payload.daysRemaining,
+    '%year%': payload.year,
+}, 'notifications') }}
+
+{{ 'email.field.expires_at'|trans({}, 'notifications') }}: {{ payload.expiresAt }}
+{{ 'email.field.hours_remaining'|trans({}, 'notifications') }}: {{ payload.hoursRemaining }}
+
+{{ 'email.entitlement_expiring_soon.outro'|trans({}, 'notifications') }}
+{% endblock %}
