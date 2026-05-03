@@ -1,0 +1,11 @@
+<p class="text-sm font-medium text-gray-900">
+    {{ 'notifications.item.request_withdrawn.title'|trans(payload, 'notifications') }}
+</p>
+<p class="mt-0.5 text-sm text-gray-600">
+    {{ 'notifications.item.request_withdrawn.summary'|trans({
+        '%employeeName%': payload.employeeName,
+        '%absenceTypeName%': payload.absenceTypeName,
+        '%startDate%': payload.startDate,
+        '%endDate%': payload.endDate,
+    }, 'notifications') }}
+</p>

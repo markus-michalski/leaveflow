@@ -13,7 +13,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Per-user notification preferences UI — toggles the email channel for each
@@ -31,6 +33,8 @@ final class MyNotificationPreferencesController extends AbstractController
     public function __construct(
         private readonly NotificationPreferenceRepository $preferences,
         private readonly EntityManagerInterface $entityManager,
+        private readonly AuthorizationCheckerInterface $authorizationChecker,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -41,7 +45,7 @@ final class MyNotificationPreferencesController extends AbstractController
 
         return $this->render('my/notifications/preferences.html.twig', [
             'preferencesByType' => $this->preferences->findAllForUserKeyedByType($user),
-            'types' => NotificationType::cases(),
+            'types' => $this->visibleTypes(),
         ]);
     }
 
@@ -61,7 +65,11 @@ final class MyNotificationPreferencesController extends AbstractController
         /** @var array<string, mixed> $submitted */
         $submitted = (array) $request->request->all('email');
 
-        foreach (NotificationType::cases() as $type) {
+        // Only iterate types the user is actually allowed to manage. A
+        // POST that smuggles a type outside that set (e.g. a manager
+        // tampering with EscalationTriggered) gets silently ignored —
+        // the omitted type just keeps whatever state it had.
+        foreach ($this->visibleTypes() as $type) {
             $wantEnabled = isset($submitted[$type->value]) && '1' === $submitted[$type->value];
             $pref = $existing[$type->value] ?? null;
 
@@ -69,9 +77,27 @@ final class MyNotificationPreferencesController extends AbstractController
         }
 
         $this->entityManager->flush();
-        $this->addFlash('success', 'notifications.preferences.saved');
+        $this->addFlash(
+            'success',
+            $this->translator->trans('notifications.preferences.saved', [], 'notifications'),
+        );
 
         return $this->redirectToRoute('app_my_notification_preferences');
+    }
+
+    /**
+     * @return list<NotificationType>
+     */
+    private function visibleTypes(): array
+    {
+        $visible = [];
+        foreach (NotificationType::cases() as $type) {
+            if ($this->authorizationChecker->isGranted($type->requiredSymfonyRole())) {
+                $visible[] = $type;
+            }
+        }
+
+        return $visible;
     }
 
     private function applyToggle(

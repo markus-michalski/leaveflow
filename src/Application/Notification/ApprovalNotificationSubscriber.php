@@ -62,9 +62,13 @@ final readonly class ApprovalNotificationSubscriber
         match ($transition->getName()) {
             'approve' => $this->dispatchApprovalDecided($request, $actor, 'approved', null),
             'reject' => $this->dispatchApprovalDecided($request, $actor, 'rejected', $reason),
+            'cancel_pending' => $this->dispatchRequestWithdrawn($request),
             'request_cancel' => $this->dispatchCancelRequested($request),
             'confirm_cancel' => $this->dispatchCancelDecided($request, $actor, 'confirmed', null),
             'deny_cancel' => $this->dispatchCancelDecided($request, $actor, 'denied', $reason),
+            // cancel_recorded stays silent — Recorded requests never fired
+            // ApprovalRequested in the first place (requiresApproval=false),
+            // so no manager has a stale "needs decision" notification.
             default => null,
         };
     }
@@ -93,6 +97,36 @@ final readonly class ApprovalNotificationSubscriber
             type: NotificationType::ApprovalDecided,
             recipient: $recipient,
             payload: $payload,
+            relatedEntityType: LeaveRequest::class,
+            relatedEntityId: $request->getId(),
+        );
+    }
+
+    private function dispatchRequestWithdrawn(LeaveRequest $request): void
+    {
+        // Employee withdrew a Pending request before the manager decided.
+        // Manager already has a stale ApprovalRequested notification, so
+        // we owe them the heads-up. Recipient resolution mirrors
+        // ApprovalRequested so the same person gets the close-the-loop ping.
+        $approver = $this->approverResolver->resolve($request);
+        if (null === $approver) {
+            return;
+        }
+
+        $recipient = $approver->getUser();
+        if (null === $recipient) {
+            return;
+        }
+
+        $this->dispatcher->dispatch(
+            type: NotificationType::RequestWithdrawn,
+            recipient: $recipient,
+            payload: [
+                'employeeName' => $request->getEmployee()->getFullName(),
+                'absenceTypeName' => $request->getAbsenceType()->getName(),
+                'startDate' => $request->getStartDate()->format('d.m.Y'),
+                'endDate' => $request->getEndDate()->format('d.m.Y'),
+            ],
             relatedEntityType: LeaveRequest::class,
             relatedEntityId: $request->getId(),
         );

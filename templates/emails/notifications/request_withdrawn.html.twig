@@ -1,0 +1,20 @@
+{% extends 'emails/notifications/base.html.twig' %}
+
+{% block title %}{{ 'email.request_withdrawn.subject'|trans(payload, 'notifications') }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin: 0 0 16px; font-size: 18px; color: #111827;">
+        {{ 'email.request_withdrawn.heading'|trans({}, 'notifications') }}
+    </h2>
+    <p style="margin: 0 0 16px;">
+        {{ 'email.request_withdrawn.intro'|trans({
+            '%employeeName%': payload.employeeName,
+            '%absenceTypeName%': payload.absenceTypeName,
+            '%startDate%': payload.startDate,
+            '%endDate%': payload.endDate,
+        }, 'notifications')|raw }}
+    </p>
+    <p style="margin: 16px 0 0; color: #6b7280; font-size: 13px;">
+        {{ 'email.request_withdrawn.outro'|trans({}, 'notifications') }}
+    </p>
+{% endblock %}

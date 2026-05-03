@@ -25,7 +25,7 @@ notifications:
         saved: "Deine Einstellungen wurden gespeichert."
         email_section:
             heading: "E-Mail-Benachrichtigungen"
-            hint: "Häkchen gesetzt = E-Mail wird verschickt. Häkchen entfernt = nur App-Inbox."
+            hint: "Schalter aktiv = E-Mail wird verschickt. Schalter aus = nur App-Inbox."
         types:
             approval_requested:
                 label: "Neue Anträge in deinem Team"
@@ -39,6 +39,9 @@ notifications:
             cancel_decided:
                 label: "Entscheidung zu Stornierungsanfragen"
                 description: "Du erhältst eine Mail, wenn deine Stornierungsanfrage bestätigt oder abgelehnt wurde."
+            request_withdrawn:
+                label: "Zurückgezogene Anträge"
+                description: "Manager erhalten eine Mail, wenn jemand seinen noch nicht genehmigten Antrag wieder zurückzieht."
             escalation_triggered:
                 label: "Eskalierte Anträge"
                 description: "Admins erhalten eine Mail, wenn ein Antrag länger als der Schwellenwert wartet."
@@ -46,6 +49,9 @@ notifications:
                 label: "Resturlaub-Verfall"
                 description: "Du erhältst eine Mail, wenn dein Resturlaub bald verfällt (30 Tage vorher)."
     item:
+        request_withdrawn:
+            title: "Antrag zurückgezogen"
+            summary: "%employeeName% hat den Antrag auf %absenceTypeName% (%startDate% - %endDate%) zurückgezogen, bevor du entscheiden konntest. Es ist nichts mehr zu tun."
         escalation_triggered:
             title: "Eskalation: Antrag wartet seit %daysWaiting% Tagen"
             summary: "Der Antrag von %employeeName% auf %absenceTypeName% (%startDate% - %endDate%) wartet seit %daysWaiting% Tagen auf Bearbeitung. Bitte kläre, wer ihn bearbeitet."
@@ -102,6 +108,12 @@ email:
         subject: "%employeeName% möchte einen genehmigten Antrag stornieren"
         heading: "Stornierungsanfrage zu einem genehmigten Antrag"
         intro: "<strong>%employeeName%</strong> möchte den bereits genehmigten Antrag auf <strong>%absenceTypeName%</strong> stornieren. Bitte entscheide, ob die Stornierung bestätigt wird."
+
+    request_withdrawn:
+        subject: "%employeeName% hat einen Antrag zurückgezogen"
+        heading: "Antrag zurückgezogen"
+        intro: "<strong>%employeeName%</strong> hat den Antrag auf <strong>%absenceTypeName%</strong> vom %startDate% bis %endDate% zurückgezogen, bevor du entscheiden konntest. Es ist keine Entscheidung mehr nötig."
+        outro: "Falls dir diese Information nicht weiterhilft, kannst du die E-Mails für zurückgezogene Anträge in deinen Benachrichtigungseinstellungen abschalten."
 
     cancel_decided:
         confirmed:

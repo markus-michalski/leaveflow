@@ -179,7 +179,9 @@ final class MyNotificationsControllerTest extends WebTestCase
     private function basePayloadFor(NotificationType $type): array
     {
         return match ($type) {
-            NotificationType::ApprovalRequested, NotificationType::CancelRequested => [
+            NotificationType::ApprovalRequested,
+            NotificationType::CancelRequested,
+            NotificationType::RequestWithdrawn => [
                 'employeeName' => 'Sample Employee',
                 'absenceTypeName' => 'Urlaub',
                 'startDate' => '01.06.2026',

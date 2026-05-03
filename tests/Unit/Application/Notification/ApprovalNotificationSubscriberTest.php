@@ -231,13 +231,42 @@ final class ApprovalNotificationSubscriberTest extends TestCase
     }
 
     #[Test]
-    public function ignoresSelfCancelTransitions(): void
+    public function notifiesApproverOnCancelPending(): void
     {
+        // Employee withdraws a Pending request before the manager decided.
+        // The manager already received ApprovalRequested + email; without
+        // this RequestWithdrawn signal, the original notification stays
+        // stale and the manager clicks through to a cancelled request
+        // with no explanation.
+        $this->approverResolver->expects(self::once())
+            ->method('resolve')
+            ->with($this->request)
+            ->willReturn($this->approver);
+
+        $this->dispatcher->expects(self::once())
+            ->method('dispatch')
+            ->with(
+                type: NotificationType::RequestWithdrawn,
+                recipient: $this->approverUser,
+                payload: self::callback(static fn (array $p): bool => 'Jane Doe' === $p['employeeName']
+                        && 'Urlaub' === $p['absenceTypeName']),
+                relatedEntityType: LeaveRequest::class,
+                relatedEntityId: self::anything(),
+            );
+
+        $event = $this->buildEvent('cancel_pending', 'pending', 'cancelled', ['actor' => $this->employee]);
+        ($this->createSubscriber())($event);
+    }
+
+    #[Test]
+    public function ignoresCancelRecordedTransition(): void
+    {
+        // Recorded requests (Krankheit etc.) never fired ApprovalRequested,
+        // so withdrawing one carries no notification debt.
         $this->dispatcher->expects(self::never())->method('dispatch');
 
-        $sub = $this->createSubscriber();
-        $sub($this->buildEvent('cancel_pending', 'pending', 'cancelled', ['actor' => $this->employee]));
-        $sub($this->buildEvent('cancel_recorded', 'recorded', 'cancelled', ['actor' => $this->employee]));
+        $event = $this->buildEvent('cancel_recorded', 'recorded', 'cancelled', ['actor' => $this->employee]);
+        ($this->createSubscriber())($event);
     }
 
     #[Test]

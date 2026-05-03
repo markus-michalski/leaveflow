@@ -220,6 +220,58 @@ final class NotificationDispatcherTest extends TestCase
     }
 
     #[Test]
+    public function buildsDecisionAwareSubjectKeyForApprovalDecided(): void
+    {
+        // ApprovalDecided/CancelDecided have decision-specific subject keys
+        // in the translation file (approved/rejected/confirmed/denied) —
+        // the dispatcher must resolve the sub-key in PHP since the
+        // subject can't be deferred to a Twig template.
+        $this->preferences->method('isEmailEnabledFor')->willReturn(true);
+
+        $this->translator->expects(self::once())
+            ->method('trans')
+            ->with(
+                'email.approval_decided.approved.subject',
+                self::anything(),
+                'notifications',
+            )
+            ->willReturn('Antrag genehmigt');
+
+        $this->em->expects(self::once())->method('persist');
+        $this->mailer->expects(self::once())->method('send');
+
+        $this->createDispatcher()->dispatch(
+            type: NotificationType::ApprovalDecided,
+            recipient: $this->recipient,
+            payload: ['decision' => 'approved', 'absenceTypeName' => 'Urlaub'],
+        );
+    }
+
+    #[Test]
+    public function buildsDecisionAwareSubjectKeyForCancelDecided(): void
+    {
+        $this->preferences->method('isEmailEnabledFor')->willReturn(true);
+
+        $this->translator->expects(self::once())
+            ->method('trans')
+            ->with(
+                'email.cancel_decided.denied.subject',
+                self::anything(),
+                'notifications',
+            )
+            ->willReturn('Stornierung abgelehnt');
+
+        $this->em->expects(self::once())->method('persist');
+        $this->mailer->expects(self::once())->method('send');
+
+        $this->createDispatcher()->dispatch(
+            type: NotificationType::CancelDecided,
+            recipient: $this->recipient,
+            payload: ['decision' => 'denied', 'absenceTypeName' => 'Urlaub'],
+        );
+    }
+
+    #[Test]
     public function wrapsPayloadKeysWithPercentSignsForTranslator(): void
     {
         // Symfony's default MessageFormatter does strtr-based substitution.

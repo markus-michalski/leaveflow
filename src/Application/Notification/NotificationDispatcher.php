@@ -82,7 +82,7 @@ final readonly class NotificationDispatcher implements NotificationDispatcherInt
     private function sendEmail(NotificationType $type, User $recipient, array $payload): void
     {
         $subject = $this->translator->trans(
-            \sprintf('email.%s.subject', $type->value),
+            $type->emailSubjectTranslationKey($payload),
             $this->wrapTranslationPlaceholders($payload),
             self::TRANSLATION_DOMAIN,
         );

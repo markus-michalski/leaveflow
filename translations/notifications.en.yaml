@@ -25,7 +25,7 @@ notifications:
         saved: "Your preferences have been saved."
         email_section:
             heading: "Email notifications"
-            hint: "Checked = email is sent. Unchecked = in-app inbox only."
+            hint: "Toggle on = email is sent. Toggle off = in-app inbox only."
         types:
             approval_requested:
                 label: "New requests in your team"
@@ -39,6 +39,9 @@ notifications:
             cancel_decided:
                 label: "Decisions on cancellation requests"
                 description: "Get an email when your cancellation request is confirmed or denied."
+            request_withdrawn:
+                label: "Withdrawn requests"
+                description: "Managers get an email when someone withdraws a not-yet-decided request."
             escalation_triggered:
                 label: "Escalated requests"
                 description: "Admins get an email when a request waits longer than the threshold."
@@ -46,6 +49,9 @@ notifications:
                 label: "Expiring leave balance"
                 description: "Get an email when your remaining leave is about to expire (30 days ahead)."
     item:
+        request_withdrawn:
+            title: "Request withdrawn"
+            summary: "%employeeName% withdrew the request for %absenceTypeName% (%startDate% - %endDate%) before you could decide. No action needed."
         escalation_triggered:
             title: "Escalation: request waiting for %daysWaiting% days"
             summary: "The request from %employeeName% for %absenceTypeName% (%startDate% - %endDate%) has been waiting for %daysWaiting% days. Please clarify who's handling it."
@@ -102,6 +108,12 @@ email:
         subject: "%employeeName% wants to cancel an approved request"
         heading: "Cancellation request for an approved leave"
         intro: "<strong>%employeeName%</strong> wants to cancel the approved request for <strong>%absenceTypeName%</strong>. Please decide whether to confirm the cancellation."
+
+    request_withdrawn:
+        subject: "%employeeName% withdrew a request"
+        heading: "Request withdrawn"
+        intro: "<strong>%employeeName%</strong> withdrew the request for <strong>%absenceTypeName%</strong> from %startDate% to %endDate% before you could decide. No decision is needed anymore."
+        outro: "If this information isn't useful, you can turn off withdrawn-request emails in your notification preferences."
 
     cancel_decided:
         confirmed:

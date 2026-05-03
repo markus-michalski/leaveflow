@@ -6,6 +6,7 @@ namespace App\Presentation\Controller\My;
 
 use App\Domain\Entity\Notification;
 use App\Domain\Entity\User;
+use App\Domain\Enum\NotificationType;
 use App\Domain\Repository\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -122,21 +123,38 @@ final class MyNotificationsController extends AbstractController
     }
 
     /**
-     * Maps a notification's relatedEntity reference to a target URL. Phase 8
-     * only deeplinks LeaveRequest references — additions in later phases
-     * extend the match.
+     * Maps a notification to the target URL appropriate for its recipient
+     * role. The same LeaveRequest entity has three different detail pages —
+     * /my/leave-requests/{id} (owner), /manager/approvals/{id} (approver),
+     * /admin/leave-requests/{id} (admin) — each gated by ownership/role.
+     * Routing on relatedEntityType alone landed managers on the owner page
+     * and produced 404s. Switch on NotificationType, which encodes both the
+     * source event AND the implicit recipient role.
      */
     private function resolveDeeplink(Notification $notification): ?string
     {
-        $type = $notification->getRelatedEntityType();
         $id = $notification->getRelatedEntityId();
-        if (null === $type || null === $id) {
+        if (null === $id) {
             return null;
         }
 
-        return match ($type) {
-            \App\Domain\Entity\LeaveRequest::class => $this->generateUrl('app_my_leave_request_show', ['id' => $id]),
-            default => null,
+        return match ($notification->getType()) {
+            NotificationType::ApprovalRequested,
+            NotificationType::CancelRequested => $this->generateUrl('app_manager_approval_show', ['id' => $id]),
+
+            NotificationType::ApprovalDecided,
+            NotificationType::CancelDecided => $this->generateUrl('app_my_leave_request_show', ['id' => $id]),
+
+            NotificationType::EscalationTriggered => $this->generateUrl('app_admin_leave_request_show', ['id' => $id]),
+
+            // RequestWithdrawn is informational ("the request you were about
+            // to decide is gone") — payload carries the full context, no
+            // detail page worth visiting.
+            NotificationType::RequestWithdrawn => null,
+
+            // No useful per-entitlement detail page yet (Phase 9 admin UI).
+            // Falling back to the inbox keeps the click meaningful.
+            NotificationType::EntitlementExpiringSoon => null,
         };
     }
 }
