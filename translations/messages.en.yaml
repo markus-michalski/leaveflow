@@ -364,6 +364,9 @@ admin:
             created: "Leave entitlement has been created."
             expiry_updated: "Expiry has been updated."
             duplicate: "This employee already has an entry for the same year and type."
+        error:
+            expires_before_burlg_floor: "Expiry must not be before %year%-03-31 — BUrlG §7 Abs. 3 guarantees a 3-month grace period the employer can only extend, not shorten."
+            expiry_only_for_carryover: "Only carryover entries can have an expiry. Regular vacation applies for the whole leave year and is rolled into a separate carryover entry by the year-end transition."
         new:
             title: "Create leave entitlement"
             hint: "Rule of thumb: 30 vacation days × hours/day from the work schedule (e.g. full-time 40h/5d = 240h). For carryover entries also set an expiry (default: 31.03. of the following year)."

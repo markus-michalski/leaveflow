@@ -63,10 +63,12 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-3 text-right">
-                            <a href="{{ path('app_admin_entitlement_edit_expiry', { id: entry.id }) }}"
-                               class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
-                                {{ 'admin.entitlements.edit_expiry'|trans }}
-                            </a>
+                            {% if entry.type.value == 'carryover' %}
+                                <a href="{{ path('app_admin_entitlement_edit_expiry', { id: entry.id }) }}"
+                                   class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                    {{ 'admin.entitlements.edit_expiry'|trans }}
+                                </a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% set previous_employee_id = entry.employee.id %}

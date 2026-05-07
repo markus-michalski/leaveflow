@@ -14,11 +14,15 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Range;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Admin form to create a new LeaveEntitlement for an employee.
@@ -31,6 +35,11 @@ use Symfony\Component\Validator\Constraints\Range;
  */
 final class LeaveEntitlementFormType extends AbstractType
 {
+    public function __construct(
+        private readonly TranslatorInterface $translator,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var Company $company */
@@ -85,7 +94,41 @@ final class LeaveEntitlementFormType extends AbstractType
                 'attr' => ['placeholder' => 'TT.MM.JJJJ', 'inputmode' => 'numeric'],
                 'mapped' => false,
                 'required' => false,
-            ]);
+            ])
+            ->addEventListener(
+                FormEvents::POST_SUBMIT,
+                function (FormEvent $event): void {
+                    $form = $event->getForm();
+                    $expiresAt = $form->get('expiresAt')->getData();
+                    if (!$expiresAt instanceof \DateTimeInterface) {
+                        return;
+                    }
+
+                    // Regular vacation has no per-record expiry — only Carryover does.
+                    $type = $form->get('type')->getData();
+                    if (LeaveEntitlementType::Carryover !== $type) {
+                        $form->get('expiresAt')->addError(new FormError(
+                            $this->translator->trans('admin.entitlements.error.expiry_only_for_carryover')
+                        ));
+
+                        return;
+                    }
+
+                    $year = $form->get('year')->getData();
+                    if (!\is_int($year)) {
+                        return;
+                    }
+                    // BUrlG §7 Abs. 3 floor: admin may extend, not shorten.
+                    $burlgFloor = new \DateTimeImmutable(\sprintf('%d-03-31', $year));
+                    if ($expiresAt < $burlgFloor) {
+                        $form->get('expiresAt')->addError(new FormError(
+                            $this->translator->trans('admin.entitlements.error.expires_before_burlg_floor', [
+                                '%year%' => (string) $year,
+                            ])
+                        ));
+                    }
+                },
+            );
     }
 
     public function configureOptions(OptionsResolver $resolver): void

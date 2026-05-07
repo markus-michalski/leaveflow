@@ -209,6 +209,140 @@ final class AdminEntitlementControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function newFormRejectsExpiresAtBelowBurlgFloor(): void
+    {
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements/new');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-form"]')->form();
+        $formName = $form->getName();
+
+        // Bug case from issue #23: 2027 carryover with expiry in 2026.
+        $this->client->submit($form, [
+            $formName.'[employee]' => (string) $this->employee->getId(),
+            $formName.'[year]' => '2027',
+            $formName.'[type]' => LeaveEntitlementType::Carryover->value,
+            $formName.'[hoursGranted]' => '40',
+            $formName.'[expiresAt]' => '23.05.2026',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        // No row created.
+        $created = $this->em->getRepository(LeaveEntitlement::class)->findOneBy([
+            'employee' => $this->employee,
+            'year' => 2027,
+            'type' => LeaveEntitlementType::Carryover,
+        ]);
+        self::assertNull($created);
+    }
+
+    #[Test]
+    public function newFormRejectsExpiresAtOnRegularEntitlement(): void
+    {
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements/new');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-form"]')->form();
+        $formName = $form->getName();
+
+        // Regular vacation has no per-record expiry — only Carryover does.
+        $this->client->submit($form, [
+            $formName.'[employee]' => (string) $this->employee->getId(),
+            $formName.'[year]' => '2027',
+            $formName.'[type]' => LeaveEntitlementType::Regular->value,
+            $formName.'[hoursGranted]' => '240',
+            $formName.'[expiresAt]' => '31.03.2027',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $created = $this->em->getRepository(LeaveEntitlement::class)->findOneBy([
+            'employee' => $this->employee,
+            'year' => 2027,
+            'type' => LeaveEntitlementType::Regular,
+        ]);
+        self::assertNull($created);
+    }
+
+    #[Test]
+    public function editExpiryFormRejectsDateBelowBurlgFloor(): void
+    {
+        $entitlement = $this->createEntitlement(
+            2027,
+            LeaveEntitlementType::Carryover,
+            240.0,
+            new \DateTimeImmutable('2027-03-31'),
+        );
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements/'.$id.'/expires');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-expiry-form"]')->form();
+        $formName = $form->getName();
+
+        // Bug case: 2027 carryover, admin tries to set expiry to 2026.
+        $this->client->submit($form, [
+            $formName.'[expiresAt]' => '23.05.2026',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        // Original expiry preserved.
+        $this->em->clear();
+        /** @var LeaveEntitlement $reloaded */
+        $reloaded = $this->em->getRepository(LeaveEntitlement::class)->find($id);
+        self::assertSame('2027-03-31', $reloaded->getExpiresAt()?->format('Y-m-d'));
+    }
+
+    #[Test]
+    public function editExpiryReturns404ForRegularEntitlement(): void
+    {
+        $regular = $this->createEntitlement(
+            2027,
+            LeaveEntitlementType::Regular,
+            240.0,
+            null,
+        );
+        $this->em->flush();
+        $id = $regular->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        $this->client->request('GET', '/admin/entitlements/'.$id.'/expires');
+
+        self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
+    #[Test]
+    public function indexHidesEditExpiryButtonForRegularEntitlements(): void
+    {
+        $regular = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $carryover = $this->createEntitlement(
+            2027,
+            LeaveEntitlementType::Carryover,
+            16.0,
+            new \DateTimeImmutable('2027-03-31'),
+        );
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements');
+
+        self::assertResponseIsSuccessful();
+        // Carryover row has the edit-expiry link, Regular row does not.
+        self::assertSelectorExists(
+            \sprintf('[data-testid="entitlement-row-%d"] a[href*="/expires"]', $carryover->getId())
+        );
+        self::assertSelectorNotExists(
+            \sprintf('[data-testid="entitlement-row-%d"] a[href*="/expires"]', $regular->getId())
+        );
+    }
+
+    #[Test]
     public function archivedEmployeeNotOfferedInDropdown(): void
     {
         $archived = new Employee(
