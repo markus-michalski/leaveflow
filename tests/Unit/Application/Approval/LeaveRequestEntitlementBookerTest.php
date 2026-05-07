@@ -199,6 +199,92 @@ final class LeaveRequestEntitlementBookerTest extends TestCase
         return new LeaveEntitlement($this->employee, $year, $type, $granted, $expiresAt);
     }
 
+    #[Test]
+    public function consumeRespectsAbsenceTypeBucketBindingToRegularOnly(): void
+    {
+        // Urlaub bound to Regular only — Carryover with hours stays untouched.
+        $urlaubRegularOnly = new AbsenceType($this->acme, 'Urlaub', true, true, '#3B82F6', true, LeaveEntitlementType::Regular);
+
+        $regular = $this->entitlement(2026, LeaveEntitlementType::Regular, 240.0);
+        $carryover = $this->entitlement(2026, LeaveEntitlementType::Carryover, 16.0, new \DateTimeImmutable('2026-03-31'));
+        $this->repository->method('findByEmployeeAndYear')->willReturn([$regular, $carryover]);
+
+        $request = $this->requestFromDays($urlaubRegularOnly, [
+            ['2026-07-06', 8.0, LeaveDayStatus::Working],
+        ]);
+
+        $this->booker()->consume($request);
+
+        self::assertSame(8.0, $regular->getHoursUsed());
+        self::assertSame(0.0, $carryover->getHoursUsed());  // untouched
+    }
+
+    #[Test]
+    public function consumeRespectsAbsenceTypeBucketBindingToCarryoverOnly(): void
+    {
+        // Resturlaub bound to Carryover only — even though Regular has plenty,
+        // the Carryover bucket is what gets consumed.
+        $resturlaub = new AbsenceType($this->acme, 'Resturlaub', true, true, '#6366F1', true, LeaveEntitlementType::Carryover);
+
+        $regular = $this->entitlement(2026, LeaveEntitlementType::Regular, 240.0);
+        $carryover = $this->entitlement(2026, LeaveEntitlementType::Carryover, 16.0, new \DateTimeImmutable('2026-12-31'));
+        $this->repository->method('findByEmployeeAndYear')->willReturn([$regular, $carryover]);
+
+        $request = $this->requestFromDays($resturlaub, [
+            ['2026-07-06', 8.0, LeaveDayStatus::Working],
+        ]);
+
+        $this->booker()->consume($request);
+
+        self::assertSame(0.0, $regular->getHoursUsed());  // untouched
+        self::assertSame(8.0, $carryover->getHoursUsed());
+    }
+
+    #[Test]
+    public function consumeBucketBoundResturlaubThrowsWhenCarryoverInsufficient(): void
+    {
+        // Carryover bucket only has 4h, request needs 8h, Regular has 200h
+        // available — bucket binding must prevent the spillover.
+        $resturlaub = new AbsenceType($this->acme, 'Resturlaub', true, true, '#6366F1', true, LeaveEntitlementType::Carryover);
+
+        $regular = $this->entitlement(2026, LeaveEntitlementType::Regular, 240.0);
+        $carryover = $this->entitlement(2026, LeaveEntitlementType::Carryover, 4.0, new \DateTimeImmutable('2026-12-31'));
+        $this->repository->method('findByEmployeeAndYear')->willReturn([$regular, $carryover]);
+
+        $request = $this->requestFromDays($resturlaub, [
+            ['2026-07-06', 8.0, LeaveDayStatus::Working],
+        ]);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('Insufficient');
+
+        $this->booker()->consume($request);
+    }
+
+    #[Test]
+    public function releaseRespectsBucketBindingToOnlyReleaseToBoundBucket(): void
+    {
+        // Pre-consumed Resturlaub: 8h taken from Carryover. Release must only
+        // refund Carryover even though Regular also has hoursUsed (from a
+        // previous Urlaub request, simulated here).
+        $resturlaub = new AbsenceType($this->acme, 'Resturlaub', true, true, '#6366F1', true, LeaveEntitlementType::Carryover);
+
+        $regular = $this->entitlement(2026, LeaveEntitlementType::Regular, 240.0);
+        $regular->consume(40.0);  // unrelated prior Urlaub
+        $carryover = $this->entitlement(2026, LeaveEntitlementType::Carryover, 16.0, new \DateTimeImmutable('2026-12-31'));
+        $carryover->consume(8.0);  // the Resturlaub request being released
+        $this->repository->method('findByEmployeeAndYear')->willReturn([$regular, $carryover]);
+
+        $request = $this->requestFromDays($resturlaub, [
+            ['2026-07-06', 8.0, LeaveDayStatus::Working],
+        ]);
+
+        $this->booker()->release($request);
+
+        self::assertSame(40.0, $regular->getHoursUsed());  // unchanged
+        self::assertSame(0.0, $carryover->getHoursUsed());  // refunded
+    }
+
     private function booker(): LeaveRequestEntitlementBooker
     {
         return new LeaveRequestEntitlementBooker(

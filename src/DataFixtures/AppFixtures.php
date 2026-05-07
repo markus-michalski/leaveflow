@@ -17,6 +17,7 @@ use App\Domain\Entity\User;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveEntitlementType;
+use App\Domain\Enum\LeaveRequestStatus;
 use App\Domain\Enum\NotificationType;
 use App\Domain\Enum\UserRole;
 use App\Domain\Enum\Weekday;
@@ -151,6 +152,7 @@ final class AppFixtures extends Fixture
         // so manual tests can exercise year-boundary requests and both the
         // backdated-guard (previous year) and the "no entitlement" edge never
         // fires just because the seed doesn't cover the range.
+        $erikCurrentYearEntitlement = null;
         foreach ([$currentYear - 1, $currentYear, $currentYear + 1] as $year) {
             $manager->persist(new LeaveEntitlement(
                 $maya,
@@ -159,13 +161,18 @@ final class AppFixtures extends Fixture
                 240.0,
             ));
             // Erik works 30h/4d so 30 leave days map to 30 * 7.5h = 225h.
-            $manager->persist(new LeaveEntitlement(
+            $erikRegular = new LeaveEntitlement(
                 $erik,
                 $year,
                 LeaveEntitlementType::Regular,
                 225.0,
-            ));
+            );
+            $manager->persist($erikRegular);
+            if ($currentYear === $year) {
+                $erikCurrentYearEntitlement = $erikRegular;
+            }
         }
+        \assert($erikCurrentYearEntitlement instanceof LeaveEntitlement);
 
         // Demo carryover for Maya: 16h still outstanding, expiring 31.03. of
         // the following year so the profile dashboard keeps showing an active
@@ -186,6 +193,18 @@ final class AppFixtures extends Fixture
             $manager->persist($request);
         }
 
+        // Phase 9 demo: an Approved Urlaub request for Erik so the admin
+        // type-change UX is screenshot-able right after `make fixtures` —
+        // without an Approved request in the seed, the "Typ ändern" button
+        // never surfaces. Entitlement is consumed to mirror real post-
+        // approval state.
+        $approvedRequest = $this->createApprovedDemoRequest(
+            $erik,
+            $absenceTypesByName['Urlaub'],
+            $erikCurrentYearEntitlement,
+        );
+        $manager->persist($approvedRequest);
+
         // Phase 8: pre-populated inbox so a fresh `make fixtures` lands on a
         // realistic notification screen — every per-type Twig partial gets
         // exercised, and a mix of read/unread shows both visual states.
@@ -201,6 +220,50 @@ final class AppFixtures extends Fixture
         }
 
         $manager->flush();
+    }
+
+    /**
+     * Creates a 3-day Approved Urlaub request for Erik with the matching hours
+     * already consumed from his current-year entitlement. Status is forced
+     * via reflection — Phase 6's workflow handles real approvals; this is a
+     * fixture shortcut, not application logic.
+     */
+    private function createApprovedDemoRequest(
+        Employee $erik,
+        AbsenceType $urlaub,
+        LeaveEntitlement $erikRegular,
+    ): LeaveRequest {
+        // Erik works Mon-Thu 30h/week → 7.5h/day. Pick three weekdays clear of
+        // German holidays: Mo-Mi, 2026-08-10..12. Total 22.5h.
+        $hoursPerDay = 7.5;
+        $workingDays = [
+            new \DateTimeImmutable('2026-08-10'),
+            new \DateTimeImmutable('2026-08-11'),
+            new \DateTimeImmutable('2026-08-12'),
+        ];
+
+        $request = new LeaveRequest(
+            $erik,
+            $urlaub,
+            $workingDays[0],
+            end($workingDays),
+            LeaveDayType::FullDay,
+            new \DateTimeImmutable('2026-05-02 14:30:00'),
+        );
+
+        $days = array_map(
+            static fn (\DateTimeImmutable $d): LeaveDay => new LeaveDay($d, $hoursPerDay, LeaveDayStatus::Working),
+            $workingDays,
+        );
+        $request->applyBreakdown(new LeaveBreakdown($days));
+
+        // Mirror the post-approval state: entitlement consumed, request
+        // status flipped. Real workflow is in Phase 6's ApprovalWorkflow.
+        $erikRegular->consume($hoursPerDay * \count($workingDays));
+        (new \ReflectionProperty(LeaveRequest::class, 'status'))
+            ->setValue($request, LeaveRequestStatus::Approved);
+
+        return $request;
     }
 
     /**
@@ -252,8 +315,11 @@ final class AppFixtures extends Fixture
      */
     private function absenceTypeSeeds(Company $company): iterable
     {
-        yield new AbsenceType($company, 'Urlaub', true, true, '#3B82F6');
-        yield new AbsenceType($company, 'Resturlaub', true, true, '#6366F1');
+        // Urlaub draws from the current year's Regular entitlement only —
+        // the Resturlaub (Carryover) bucket is reserved for the previous
+        // year's leftover with its own statutory expiry window.
+        yield new AbsenceType($company, 'Urlaub', true, true, '#3B82F6', true, LeaveEntitlementType::Regular);
+        yield new AbsenceType($company, 'Resturlaub', true, true, '#6366F1', true, LeaveEntitlementType::Carryover);
         // Krankheit: eAU since 2023 means no upload, no approval gate, no deduction.
         yield new AbsenceType($company, 'Krankheit', false, false, '#EF4444');
         // Überstundenabbau draws from an overtime balance we don't model yet.
@@ -384,6 +450,22 @@ final class AppFixtures extends Fixture
                 'daysRemaining' => 14,
             ],
             createdAt: $now->modify('-4 hours'),
+        ), false];
+
+        // Phase 9 demo: admin reclassified an old request — Erik's
+        // bereavement leave was wrongly logged as Urlaub.
+        yield [new Notification(
+            recipient: $employee,
+            type: NotificationType::AdminTypeChange,
+            payload: [
+                'oldTypeName' => 'Urlaub',
+                'newTypeName' => 'Sonderurlaub',
+                'startDate' => '02.05.2026',
+                'endDate' => '02.05.2026',
+                'adminName' => 'Anna Admin',
+                'reason' => 'Sonderurlaub gemäß BGB §616 — wurde versehentlich als Urlaub gebucht.',
+            ],
+            createdAt: $now->modify('-90 minutes'),
         ), false];
 
         // Admin — receives the escalation backstop.

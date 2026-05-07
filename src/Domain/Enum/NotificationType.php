@@ -26,9 +26,11 @@ namespace App\Domain\Enum;
  *                              recipient = next-in-chain (deputy or admin)
  * - EntitlementExpiringSoon  — Scheduler: 30 days before LeaveEntitlement.expiresAt
  *                              recipient = entitlement owner (employee user)
- *
- * Phase 9 will add AdminTypeChange when the admin type-change UI lands —
- * deliberately deferred since the trigger doesn't exist yet.
+ * - AdminTypeChange          — AdminTypeChangeService: admin reclassified the
+ *                              absence type of an existing approved request
+ *                              (Phase 9, e.g. wrongly classified as Urlaub
+ *                              instead of Sonderurlaub)
+ *                              recipient = request owner (employee)
  */
 enum NotificationType: string
 {
@@ -39,6 +41,7 @@ enum NotificationType: string
     case CancelDecided = 'cancel_decided';
     case EscalationTriggered = 'escalation_triggered';
     case EntitlementExpiringSoon = 'entitlement_expiring_soon';
+    case AdminTypeChange = 'admin_type_change';
 
     /**
      * Symfony role that can ever be a recipient of this notification type.
@@ -63,7 +66,8 @@ enum NotificationType: string
             // or own entitlement.
             self::ApprovalDecided,
             self::CancelDecided,
-            self::EntitlementExpiringSoon => 'ROLE_EMPLOYEE',
+            self::EntitlementExpiringSoon,
+            self::AdminTypeChange => 'ROLE_EMPLOYEE',
         };
     }
 

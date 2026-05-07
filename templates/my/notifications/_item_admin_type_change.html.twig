@@ -1,0 +1,15 @@
+<p class="text-sm font-medium text-gray-900">
+    {{ 'notifications.item.admin_type_change.title'|trans(payload, 'notifications') }}
+</p>
+<p class="mt-0.5 text-sm text-gray-600">
+    {{ 'notifications.item.admin_type_change.summary'|trans({
+        '%oldTypeName%': payload.oldTypeName,
+        '%newTypeName%': payload.newTypeName,
+        '%adminName%': payload.adminName,
+        '%startDate%': payload.startDate,
+        '%endDate%': payload.endDate,
+    }, 'notifications') }}
+</p>
+{% if payload.reason is defined and payload.reason %}
+    <p class="mt-1 text-sm italic text-gray-500">{{ payload.reason }}</p>
+{% endif %}

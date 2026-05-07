@@ -139,12 +139,13 @@ final class LeaveRequestAuditEntryTest extends TestCase
     }
 
     #[Test]
-    public function rejectsUnchangedStatus(): void
+    public function rejectsUnchangedStatusWithoutTypeChange(): void
     {
-        // A state transition that doesn't change state is nonsensical — catch
-        // misconfigured workflows or bugs in the subscriber early.
+        // A state transition that doesn't change state and isn't a type-change
+        // is nonsensical — catch misconfigured workflows or bugs in the
+        // subscriber early.
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('must differ');
+        $this->expectExceptionMessage('status change');
 
         new LeaveRequestAuditEntry(
             leaveRequest: $this->request,

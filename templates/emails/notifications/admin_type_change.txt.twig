@@ -1,0 +1,18 @@
+{% extends 'emails/notifications/base.txt.twig' %}
+
+{% block body %}
+{{ 'email.admin_type_change.heading'|trans({}, 'notifications') }}
+
+{{ 'email.admin_type_change.intro'|trans({
+    '%oldTypeName%': payload.oldTypeName,
+    '%newTypeName%': payload.newTypeName,
+    '%adminName%': payload.adminName,
+}, 'notifications') }}
+
+{{ 'email.field.absence_type_old'|trans({}, 'notifications') }}: {{ payload.oldTypeName }}
+{{ 'email.field.absence_type_new'|trans({}, 'notifications') }}: {{ payload.newTypeName }}
+{{ 'email.field.period'|trans({}, 'notifications') }}: {{ payload.startDate }} – {{ payload.endDate }}
+{{ 'email.field.reason'|trans({}, 'notifications') }}: {{ payload.reason }}
+
+{{ 'email.admin_type_change.outro'|trans({}, 'notifications') }}
+{% endblock %}

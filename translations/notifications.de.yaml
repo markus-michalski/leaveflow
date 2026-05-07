@@ -52,6 +52,9 @@ notifications:
             entitlement_expiring_soon:
                 label: "Resturlaub-Verfall"
                 description: "Du erhältst eine Mail, wenn dein Resturlaub bald verfällt (30 Tage vorher)."
+            admin_type_change:
+                label: "Reklassifizierung durch den Admin"
+                description: "Du erhältst eine Mail, wenn ein Admin den Abwesenheitstyp eines deiner genehmigten Anträge nachträglich ändert (z. B. von Urlaub auf Sonderurlaub)."
     item:
         request_withdrawn:
             title: "Antrag zurückgezogen"
@@ -82,6 +85,9 @@ notifications:
             denied:
                 title: "Stornierung abgelehnt"
                 summary: "%approverName% hat die Stornierung deines %absenceTypeName%-Antrags (%startDate% - %endDate%) abgelehnt. Der Antrag bleibt gültig."
+        admin_type_change:
+            title: "Abwesenheitstyp angepasst"
+            summary: "%adminName% hat den Typ deines Antrags vom %startDate% bis %endDate% von %oldTypeName% auf %newTypeName% geändert."
 
 email:
     field:
@@ -90,6 +96,9 @@ email:
         reason: "Begründung"
         expires_at: "Verfällt am"
         hours_remaining: "Verbleibende Stunden"
+        absence_type_old: "Bisheriger Typ"
+        absence_type_new: "Neuer Typ"
+        period: "Zeitraum"
     footer:
         notification_preferences_hint: "Du erhältst diese E-Mail, weil deine Benachrichtigungseinstellungen es erlauben. Du kannst die Einstellungen in deinem Profil anpassen."
 
@@ -140,3 +149,9 @@ email:
         heading: "Ein Antrag braucht Aufmerksamkeit"
         intro: "Der Antrag von <strong>%employeeName%</strong> auf <strong>%absenceTypeName%</strong> wartet seit <strong>%daysWaiting% Tagen</strong> auf eine Entscheidung — über dem Schwellenwert von %thresholdDays% Tagen."
         outro: "Bitte kläre intern, wer den Antrag bearbeitet — als Admin kannst du ihn auch direkt selbst genehmigen oder ablehnen."
+
+    admin_type_change:
+        subject: "Dein Antrag wurde von %oldTypeName% auf %newTypeName% umgestellt"
+        heading: "Ein Admin hat den Abwesenheitstyp angepasst"
+        intro: "<strong>%adminName%</strong> hat den Abwesenheitstyp deines genehmigten Antrags von <strong>%oldTypeName%</strong> auf <strong>%newTypeName%</strong> geändert. Der zugehörige Resturlaub-Saldo wurde automatisch angepasst."
+        outro: "Falls du Rückfragen hast, sprich kurz mit dem zuständigen Admin oder deiner Personalabteilung."

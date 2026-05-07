@@ -8,12 +8,17 @@ use App\DataFixtures\AppFixtures;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
+use App\Domain\Entity\LeaveEntitlement;
 use App\Domain\Entity\LeaveRequest;
+use App\Domain\Entity\LeaveRequestAuditEntry;
 use App\Domain\Entity\Location;
+use App\Domain\Entity\Notification;
 use App\Domain\Entity\User;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
+use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Enum\LeaveRequestStatus;
+use App\Domain\Enum\NotificationType;
 use App\Domain\Enum\UserRole;
 use App\Domain\Enum\Weekday;
 use App\Domain\ValueObject\LeaveBreakdown;
@@ -155,6 +160,138 @@ final class AdminLeaveRequestControllerTest extends WebTestCase
         $this->client->request('GET', '/admin/leave-requests');
 
         self::assertResponseStatusCodeSame(403);
+    }
+
+    #[Test]
+    public function adminChangesTypeRebalancesEntitlementAndNotifies(): void
+    {
+        // Seed: 240h Regular entitlement, approved Urlaub request consuming 40h.
+        $sonderurlaub = new AbsenceType($this->company, 'Sonderurlaub', false, true, '#F59E0B');
+        $this->em->persist($sonderurlaub);
+
+        $entitlement = new LeaveEntitlement(
+            $this->employee,
+            2099,
+            LeaveEntitlementType::Regular,
+            240.0,
+        );
+        $entitlement->consume(40.0);  // mirror the approved request below
+        $this->em->persist($entitlement);
+
+        $request = $this->createPendingRequest();
+        $this->approveInPlace($request);
+        $this->em->flush();
+        $requestId = $request->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/leave-requests/'.$requestId.'/change-type');
+        $form = $crawler->filter('form[data-testid="admin-type-change-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[newType]' => (string) $sonderurlaub->getId(),
+            $formName.'[reason]' => 'Bereavement leave should not deduct vacation.',
+        ]);
+
+        self::assertResponseRedirects('/admin/leave-requests/'.$requestId);
+
+        $this->em->clear();
+
+        /** @var LeaveRequest $reloaded */
+        $reloaded = $this->em->find(LeaveRequest::class, $requestId);
+        self::assertSame('Sonderurlaub', $reloaded->getAbsenceType()->getName());
+
+        // Sonderurlaub does not deduct → entitlement returns to 0 used.
+        /** @var LeaveEntitlement $reloadedEntitlement */
+        $reloadedEntitlement = $this->em->find(LeaveEntitlement::class, $entitlement->getId());
+        self::assertSame(0.0, $reloadedEntitlement->getHoursUsed());
+
+        // Audit entry written with old/new type + reason.
+        $audit = $this->em->getRepository(LeaveRequestAuditEntry::class)->findBy(
+            ['leaveRequest' => $reloaded, 'transition' => 'admin_type_change'],
+        );
+        self::assertCount(1, $audit);
+        self::assertSame('Urlaub', $audit[0]->getFromAbsenceType()?->getName());
+        self::assertSame('Sonderurlaub', $audit[0]->getToAbsenceType()?->getName());
+        self::assertSame('Bereavement leave should not deduct vacation.', $audit[0]->getReason());
+
+        // Notification persisted for the employee.
+        $notifications = $this->em->getRepository(Notification::class)->findBy(
+            ['recipient' => $this->employee->getUser(), 'type' => NotificationType::AdminTypeChange],
+        );
+        self::assertCount(1, $notifications);
+        self::assertSame('Urlaub', $notifications[0]->getPayload()['oldTypeName']);
+        self::assertSame('Sonderurlaub', $notifications[0]->getPayload()['newTypeName']);
+    }
+
+    #[Test]
+    public function changeTypeRedirectsForNonApprovedRequestWithFlash(): void
+    {
+        $sonderurlaub = new AbsenceType($this->company, 'Sonderurlaub', false, true, '#F59E0B');
+        $this->em->persist($sonderurlaub);
+
+        $request = $this->createPendingRequest();
+        $this->em->flush();
+        $requestId = $request->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        $this->client->request('GET', '/admin/leave-requests/'.$requestId.'/change-type');
+
+        self::assertResponseRedirects('/admin/leave-requests/'.$requestId);
+        // Flash error indicates the only-approved guard fired.
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('body', 'genehmigte Anträge');
+    }
+
+    #[Test]
+    public function changeTypeButtonHiddenForPendingRequestOnShowPage(): void
+    {
+        $request = $this->createPendingRequest();
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/leave-requests/'.$request->getId());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('[data-testid="admin-leave-request-change-type-link"]');
+    }
+
+    #[Test]
+    public function changeTypeButtonVisibleForApprovedRequestOnShowPage(): void
+    {
+        $request = $this->createPendingRequest();
+        $this->approveInPlace($request);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/leave-requests/'.$request->getId());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="admin-leave-request-change-type-link"]');
+    }
+
+    #[Test]
+    public function employeeCannotAccessChangeType(): void
+    {
+        $request = $this->createPendingRequest();
+        $this->approveInPlace($request);
+        $this->em->flush();
+
+        $this->loginAs('employee@leaveflow.test');
+        $this->client->request('GET', '/admin/leave-requests/'.$request->getId().'/change-type');
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    private function approveInPlace(LeaveRequest $request): void
+    {
+        // Bypass the workflow — Phase 6 covers the proper transition; this
+        // shortcut just gets a request into Approved status for testing the
+        // type-change flow.
+        $reflection = new \ReflectionProperty(LeaveRequest::class, 'status');
+        $reflection->setValue($request, LeaveRequestStatus::Approved);
     }
 
     private function createPendingRequest(string $start = '2099-07-06', string $end = '2099-07-10'): LeaveRequest

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Application\Approval;
 
 use App\Application\Entitlement\EntitlementConsumer;
+use App\Domain\Entity\LeaveEntitlement;
 use App\Domain\Entity\LeaveRequest;
 use App\Domain\Enum\LeaveDayStatus;
+use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Repository\LeaveEntitlementRepository;
 use Symfony\Component\Clock\ClockInterface;
 
@@ -22,7 +24,7 @@ use Symfony\Component\Clock\ClockInterface;
  * Non-deducting absence types (Krankheit, Sonderurlaub) short-circuit to a
  * no-op so callers don't need an outer guard.
  */
-final readonly class LeaveRequestEntitlementBooker
+final readonly class LeaveRequestEntitlementBooker implements LeaveRequestEntitlementBookerInterface
 {
     public function __construct(
         private LeaveEntitlementRepository $entitlementRepository,
@@ -33,27 +35,51 @@ final readonly class LeaveRequestEntitlementBooker
 
     public function consume(LeaveRequest $request): void
     {
-        if (!$request->getAbsenceType()->deductsFromLeave()) {
+        $absenceType = $request->getAbsenceType();
+        if (!$absenceType->deductsFromLeave()) {
             return;
         }
 
+        $bucket = $absenceType->getRequiredBucket();
         $asOf = $this->clock->now();
         foreach ($this->hoursByYear($request) as $year => $hours) {
             $entitlements = $this->entitlementRepository->findByEmployeeAndYear($request->getEmployee(), $year);
-            $this->consumer->consume($entitlements, $hours, $asOf);
+            $this->consumer->consume($this->filterByBucket($entitlements, $bucket), $hours, $asOf);
         }
     }
 
     public function release(LeaveRequest $request): void
     {
-        if (!$request->getAbsenceType()->deductsFromLeave()) {
+        $absenceType = $request->getAbsenceType();
+        if (!$absenceType->deductsFromLeave()) {
             return;
         }
 
+        $bucket = $absenceType->getRequiredBucket();
         foreach ($this->hoursByYear($request) as $year => $hours) {
             $entitlements = $this->entitlementRepository->findByEmployeeAndYear($request->getEmployee(), $year);
-            $this->consumer->release($entitlements, $hours);
+            $this->consumer->release($this->filterByBucket($entitlements, $bucket), $hours);
         }
+    }
+
+    /**
+     * Restricts the entitlement list to those matching the AbsenceType's
+     * required bucket, if any. null bucket = unified pool (all entitlements).
+     *
+     * @param list<LeaveEntitlement> $entitlements
+     *
+     * @return list<LeaveEntitlement>
+     */
+    private function filterByBucket(array $entitlements, ?LeaveEntitlementType $bucket): array
+    {
+        if (null === $bucket) {
+            return $entitlements;
+        }
+
+        return array_values(array_filter(
+            $entitlements,
+            static fn (LeaveEntitlement $e): bool => $e->getType() === $bucket,
+        ));
     }
 
     /**

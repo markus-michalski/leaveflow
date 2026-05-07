@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Presentation\Form;
 
+use App\Domain\Enum\LeaveEntitlementType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ColorType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -14,7 +16,7 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
- * @extends AbstractType<array{name: string, deductsFromLeave: bool, requiresApproval: bool, color: string, active: bool}>
+ * @extends AbstractType<array{name: string, deductsFromLeave: bool, requiresApproval: bool, color: string, active: bool, requiredBucket: ?LeaveEntitlementType}>
  */
 final class AbsenceTypeFormType extends AbstractType
 {
@@ -46,6 +48,15 @@ final class AbsenceTypeFormType extends AbstractType
             ->add('active', CheckboxType::class, [
                 'label' => 'admin.absence_types.field.active',
                 'mapped' => false,
+                'required' => false,
+            ])
+            ->add('requiredBucket', EnumType::class, [
+                'label' => 'admin.absence_types.field.requiredBucket',
+                'help' => 'admin.absence_types.field.requiredBucket_help',
+                'mapped' => false,
+                'class' => LeaveEntitlementType::class,
+                'choice_label' => static fn (LeaveEntitlementType $t): string => 'admin.absence_types.bucket.'.$t->value,
+                'placeholder' => 'admin.absence_types.bucket.unified',
                 'required' => false,
             ]);
     }

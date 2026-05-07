@@ -52,6 +52,9 @@ notifications:
             entitlement_expiring_soon:
                 label: "Expiring leave balance"
                 description: "Get an email when your remaining leave is about to expire (30 days ahead)."
+            admin_type_change:
+                label: "Reclassification by an admin"
+                description: "Get an email when an admin retroactively changes the absence type of one of your approved requests (e.g. from regular vacation to special leave)."
     item:
         request_withdrawn:
             title: "Request withdrawn"
@@ -82,6 +85,9 @@ notifications:
             denied:
                 title: "Cancellation denied"
                 summary: "%approverName% denied the cancellation of your %absenceTypeName% request (%startDate% - %endDate%). The request remains valid."
+        admin_type_change:
+            title: "Absence type updated"
+            summary: "%adminName% changed the type of your request from %startDate% to %endDate% from %oldTypeName% to %newTypeName%."
 
 email:
     field:
@@ -90,6 +96,9 @@ email:
         reason: "Reason"
         expires_at: "Expires on"
         hours_remaining: "Hours remaining"
+        absence_type_old: "Previous type"
+        absence_type_new: "New type"
+        period: "Period"
     footer:
         notification_preferences_hint: "You receive this email because your notification settings allow it. You can adjust your preferences in your profile."
 
@@ -140,3 +149,9 @@ email:
         heading: "A request needs attention"
         intro: "The request from <strong>%employeeName%</strong> for <strong>%absenceTypeName%</strong> has been waiting for <strong>%daysWaiting% days</strong> — past the %thresholdDays%-day threshold."
         outro: "Please clarify internally who's handling this. As an admin, you can also approve or reject it directly."
+
+    admin_type_change:
+        subject: "Your request was reclassified from %oldTypeName% to %newTypeName%"
+        heading: "An admin updated the absence type"
+        intro: "<strong>%adminName%</strong> changed the absence type of your approved request from <strong>%oldTypeName%</strong> to <strong>%newTypeName%</strong>. Your remaining leave balance was rebalanced automatically."
+        outro: "If you have questions, reach out to the admin or your HR contact."

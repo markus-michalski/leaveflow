@@ -328,6 +328,12 @@ admin:
             requiresApproval: "Requires approval"
             color: Color
             active: Active
+            requiredBucket: "Bucket binding"
+            requiredBucket_help: "Optional: pin deductions to a specific bucket. Without selection the type uses FIFO across the whole balance (carryover with the earliest expiry first, then regular)."
+        bucket:
+            unified: "Any bucket (FIFO)"
+            regular: "Regular leave only"
+            carryover: "Carryover only"
         flash:
             created: "Absence type has been created."
             updated: "Absence type has been updated."
@@ -386,6 +392,23 @@ admin:
         show:
             title: Leave request
             heading: Leave request
+        type_change:
+            button: "Change type"
+            title: "Change absence type"
+            heading: "Reclassify absence type"
+            hint: "Leave balance is rebalanced automatically (old booking refunded, new booking deducted). Only available for approved requests."
+            field:
+                new_type: "New absence type"
+                reason: "Reason"
+                reason_help: "Required. Stored in the audit log and shown to the employee in the notification."
+            submit: "Reclassify"
+            cancel: "Cancel"
+            flash:
+                success: "Absence type has been changed and the employee notified."
+            error:
+                only_approved: "Reclassification is only available for approved requests."
+                same_type: "Selected type matches the current one — nothing to change."
+                overdraft: "This change would overdraw the leave balance. Check the balance first."
 holiday:
     neujahr: "New Year's Day"
     heilige_drei_koenige: Epiphany

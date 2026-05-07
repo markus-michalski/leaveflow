@@ -53,13 +53,19 @@ final class AdminAbsenceTypeController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
+                $deducts = (bool) $form->get('deductsFromLeave')->getData();
+                /** @var \App\Domain\Enum\LeaveEntitlementType|null $bucket */
+                $bucket = $form->get('requiredBucket')->getData();
                 $entry = new AbsenceType(
                     $company,
                     (string) $form->get('name')->getData(),
-                    (bool) $form->get('deductsFromLeave')->getData(),
+                    $deducts,
                     (bool) $form->get('requiresApproval')->getData(),
                     (string) $form->get('color')->getData(),
                     (bool) $form->get('active')->getData(),
+                    // Bucket only meaningful for deducting types — silently
+                    // discard a stale value if the admin unticked deducts.
+                    $deducts ? $bucket : null,
                 );
                 $this->entityManager->persist($entry);
                 $this->entityManager->flush();
@@ -102,16 +108,20 @@ final class AdminAbsenceTypeController extends AbstractController
         $form->get('requiresApproval')->setData($entry->requiresApproval());
         $form->get('color')->setData($entry->getColor());
         $form->get('active')->setData($entry->isActive());
+        $form->get('requiredBucket')->setData($entry->getRequiredBucket());
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
+                /** @var \App\Domain\Enum\LeaveEntitlementType|null $bucket */
+                $bucket = $form->get('requiredBucket')->getData();
                 $entry->update(
                     (string) $form->get('name')->getData(),
                     (bool) $form->get('deductsFromLeave')->getData(),
                     (bool) $form->get('requiresApproval')->getData(),
                     (string) $form->get('color')->getData(),
+                    $bucket,
                 );
                 // active is independent of update()
                 if ((bool) $form->get('active')->getData()) {

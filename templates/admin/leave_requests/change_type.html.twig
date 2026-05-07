@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.leave_requests.type_change.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-2xl p-6">
+    <header class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-900">
+            {{ 'admin.leave_requests.type_change.heading'|trans }}
+        </h1>
+        <a href="{{ path('app_admin_leave_request_show', { id: leaveRequest.id }) }}"
+           class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ 'admin.leave_requests.type_change.cancel'|trans }}
+        </a>
+    </header>
+
+    <p class="mb-6 text-sm text-gray-600">{{ 'admin.leave_requests.type_change.hint'|trans }}</p>
+
+    <section class="mb-6 rounded-xl bg-gray-50 p-4">
+        <dl class="grid grid-cols-3 gap-y-2 text-sm">
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'admin.leave_requests.field.employee'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900">{{ leaveRequest.employee.fullName }}</dd>
+
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'my.leave_requests.field.range'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900">
+                {{ leaveRequest.startDate|date('d.m.Y') }}
+                {% if leaveRequest.startDate != leaveRequest.endDate %}
+                    – {{ leaveRequest.endDate|date('d.m.Y') }}
+                {% endif %}
+            </dd>
+
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'my.leave_requests.field.absence_type'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900">
+                <span class="inline-flex items-center gap-1">
+                    <span class="inline-block h-2.5 w-2.5 rounded-full" style="background-color: {{ leaveRequest.absenceType.color }}"></span>
+                    {{ leaveRequest.absenceType.name }}
+                </span>
+            </dd>
+
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'my.leave_requests.field.hours'|trans }}</dt>
+            <dd class="col-span-2 font-mono text-gray-900">{{ leaveRequest.totalHours|number_format(2, ',', '.') }} h</dd>
+        </dl>
+    </section>
+
+    <section class="rounded-xl bg-white p-6 shadow-sm">
+        {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'admin-type-change-form' } }) }}
+
+            {% if not form.vars.valid %}
+                <ul class="mb-4 rounded-md bg-rose-50 p-3 text-sm text-rose-700" data-testid="form-errors">
+                    {% for error in form.vars.errors %}
+                        <li>{{ error.message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {{ form_row(form.newType, {
+                label_attr: { class: 'block text-sm font-medium text-gray-700' },
+                attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500' }
+            }) }}
+
+            {{ form_row(form.reason, {
+                label_attr: { class: 'block text-sm font-medium text-gray-700' },
+                help_attr: { class: 'mt-1 text-xs text-gray-500' },
+                attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500' }
+            }) }}
+
+            <div class="mt-6 flex items-center justify-end gap-3 pt-2">
+                <a href="{{ path('app_admin_leave_request_show', { id: leaveRequest.id }) }}"
+                   class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ 'admin.leave_requests.type_change.cancel'|trans }}
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                        data-testid="admin-type-change-submit">
+                    {{ 'admin.leave_requests.type_change.submit'|trans }}
+                </button>
+            </div>
+
+        {{ form_end(form) }}
+    </section>
+</div>
+{% endblock %}
