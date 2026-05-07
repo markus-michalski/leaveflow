@@ -4,7 +4,7 @@
 
 {% block body %}
 <div class="mx-auto max-w-3xl p-6">
-    <header class="mb-6 flex items-center justify-between">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold text-gray-900">
                 {{ 'notifications.inbox.heading'|trans({}, 'notifications') }}
@@ -15,13 +15,13 @@
                 </p>
             {% endif %}
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center justify-end gap-3">
             <a href="{{ path('app_dashboard') }}"
-               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+               class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 {{ 'nav.home'|trans }}
             </a>
             <a href="{{ path('app_my_notification_preferences') }}"
-               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+               class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                data-testid="notifications-preferences-link">
                 {{ 'notifications.inbox.preferences_link'|trans({}, 'notifications') }}
             </a>
@@ -29,9 +29,22 @@
                 <form method="post" action="{{ path('app_my_notification_read_all') }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('notifications-read-all') }}">
                     <button type="submit"
-                            class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                            class="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
                             data-testid="notifications-mark-all-read">
                         {{ 'notifications.inbox.mark_all_read'|trans({}, 'notifications') }}
+                    </button>
+                </form>
+            {% endif %}
+            {% if readCount > 0 %}
+                <form method="post"
+                      action="{{ path('app_my_notification_delete_read') }}"
+                      data-testid="notifications-delete-read-form"
+                      data-turbo-confirm="{{ 'notifications.inbox.delete_read_confirm'|trans({}, 'notifications') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('notifications-delete-read') }}">
+                    <button type="submit"
+                            class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-rose-200 bg-white px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50"
+                            data-testid="notifications-delete-read">
+                        {{ 'notifications.inbox.delete_read'|trans({}, 'notifications') }}
                     </button>
                 </form>
             {% endif %}

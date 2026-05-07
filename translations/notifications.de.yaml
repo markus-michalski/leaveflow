@@ -14,6 +14,10 @@ notifications:
         unread_count: "{0}Keine ungelesenen Nachrichten|{1}Eine ungelesene Nachricht|]1,Inf[ %count% ungelesene Nachrichten"
         unread_label: "Neu"
         mark_all_read: "Alle als gelesen markieren"
+        delete: "Löschen"
+        delete_aria_label: "Diese Benachrichtigung löschen"
+        delete_read: "Gelesene aufräumen"
+        delete_read_confirm: "Alle gelesenen Benachrichtigungen werden unwiderruflich gelöscht. Fortfahren?"
         empty: "Du hast noch keine Benachrichtigungen erhalten."
         preferences_link: "Einstellungen"
     preferences:

@@ -60,6 +60,7 @@ final class MyNotificationsController extends AbstractController
         return $this->render('my/notifications/index.html.twig', [
             'notifications' => $this->notificationRepository->findRecentForUser($user, self::INBOX_LIMIT),
             'unreadCount' => $this->notificationRepository->countUnreadForUser($user),
+            'readCount' => $this->notificationRepository->countReadForUser($user),
         ]);
     }
 
@@ -92,6 +93,32 @@ final class MyNotificationsController extends AbstractController
 
         $user = $this->resolveUser();
         $this->notificationRepository->markAllAsReadForUser($user, $this->clock->now());
+
+        return $this->redirectToRoute('app_my_notification_index');
+    }
+
+    #[Route('/{id}/delete', name: 'delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function delete(int $id, Request $request): Response
+    {
+        // Ownership check first so foreign IDs return 404 without leaking
+        // CSRF requirements — matches the read action.
+        $notification = $this->loadOwnedNotification($id);
+
+        $this->assertCsrf($request, 'notification-delete-'.$id);
+
+        $this->entityManager->remove($notification);
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('app_my_notification_index');
+    }
+
+    #[Route('/delete-read', name: 'delete_read', methods: ['POST'])]
+    public function deleteRead(Request $request): Response
+    {
+        $this->assertCsrf($request, 'notifications-delete-read');
+
+        $user = $this->resolveUser();
+        $this->notificationRepository->deleteReadForUser($user);
 
         return $this->redirectToRoute('app_my_notification_index');
     }
