@@ -117,6 +117,18 @@ class LeaveRequest
         return $this->absenceType;
     }
 
+    /**
+     * Reclassifies the absence type of this request. Used by admin
+     * type-change flow (Phase 9). Does NOT touch entitlement bookings —
+     * the orchestrating service must release the old hours and consume
+     * the new ones, otherwise balances drift.
+     */
+    public function changeAbsenceType(AbsenceType $newType): void
+    {
+        $this->assertSameCompany($this->employee, $newType);
+        $this->absenceType = $newType;
+    }
+
     public function getStartDate(): \DateTimeImmutable
     {
         return $this->startDate;

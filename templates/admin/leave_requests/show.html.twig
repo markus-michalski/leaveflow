@@ -4,12 +4,21 @@
 
 {% block body %}
 <div class="mx-auto max-w-3xl p-6">
-    <header class="mb-6 flex items-center justify-between">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.leave_requests.show.heading'|trans }}</h1>
-        <a href="{{ path('app_admin_leave_request_index') }}"
-           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            {{ 'nav.back_to_list'|trans }}
-        </a>
+        <div class="flex flex-wrap items-center gap-3">
+            {% if leaveRequest.status.value == 'approved' %}
+                <a href="{{ path('app_admin_leave_request_change_type', { id: leaveRequest.id }) }}"
+                   class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100"
+                   data-testid="admin-leave-request-change-type-link">
+                    {{ 'admin.leave_requests.type_change.button'|trans }}
+                </a>
+            {% endif %}
+            <a href="{{ path('app_admin_leave_request_index') }}"
+               class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.back_to_list'|trans }}
+            </a>
+        </div>
     </header>
 
     <section class="rounded-xl bg-white p-6 shadow-sm">

@@ -170,7 +170,8 @@ final class MyNotificationsController extends AbstractController
             NotificationType::CancelRequested => $this->generateUrl('app_manager_approval_show', ['id' => $id]),
 
             NotificationType::ApprovalDecided,
-            NotificationType::CancelDecided => $this->generateUrl('app_my_leave_request_show', ['id' => $id]),
+            NotificationType::CancelDecided,
+            NotificationType::AdminTypeChange => $this->generateUrl('app_my_leave_request_show', ['id' => $id]),
 
             NotificationType::EscalationTriggered => $this->generateUrl('app_admin_leave_request_show', ['id' => $id]),
 

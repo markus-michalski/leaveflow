@@ -386,6 +386,23 @@ admin:
         show:
             title: Urlaubsantrag
             heading: Urlaubsantrag
+        type_change:
+            button: "Typ ändern"
+            title: "Abwesenheitstyp ändern"
+            heading: "Abwesenheitstyp neu klassifizieren"
+            hint: "Resturlaub-Saldo wird automatisch angepasst (alte Buchung zurück, neue Buchung gegen das gewählte Konto). Nur möglich für genehmigte Anträge."
+            field:
+                new_type: "Neuer Abwesenheitstyp"
+                reason: "Begründung"
+                reason_help: "Pflichtfeld. Wird im Audit-Trail und in der Benachrichtigung an den Mitarbeiter gezeigt."
+            submit: "Reklassifizieren"
+            cancel: "Abbrechen"
+            flash:
+                success: "Abwesenheitstyp wurde geändert und der Mitarbeiter benachrichtigt."
+            error:
+                only_approved: "Reklassifizierung ist nur für genehmigte Anträge möglich."
+                same_type: "Der gewählte Typ entspricht dem aktuellen — keine Änderung."
+                overdraft: "Reklassifizierung würde das Resturlaubskonto überziehen. Bitte erst Saldo prüfen."
 holiday:
     neujahr: Neujahr
     heilige_drei_koenige: Heilige Drei Könige

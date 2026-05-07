@@ -22,7 +22,7 @@ use Symfony\Component\Clock\ClockInterface;
  * Non-deducting absence types (Krankheit, Sonderurlaub) short-circuit to a
  * no-op so callers don't need an outer guard.
  */
-final readonly class LeaveRequestEntitlementBooker
+final readonly class LeaveRequestEntitlementBooker implements LeaveRequestEntitlementBookerInterface
 {
     public function __construct(
         private LeaveEntitlementRepository $entitlementRepository,

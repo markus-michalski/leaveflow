@@ -332,6 +332,14 @@ final class MyNotificationsControllerTest extends WebTestCase
                 'endDate' => '05.06.2026',
             ],
             NotificationType::EscalationTriggered, NotificationType::EntitlementExpiringSoon => [],
+            NotificationType::AdminTypeChange => [
+                'oldTypeName' => 'Urlaub',
+                'newTypeName' => 'Sonderurlaub',
+                'startDate' => '01.06.2026',
+                'endDate' => '05.06.2026',
+                'adminName' => 'Sample Admin',
+                'reason' => 'Sample reason',
+            ],
         };
     }
 

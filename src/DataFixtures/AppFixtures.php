@@ -386,6 +386,22 @@ final class AppFixtures extends Fixture
             createdAt: $now->modify('-4 hours'),
         ), false];
 
+        // Phase 9 demo: admin reclassified an old request — Erik's
+        // bereavement leave was wrongly logged as Urlaub.
+        yield [new Notification(
+            recipient: $employee,
+            type: NotificationType::AdminTypeChange,
+            payload: [
+                'oldTypeName' => 'Urlaub',
+                'newTypeName' => 'Sonderurlaub',
+                'startDate' => '02.05.2026',
+                'endDate' => '02.05.2026',
+                'adminName' => 'Anna Admin',
+                'reason' => 'Sonderurlaub gemäß BGB §616 — wurde versehentlich als Urlaub gebucht.',
+            ],
+            createdAt: $now->modify('-90 minutes'),
+        ), false];
+
         // Admin — receives the escalation backstop.
         yield [new Notification(
             recipient: $admin,
