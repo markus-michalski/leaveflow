@@ -29,7 +29,12 @@ final class WorkSchedule
      * @param array<int, float> $hoursPerDay
      */
     private function __construct(
-        #[ORM\Column(name: 'weekly_hours', type: 'decimal', precision: 5, scale: 2)]
+        // float (DOUBLE in MariaDB) over decimal(5,2): hours aren't financial,
+        // the codebase already tolerates SUM_EPSILON drift across WorkSchedule,
+        // LeaveEntitlement, and EntitlementConsumer. decimal would force PHP to
+        // hold the value as string, mismatching the float property type and
+        // tripping doctrine:schema:validate (#16).
+        #[ORM\Column(name: 'weekly_hours', type: 'float')]
         private float $weeklyHours,
         array $hoursPerDay,
     ) {
