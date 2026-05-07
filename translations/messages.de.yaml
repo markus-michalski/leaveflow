@@ -126,6 +126,19 @@ admin:
         deactivate: Deaktivieren
         activate: Reaktivieren
         send_reset_link: Reset senden
+        filter:
+            label: Status
+            all: Alle
+            active_only: Nur aktive
+            inactive_only: Nur deaktivierte
+        search:
+            label: Suche
+            placeholder: "E-Mail oder Mitarbeitername …"
+        empty: "Keine Benutzer entsprechen der Auswahl."
+        total:
+            zero: Keine Benutzer
+            one: 1 Benutzer
+            many: "%count% Benutzer"
         flash:
             created: Benutzer %email% wurde angelegt und per E-Mail eingeladen.
             updated: Benutzer %email% wurde aktualisiert.
@@ -634,3 +647,8 @@ team:
             team_all: Alle Teams
             type: Abwesenheitsart
             type_all: Alle Arten
+pagination:
+    aria_label: Seitennavigation
+    prev: Zurück
+    next: Weiter
+    summary: "Seite %page% von %totalPages%"

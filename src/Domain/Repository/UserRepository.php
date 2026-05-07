@@ -49,6 +49,66 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getResult();
     }
 
+    /**
+     * Paginated, filterable user list for the admin overview (#3 + #4).
+     *
+     * Filters:
+     *  - $activeFilter: true → active only, false → deactivated only, null → all
+     *  - $query: substring match on email OR employee.fullName (case-insensitive
+     *    via LOWER + LIKE; both branches covered with OR so admins can search
+     *    "jane" and find both `jane@…` and `Jane Doe`)
+     *
+     * The Employee join is a LEFT JOIN — Phase 2's User-without-Employee case
+     * (admin/IT-only accounts) must still match if the email matches the query.
+     *
+     * @return list<User>
+     */
+    public function searchPaginated(?bool $activeFilter, ?string $query, int $page, int $perPage): array
+    {
+        $qb = $this->buildSearchQuery($activeFilter, $query);
+
+        $offset = max(0, ($page - 1) * $perPage);
+
+        return $qb
+            ->orderBy('u.email', 'ASC')
+            ->setMaxResults($perPage)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countSearch(?bool $activeFilter, ?string $query): int
+    {
+        $qb = $this->buildSearchQuery($activeFilter, $query);
+        // The Employee LEFT JOIN can multiply rows when a User has multiple
+        // Employee records (currently 1:1 by design but COUNT DISTINCT is the
+        // correct shape regardless).
+        $count = $qb
+            ->select('COUNT(DISTINCT u.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $count;
+    }
+
+    private function buildSearchQuery(?bool $activeFilter, ?string $query): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->leftJoin('App\\Domain\\Entity\\Employee', 'e', 'WITH', 'e.user = u');
+
+        if (null !== $activeFilter) {
+            $qb->andWhere('u.active = :active')->setParameter('active', $activeFilter);
+        }
+
+        if (null !== $query && '' !== trim($query)) {
+            $needle = '%'.strtolower(trim($query)).'%';
+            $qb->andWhere('LOWER(u.email) LIKE :needle OR LOWER(e.fullName) LIKE :needle')
+                ->setParameter('needle', $needle);
+        }
+
+        return $qb;
+    }
+
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (!$user instanceof User) {
