@@ -100,14 +100,29 @@ final class LeaveEntitlementFormType extends AbstractType
                 function (FormEvent $event): void {
                     $form = $event->getForm();
                     $expiresAt = $form->get('expiresAt')->getData();
-                    $year = $form->get('year')->getData();
-                    if (!$expiresAt instanceof \DateTimeInterface || !\is_int($year)) {
+                    if (!$expiresAt instanceof \DateTimeInterface) {
                         return;
                     }
-                    $yearStart = new \DateTimeImmutable(\sprintf('%d-01-01', $year));
-                    if ($expiresAt < $yearStart) {
+
+                    // Regular vacation has no per-record expiry — only Carryover does.
+                    $type = $form->get('type')->getData();
+                    if (LeaveEntitlementType::Carryover !== $type) {
                         $form->get('expiresAt')->addError(new FormError(
-                            $this->translator->trans('admin.entitlements.error.expires_before_year', [
+                            $this->translator->trans('admin.entitlements.error.expiry_only_for_carryover')
+                        ));
+
+                        return;
+                    }
+
+                    $year = $form->get('year')->getData();
+                    if (!\is_int($year)) {
+                        return;
+                    }
+                    // BUrlG §7 Abs. 3 floor: admin may extend, not shorten.
+                    $burlgFloor = new \DateTimeImmutable(\sprintf('%d-03-31', $year));
+                    if ($expiresAt < $burlgFloor) {
+                        $form->get('expiresAt')->addError(new FormError(
+                            $this->translator->trans('admin.entitlements.error.expires_before_burlg_floor', [
                                 '%year%' => (string) $year,
                             ])
                         ));

@@ -52,10 +52,11 @@ final class LeaveEntitlementExpiresAtFormType extends AbstractType
                     if (!$expiresAt instanceof \DateTimeInterface) {
                         return;
                     }
-                    $yearStart = new \DateTimeImmutable(\sprintf('%d-01-01', $entitlementYear));
-                    if ($expiresAt < $yearStart) {
+                    // BUrlG §7 Abs. 3 floor: admin may extend, not shorten.
+                    $burlgFloor = new \DateTimeImmutable(\sprintf('%d-03-31', $entitlementYear));
+                    if ($expiresAt < $burlgFloor) {
                         $event->getForm()->get('expiresAt')->addError(new FormError(
-                            $this->translator->trans('admin.entitlements.error.expires_before_year', [
+                            $this->translator->trans('admin.entitlements.error.expires_before_burlg_floor', [
                                 '%year%' => (string) $entitlementYear,
                             ])
                         ));

@@ -105,6 +105,13 @@ final class AdminEntitlementController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+        // Guard: only Carryover entries have an expiry — Regular vacation uses
+        // the year itself as deadline. Direct URL access on a Regular entry
+        // returns 404.
+        if (LeaveEntitlementType::Carryover !== $entry->getType()) {
+            throw $this->createNotFoundException();
+        }
+
         $form = $this->createForm(LeaveEntitlementExpiresAtFormType::class, null, [
             'entitlement_year' => $entry->getYear(),
         ]);

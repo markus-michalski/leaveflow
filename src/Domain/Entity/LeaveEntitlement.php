@@ -76,8 +76,9 @@ class LeaveEntitlement
         $this->assertHoursGrantedNotNegative($hoursGranted);
 
         if (null !== $expiresAt) {
+            $this->assertTypeAllowsExpiry($type);
             $normalized = $expiresAt->setTime(0, 0);
-            $this->assertExpiresAtNotBeforeEntitlementYear($normalized, $year);
+            $this->assertExpiresAtRespectsBurlgFloor($normalized, $year);
             $this->expiresAt = $normalized;
         }
     }
@@ -172,7 +173,8 @@ class LeaveEntitlement
     {
         $normalized = $expiresAt?->setTime(0, 0);
         if (null !== $normalized) {
-            $this->assertExpiresAtNotBeforeEntitlementYear($normalized, $this->year);
+            $this->assertTypeAllowsExpiry($this->type);
+            $this->assertExpiresAtRespectsBurlgFloor($normalized, $this->year);
         }
         $this->expiresAt = $normalized;
         // Reset idempotency: the deadline changed, so a new 30-day window
@@ -205,18 +207,30 @@ class LeaveEntitlement
     }
 
     /**
-     * An expiry deadline that pre-dates the entitlement year is unusable —
-     * the carryover would be flagged as expiring before it can even be used.
-     * Earliest valid expiresAt is the first day of the entitlement year
-     * (year=N → expiresAt >= N-01-01). The BUrlG §7 Abs. 3 default of
-     * N-03-31 already complies; admin extensions for illness / parental
-     * leave (BAG case law) push it later within or beyond the year.
+     * Regular entitlements have no per-record expiry: BUrlG mandates the
+     * year itself as the deadline, with unused hours either lapsing or
+     * being rolled into a separate Carryover entry by YearTransitionService.
+     * Only Carryover entries carry an `expiresAt`.
      */
-    private function assertExpiresAtNotBeforeEntitlementYear(\DateTimeImmutable $expiresAt, int $year): void
+    private function assertTypeAllowsExpiry(LeaveEntitlementType $type): void
     {
-        $yearStart = new \DateTimeImmutable(\sprintf('%d-01-01', $year));
-        if ($expiresAt < $yearStart) {
-            throw new \InvalidArgumentException(\sprintf('LeaveEntitlement.expiresAt must not be before %d-01-01 (got %s).', $year, $expiresAt->format('Y-m-d')));
+        if (LeaveEntitlementType::Carryover !== $type) {
+            throw new \InvalidArgumentException(\sprintf('LeaveEntitlement.expiresAt may only be set for Carryover entries; got %s.', $type->value));
+        }
+    }
+
+    /**
+     * BUrlG §7 Abs. 3 grants employees a 3-month grace period (until 31.03.
+     * of the carryover year) to use untaken leave. The employer cannot
+     * unilaterally shorten this floor — admin can only EXTEND (illness,
+     * parental leave, missing employer notice per BAG case law). For a
+     * year=N carryover the earliest valid expiresAt is therefore N-03-31.
+     */
+    private function assertExpiresAtRespectsBurlgFloor(\DateTimeImmutable $expiresAt, int $year): void
+    {
+        $burlgFloor = new \DateTimeImmutable(\sprintf('%d-03-31', $year));
+        if ($expiresAt < $burlgFloor) {
+            throw new \InvalidArgumentException(\sprintf('LeaveEntitlement.expiresAt must not be before %d-03-31 (BUrlG §7 Abs. 3 floor; got %s).', $year, $expiresAt->format('Y-m-d')));
         }
     }
 }

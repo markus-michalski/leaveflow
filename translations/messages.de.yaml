@@ -365,7 +365,8 @@ admin:
             expiry_updated: "Ablauffrist wurde aktualisiert."
             duplicate: "Für diesen Mitarbeiter existiert bereits ein Eintrag mit diesem Jahr und dieser Art."
         error:
-            expires_before_year: "Die Ablauffrist darf nicht vor dem 01.01.%year% liegen — sonst läuft der Anspruch ab, bevor er gilt."
+            expires_before_burlg_floor: "Die Ablauffrist darf nicht vor dem 31.03.%year% liegen — BUrlG §7 Abs. 3 garantiert eine 3-monatige Gnadenfrist, die du nur verlängern, nicht verkürzen darfst."
+            expiry_only_for_carryover: "Nur Resturlaub-Einträge dürfen eine Ablauffrist haben. Regulärer Urlaub gilt für das gesamte Urlaubsjahr und wird per Jahresübergang automatisch in einen Resturlaub-Eintrag überführt."
         new:
             title: "Urlaubsanspruch anlegen"
             hint: "Richtwert: 30 Urlaubstage × Stunden/Tag laut Arbeitszeitmodell (z. B. Vollzeit 40 h/5 Tage → 240 h). Bei Resturlaub zusätzlich Ablauffrist setzen (Standard: 31.03. Folgejahr)."
