@@ -55,6 +55,24 @@ class NotificationRepository extends ServiceEntityRepository
     }
 
     /**
+     * Counts read notifications across all of this user's history (not just
+     * the recent inbox window). Used to gate the "delete read" cleanup
+     * button in the inbox header.
+     */
+    public function countReadForUser(User $user): int
+    {
+        $count = $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->where('n.recipient = :user')
+            ->andWhere('n.readAt IS NOT NULL')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $count;
+    }
+
+    /**
      * Marks all unread notifications for this user as read. Used by the
      * "mark all read" inbox action. Caller is responsible for flushing.
      */
@@ -66,6 +84,22 @@ class NotificationRepository extends ServiceEntityRepository
             ->where('n.recipient = :user')
             ->andWhere('n.readAt IS NULL')
             ->setParameter('now', $now)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * Hard-deletes all read notifications for this user. Used by the
+     * "delete read" inbox cleanup action. Returns the row count.
+     * Unread notifications stay; foreign users' rows are untouched.
+     */
+    public function deleteReadForUser(User $user): int
+    {
+        return (int) $this->createQueryBuilder('n')
+            ->delete()
+            ->where('n.recipient = :user')
+            ->andWhere('n.readAt IS NOT NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->execute();

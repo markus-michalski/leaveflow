@@ -35,6 +35,19 @@
                     </button>
                 </form>
             {% endif %}
+            {% if readCount > 0 %}
+                <form method="post"
+                      action="{{ path('app_my_notification_delete_read') }}"
+                      data-testid="notifications-delete-read-form"
+                      data-turbo-confirm="{{ 'notifications.inbox.delete_read_confirm'|trans({}, 'notifications') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('notifications-delete-read') }}">
+                    <button type="submit"
+                            class="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-white px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50"
+                            data-testid="notifications-delete-read">
+                        {{ 'notifications.inbox.delete_read'|trans({}, 'notifications') }}
+                    </button>
+                </form>
+            {% endif %}
         </div>
     </header>
 

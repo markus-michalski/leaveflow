@@ -14,6 +14,10 @@ notifications:
         unread_count: "{0}No unread messages|{1}One unread message|]1,Inf[ %count% unread messages"
         unread_label: "New"
         mark_all_read: "Mark all as read"
+        delete: "Delete"
+        delete_aria_label: "Delete this notification"
+        delete_read: "Clear read"
+        delete_read_confirm: "All read notifications will be deleted permanently. Continue?"
         empty: "You have not received any notifications yet."
         preferences_link: "Preferences"
     preferences:

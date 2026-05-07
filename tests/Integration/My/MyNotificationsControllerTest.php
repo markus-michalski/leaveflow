@@ -152,6 +152,143 @@ final class MyNotificationsControllerTest extends WebTestCase
         self::assertStringContainsString('/login', (string) $this->client->getResponse()->headers->get('Location'));
     }
 
+    #[Test]
+    public function deleteRemovesOwnedNotification(): void
+    {
+        $notification = $this->createUnreadFor($this->jane, NotificationType::ApprovalRequested);
+        $this->em->flush();
+        $id = $notification->getId();
+
+        $this->loginAs('jane@acme.test');
+        $crawler = $this->client->request('GET', '/my/notifications');
+        $form = $crawler->filter('form[data-testid="notification-delete-form-'.$id.'"]')->form();
+        $this->client->submit($form);
+
+        self::assertResponseRedirects('/my/notifications');
+
+        $this->em->clear();
+        self::assertNull($this->em->find(Notification::class, $id));
+    }
+
+    #[Test]
+    public function deleteOnForeignNotificationReturns404(): void
+    {
+        // Ownership check fires before CSRF — mirrors the read action.
+        $foreign = $this->createUnreadFor($this->john, NotificationType::ApprovalRequested);
+        $this->em->flush();
+        $id = $foreign->getId();
+
+        $this->loginAs('jane@acme.test');
+        $this->client->request('POST', '/my/notifications/'.$id.'/delete', [
+            '_token' => 'ignored',
+        ]);
+
+        self::assertResponseStatusCodeSame(404);
+
+        // Foreign notification untouched.
+        $this->em->clear();
+        self::assertNotNull($this->em->find(Notification::class, $id));
+    }
+
+    #[Test]
+    public function deleteRejectsInvalidCsrf(): void
+    {
+        $notification = $this->createUnreadFor($this->jane, NotificationType::ApprovalRequested);
+        $this->em->flush();
+        $id = $notification->getId();
+
+        $this->loginAs('jane@acme.test');
+        $this->client->request('POST', '/my/notifications/'.$id.'/delete', [
+            '_token' => 'wrong',
+        ]);
+
+        self::assertResponseStatusCodeSame(403);
+
+        $this->em->clear();
+        self::assertNotNull($this->em->find(Notification::class, $id));
+    }
+
+    #[Test]
+    public function deleteReadRemovesOnlyReadNotificationsOfCurrentUser(): void
+    {
+        $readJane = $this->createReadFor($this->jane, NotificationType::ApprovalRequested);
+        $unreadJane = $this->createUnreadFor($this->jane, NotificationType::ApprovalDecided, ['decision' => 'approved']);
+        $readJohn = $this->createReadFor($this->john, NotificationType::ApprovalRequested);
+        $this->em->flush();
+
+        $readJaneId = $readJane->getId();
+        $unreadJaneId = $unreadJane->getId();
+        $readJohnId = $readJohn->getId();
+
+        $this->loginAs('jane@acme.test');
+        $crawler = $this->client->request('GET', '/my/notifications');
+        $form = $crawler->filter('form[data-testid="notifications-delete-read-form"]')->form();
+        $this->client->submit($form);
+
+        self::assertResponseRedirects('/my/notifications');
+
+        $this->em->clear();
+        // Jane's read one is gone, her unread stays, John's read stays.
+        self::assertNull($this->em->find(Notification::class, $readJaneId));
+        self::assertNotNull($this->em->find(Notification::class, $unreadJaneId));
+        self::assertNotNull($this->em->find(Notification::class, $readJohnId));
+    }
+
+    #[Test]
+    public function deleteReadRejectsInvalidCsrf(): void
+    {
+        $read = $this->createReadFor($this->jane, NotificationType::ApprovalRequested);
+        $this->em->flush();
+        $id = $read->getId();
+
+        $this->loginAs('jane@acme.test');
+        $this->client->request('POST', '/my/notifications/delete-read', [
+            '_token' => 'wrong',
+        ]);
+
+        self::assertResponseStatusCodeSame(403);
+
+        $this->em->clear();
+        self::assertNotNull($this->em->find(Notification::class, $id));
+    }
+
+    #[Test]
+    public function inboxHidesDeleteReadButtonWhenNoReadNotificationsExist(): void
+    {
+        $this->createUnreadFor($this->jane, NotificationType::ApprovalRequested);
+        $this->em->flush();
+
+        $this->loginAs('jane@acme.test');
+        $this->client->request('GET', '/my/notifications');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('form[data-testid="notifications-delete-read-form"]');
+    }
+
+    #[Test]
+    public function inboxShowsDeleteReadButtonWhenAtLeastOneReadNotificationExists(): void
+    {
+        $this->createReadFor($this->jane, NotificationType::ApprovalRequested);
+        $this->em->flush();
+
+        $this->loginAs('jane@acme.test');
+        $this->client->request('GET', '/my/notifications');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('form[data-testid="notifications-delete-read-form"]');
+    }
+
+    /**
+     * @param array<string, mixed> $overrides
+     */
+    private function createReadFor(User $recipient, NotificationType $type, array $overrides = []): Notification
+    {
+        $notification = $this->createUnreadFor($recipient, $type, $overrides);
+        $notification->markAsRead(new \DateTimeImmutable('2026-05-02 09:30:00'));
+
+        return $notification;
+    }
+
     /**
      * @param array<string, mixed> $overrides
      */
