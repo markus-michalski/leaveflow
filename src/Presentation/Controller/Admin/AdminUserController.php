@@ -37,11 +37,41 @@ final class AdminUserController extends AbstractController
     ) {
     }
 
+    private const int PER_PAGE = 25;
+
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $statusParam = $request->query->get('status');
+        $activeFilter = match ($statusParam) {
+            'active' => true,
+            'inactive' => false,
+            default => null,
+        };
+
+        $rawQuery = trim((string) $request->query->get('q', ''));
+        $query = '' === $rawQuery ? null : $rawQuery;
+
+        $page = max(1, (int) $request->query->get('page', 1));
+
+        $total = $this->userRepository->countSearch($activeFilter, $query);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+        // Clamp out-of-range page numbers — friendlier than a 404 when the
+        // user lands on ?page=99 after deactivating a bunch of accounts.
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        $users = $this->userRepository->searchPaginated($activeFilter, $query, $page, self::PER_PAGE);
+
         return $this->render('admin/users/index.html.twig', [
-            'users' => $this->userRepository->findBy([], ['email' => 'ASC']),
+            'users' => $users,
+            'total' => $total,
+            'page' => $page,
+            'totalPages' => $totalPages,
+            'perPage' => self::PER_PAGE,
+            'status' => $statusParam,
+            'q' => $rawQuery,
         ]);
     }
 

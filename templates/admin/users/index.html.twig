@@ -4,83 +4,148 @@
 
 {% block body %}
 <div class="mx-auto max-w-6xl p-6">
-    <header class="mb-6 flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.users.heading'|trans }}</h1>
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.users.heading'|trans }}</h1>
+            <p class="mt-1 text-sm text-gray-500" data-testid="admin-users-total">
+                {% if total == 0 %}
+                    {{ 'admin.users.total.zero'|trans }}
+                {% elseif total == 1 %}
+                    {{ 'admin.users.total.one'|trans }}
+                {% else %}
+                    {{ 'admin.users.total.many'|trans({ '%count%': total }) }}
+                {% endif %}
+            </p>
+        </div>
         <div class="flex items-center gap-3">
-            <a href="{{ path('app_dashboard') }}"
-               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0L3.586 10l4.707-4.707a1 1 0 011.414 1.414L7.414 9H16a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-                </svg>
-                {{ 'nav.home'|trans }}
-            </a>
-            <a href="{{ path('app_admin_user_new') }}" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            <a href="{{ path('app_admin_user_new') }}"
+               class="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
                 {{ 'admin.users.create'|trans }}
             </a>
         </div>
     </header>
 
-    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    <th class="px-6 py-3">{{ 'admin.users.email'|trans }}</th>
-                    <th class="px-6 py-3">{{ 'admin.users.role'|trans }}</th>
-                    <th class="px-6 py-3">{{ 'admin.users.status'|trans }}</th>
-                    <th class="px-6 py-3 text-right">{{ 'admin.users.actions'|trans }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
-                {% for user in users %}
-                    <tr data-testid="user-row-{{ user.id }}">
-                        <td class="px-6 py-3 font-medium text-gray-900">{{ user.email }}</td>
-                        <td class="px-6 py-3">{{ user.role.label|trans }}</td>
-                        <td class="px-6 py-3">
-                            {% if user.active %}
-                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                                    {{ 'admin.users.active'|trans }}
-                                </span>
-                            {% else %}
-                                <span class="inline-flex items-center rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-                                    {{ 'admin.users.inactive'|trans }}
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-3 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <a href="{{ path('app_admin_user_edit', { id: user.id }) }}"
-                                   class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-100">
-                                    {{ 'admin.users.edit'|trans }}
-                                </a>
+    <form method="get"
+          action="{{ path('app_admin_user_index') }}"
+          class="mb-4 flex flex-wrap items-end gap-3"
+          data-controller="debounced-submit"
+          data-turbo-frame="admin-users-list"
+          data-turbo-action="advance"
+          data-testid="admin-users-filter-form">
+        <div class="flex-1 min-w-[16rem]">
+            <label for="admin-users-search" class="block text-sm font-medium text-gray-700">
+                {{ 'admin.users.search.label'|trans }}
+            </label>
+            <input type="search"
+                   id="admin-users-search"
+                   name="q"
+                   value="{{ q|default('') }}"
+                   placeholder="{{ 'admin.users.search.placeholder'|trans }}"
+                   class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                   data-action="input->debounced-submit#schedule"
+                   data-testid="admin-users-search">
+        </div>
+        <div>
+            <label for="admin-users-status" class="block text-sm font-medium text-gray-700">
+                {{ 'admin.users.filter.label'|trans }}
+            </label>
+            <select id="admin-users-status"
+                    name="status"
+                    class="mt-1 block w-48 rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    data-action="change->debounced-submit#submit"
+                    data-testid="admin-users-status">
+                <option value="" {{ status is empty ? 'selected' : '' }}>{{ 'admin.users.filter.all'|trans }}</option>
+                <option value="active" {{ status == 'active' ? 'selected' : '' }}>{{ 'admin.users.filter.active_only'|trans }}</option>
+                <option value="inactive" {{ status == 'inactive' ? 'selected' : '' }}>{{ 'admin.users.filter.inactive_only'|trans }}</option>
+            </select>
+        </div>
+        {# Reset page on every filter/search submission so a previous ?page=4
+           doesn't strand the user on an empty page after narrowing the result set. #}
+        <input type="hidden" name="page" value="1">
+        {# Plain submit fallback for users without JS — Stimulus enhances above. #}
+        <noscript>
+            <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ 'admin.users.search.label'|trans }}
+            </button>
+        </noscript>
+    </form>
 
-                                <form action="{{ path('app_admin_user_send_reset', { id: user.id }) }}" method="post" class="inline">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('send-reset-' ~ user.id) }}">
-                                    <button type="submit"
-                                            class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50">
-                                        {{ 'admin.users.send_reset_link'|trans }}
-                                    </button>
-                                </form>
-
-                                <form action="{{ path('app_admin_user_toggle_active', { id: user.id }) }}" method="post" class="inline">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('toggle-active-' ~ user.id) }}">
-                                    {% if user.active %}
-                                        <button type="submit"
-                                                class="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100">
-                                            {{ 'admin.users.deactivate'|trans }}
-                                        </button>
-                                    {% else %}
-                                        <button type="submit"
-                                                class="inline-flex items-center rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium text-green-700 hover:bg-green-100">
-                                            {{ 'admin.users.activate'|trans }}
-                                        </button>
-                                    {% endif %}
-                                </form>
-                            </div>
-                        </td>
+    <turbo-frame id="admin-users-list" data-testid="admin-users-list">
+        <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        <th class="px-6 py-3">{{ 'admin.users.email'|trans }}</th>
+                        <th class="px-6 py-3">{{ 'admin.users.role'|trans }}</th>
+                        <th class="px-6 py-3">{{ 'admin.users.status'|trans }}</th>
+                        <th class="px-6 py-3 text-right">{{ 'admin.users.actions'|trans }}</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
+                    {% for user in users %}
+                        <tr data-testid="user-row-{{ user.id }}">
+                            <td class="px-6 py-3 font-medium text-gray-900">{{ user.email }}</td>
+                            <td class="px-6 py-3">{{ user.role.label|trans }}</td>
+                            <td class="px-6 py-3">
+                                {% if user.active %}
+                                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                        {{ 'admin.users.active'|trans }}
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                                        {{ 'admin.users.inactive'|trans }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-3 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ path('app_admin_user_edit', { id: user.id }) }}"
+                                       class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                        {{ 'admin.users.edit'|trans }}
+                                    </a>
+
+                                    <form action="{{ path('app_admin_user_send_reset', { id: user.id }) }}" method="post" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('send-reset-' ~ user.id) }}">
+                                        <button type="submit"
+                                                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                                            {{ 'admin.users.send_reset_link'|trans }}
+                                        </button>
+                                    </form>
+
+                                    <form action="{{ path('app_admin_user_toggle_active', { id: user.id }) }}" method="post" class="inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle-active-' ~ user.id) }}">
+                                        {% if user.active %}
+                                            <button type="submit"
+                                                    class="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100">
+                                                {{ 'admin.users.deactivate'|trans }}
+                                            </button>
+                                        {% else %}
+                                            <button type="submit"
+                                                    class="inline-flex items-center rounded-md border border-green-200 bg-green-50 px-3 py-2 text-xs font-medium text-green-700 hover:bg-green-100">
+                                                {{ 'admin.users.activate'|trans }}
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-6 text-center text-gray-500" data-testid="admin-users-empty">
+                                {{ 'admin.users.empty'|trans }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {{ include('_partials/pagination.html.twig', {
+                page: page,
+                totalPages: totalPages,
+                queryParams: { status: status, q: q },
+                route: 'app_admin_user_index',
+            }) }}
+        </div>
+    </turbo-frame>
 </div>
 {% endblock %}

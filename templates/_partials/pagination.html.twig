@@ -1,0 +1,98 @@
+{# Reusable pagination component. Caller passes:
+  - page         current 1-based page
+  - totalPages   total page count (>=1)
+  - queryParams  associative array of params to preserve in URLs
+                 (e.g. {status: 'active', q: 'jane'}) — `page` is added per link
+  - route        route name to generate URLs against (default: current route)
+
+   Renders nothing when totalPages <= 1. #}
+{% if totalPages > 1 %}
+    {% set route = route|default(app.current_route) %}
+    {% set queryParams = queryParams|default({}) %}
+    {% set baseParams = queryParams|filter(v => v is not null and v != '') %}
+
+    <nav class="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6"
+         aria-label="{{ 'pagination.aria_label'|trans }}"
+         data-testid="pagination">
+        <div class="flex flex-1 justify-between sm:hidden">
+            {% if page > 1 %}
+                <a href="{{ path(route, baseParams|merge({page: page - 1})) }}"
+                   class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ 'pagination.prev'|trans }}
+                </a>
+            {% endif %}
+            {% if page < totalPages %}
+                <a href="{{ path(route, baseParams|merge({page: page + 1})) }}"
+                   class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ 'pagination.next'|trans }}
+                </a>
+            {% endif %}
+        </div>
+        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <p class="text-sm text-gray-700">
+                {{ 'pagination.summary'|trans({
+                    '%page%': page,
+                    '%totalPages%': totalPages,
+                }) }}
+            </p>
+            <div class="flex items-center gap-1">
+                {% if page > 1 %}
+                    <a href="{{ path(route, baseParams|merge({page: page - 1})) }}"
+                       class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                       data-testid="pagination-prev"
+                       aria-label="{{ 'pagination.prev'|trans }}">
+                        {{ 'pagination.prev'|trans }}
+                    </a>
+                {% endif %}
+
+                {# Numbered pages: show first 1, last N, current ±1, gaps as ellipses. #}
+                {% set windowStart = max(2, page - 1) %}
+                {% set windowEnd = min(totalPages - 1, page + 1) %}
+
+                <a href="{{ path(route, baseParams|merge({page: 1})) }}"
+                   class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium {{ page == 1 ? 'bg-blue-600 text-white' : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50' }}"
+                   data-testid="pagination-page-1"
+                   {% if page == 1 %}aria-current="page"{% endif %}>
+                    1
+                </a>
+
+                {% if windowStart > 2 %}
+                    <span class="px-2 text-gray-400">…</span>
+                {% endif %}
+
+                {% for p in windowStart..windowEnd %}
+                    {% if p > 1 and p < totalPages %}
+                        <a href="{{ path(route, baseParams|merge({page: p})) }}"
+                           class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium {{ page == p ? 'bg-blue-600 text-white' : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50' }}"
+                           data-testid="pagination-page-{{ p }}"
+                           {% if page == p %}aria-current="page"{% endif %}>
+                            {{ p }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if windowEnd < totalPages - 1 %}
+                    <span class="px-2 text-gray-400">…</span>
+                {% endif %}
+
+                {% if totalPages > 1 %}
+                    <a href="{{ path(route, baseParams|merge({page: totalPages})) }}"
+                       class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium {{ page == totalPages ? 'bg-blue-600 text-white' : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50' }}"
+                       data-testid="pagination-page-{{ totalPages }}"
+                       {% if page == totalPages %}aria-current="page"{% endif %}>
+                        {{ totalPages }}
+                    </a>
+                {% endif %}
+
+                {% if page < totalPages %}
+                    <a href="{{ path(route, baseParams|merge({page: page + 1})) }}"
+                       class="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                       data-testid="pagination-next"
+                       aria-label="{{ 'pagination.next'|trans }}">
+                        {{ 'pagination.next'|trans }}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+{% endif %}
