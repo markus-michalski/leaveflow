@@ -365,9 +365,13 @@ admin:
         description: "Overview of all leave entitlements. The expiry of a carryover entitlement can be extended manually for illness or parental leave."
         empty: "No leave entitlements recorded yet."
         create: "Add leave entitlement"
+        edit: "Edit"
         edit_expiry: "Adjust expiry"
         expired_badge: "Expired"
         no_expiry: "—"
+        delete:
+            button: "Delete"
+            confirm: "Really delete this leave entitlement?"
         filter:
             year_label: "Year"
             all_years: "All years"
@@ -386,6 +390,9 @@ admin:
             carryover: "Carryover"
         flash:
             created: "Leave entitlement has been created."
+            updated: "Leave entitlement has been updated."
+            deleted: "Leave entitlement has been deleted."
+            delete_blocked: "Cannot delete: %hoursUsed%h have already been booked. Cancel the related leave requests first, then delete."
             expiry_updated: "Expiry has been updated."
             duplicate: "This employee already has an entry for the same year and type."
         error:
@@ -394,6 +401,9 @@ admin:
         new:
             title: "Create leave entitlement"
             hint: "Rule of thumb: 30 vacation days × hours/day from the work schedule (e.g. full-time 40h/5d = 240h). For carryover entries also set an expiry (default: 31.03. of the following year)."
+        edit_view:
+            title: "Edit leave entitlement"
+            hint: "Identity fields (employee / year / type) are locked — for wrong assignments delete the entry and recreate. Hours cannot be lowered below the already-consumed amount."
         edit_expiry_view:
             title: "Edit expiry"
             hint: "Leave empty to remove the expiry (e.g. for a recognized BAG notification-duty exception)."

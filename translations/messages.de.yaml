@@ -365,9 +365,13 @@ admin:
         description: "Übersicht aller Urlaubsansprüche. Die Ablauffrist eines Resturlaubs lässt sich bei Krankheit/Elternzeit manuell verlängern."
         empty: "Noch keine Urlaubsansprüche erfasst."
         create: "Urlaubsanspruch anlegen"
+        edit: "Bearbeiten"
         edit_expiry: "Ablauf anpassen"
         expired_badge: "Abgelaufen"
         no_expiry: "—"
+        delete:
+            button: "Löschen"
+            confirm: "Diesen Urlaubsanspruch wirklich löschen?"
         filter:
             year_label: "Jahr"
             all_years: "Alle Jahre"
@@ -386,6 +390,9 @@ admin:
             carryover: "Resturlaub"
         flash:
             created: "Urlaubsanspruch wurde angelegt."
+            updated: "Urlaubsanspruch wurde aktualisiert."
+            deleted: "Urlaubsanspruch wurde gelöscht."
+            delete_blocked: "Löschen nicht möglich: %hoursUsed%h sind bereits gebucht. Erst die zugehörigen Urlaubsanträge stornieren, dann löschen."
             expiry_updated: "Ablauffrist wurde aktualisiert."
             duplicate: "Für diesen Mitarbeiter existiert bereits ein Eintrag mit diesem Jahr und dieser Art."
         error:
@@ -394,6 +401,9 @@ admin:
         new:
             title: "Urlaubsanspruch anlegen"
             hint: "Richtwert: 30 Urlaubstage × Stunden/Tag laut Arbeitszeitmodell (z. B. Vollzeit 40 h/5 Tage → 240 h). Bei Resturlaub zusätzlich Ablauffrist setzen (Standard: 31.03. Folgejahr)."
+        edit_view:
+            title: "Urlaubsanspruch bearbeiten"
+            hint: "Identitätsfelder (Mitarbeiter / Jahr / Art) sind gesperrt — bei falscher Zuordnung den Eintrag löschen und neu anlegen. Stunden lassen sich nicht unter den bereits verbrauchten Wert senken."
         edit_expiry_view:
             title: "Ablauffrist bearbeiten"
             hint: "Leer lassen, um die Ablauffrist zu entfernen (z. B. bei anerkannter BAG-Aufklärungspflicht-Ausnahme)."

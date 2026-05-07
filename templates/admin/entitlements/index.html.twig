@@ -96,12 +96,32 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-3 text-right">
-                            {% if entry.type.value == 'carryover' %}
-                                <a href="{{ path('app_admin_entitlement_edit_expiry', { id: entry.id }) }}"
-                                   class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
-                                    {{ 'admin.entitlements.edit_expiry'|trans }}
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{{ path('app_admin_entitlement_edit', { id: entry.id }) }}"
+                                   class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                                   data-testid="entitlement-edit-{{ entry.id }}">
+                                    {{ 'admin.entitlements.edit'|trans }}
                                 </a>
-                            {% endif %}
+
+                                {% if entry.type.value == 'carryover' %}
+                                    <a href="{{ path('app_admin_entitlement_edit_expiry', { id: entry.id }) }}"
+                                       class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                        {{ 'admin.entitlements.edit_expiry'|trans }}
+                                    </a>
+                                {% endif %}
+
+                                <form method="post"
+                                      action="{{ path('app_admin_entitlement_delete', { id: entry.id }) }}"
+                                      data-testid="entitlement-delete-form-{{ entry.id }}"
+                                      data-turbo-confirm="{{ 'admin.entitlements.delete.confirm'|trans }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('entitlement-delete-' ~ entry.id) }}">
+                                    <button type="submit"
+                                            class="inline-flex items-center whitespace-nowrap rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100"
+                                            data-testid="entitlement-delete-{{ entry.id }}">
+                                        {{ 'admin.entitlements.delete.button'|trans }}
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% set previous_employee_id = entry.employee.id %}
