@@ -12,10 +12,12 @@ use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
 use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\Location;
+use App\Domain\Entity\Notification;
 use App\Domain\Entity\User;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveEntitlementType;
+use App\Domain\Enum\NotificationType;
 use App\Domain\Enum\UserRole;
 use App\Domain\Enum\Weekday;
 use App\Domain\ValueObject\LeaveBreakdown;
@@ -184,6 +186,20 @@ final class AppFixtures extends Fixture
             $manager->persist($request);
         }
 
+        // Phase 8: pre-populated inbox so a fresh `make fixtures` lands on a
+        // realistic notification screen — every per-type Twig partial gets
+        // exercised, and a mix of read/unread shows both visual states.
+        foreach ($this->notificationSeeds($users, $currentYear) as [$notification, $isRead]) {
+            $manager->persist($notification);
+            if ($isRead) {
+                // Read timestamp 30 minutes after creation so the row reads
+                // "received before, opened later" rather than "created-and-read
+                // simultaneously" — the dashboard tooltip uses createdAt only,
+                // so this is purely a state-correctness detail.
+                $notification->markAsRead($notification->getCreatedAt()->modify('+30 minutes'));
+            }
+        }
+
         $manager->flush();
     }
 
@@ -259,5 +275,129 @@ final class AppFixtures extends Fixture
         yield ['admin@leaveflow.test', UserRole::Admin];
         yield ['manager@leaveflow.test', UserRole::Manager];
         yield ['employee@leaveflow.test', UserRole::Employee];
+    }
+
+    /**
+     * Demo notifications spread across all 7 NotificationType cases, mixing
+     * read + unread for each recipient role. Timestamps are anchored to "now"
+     * so the inbox always feels current regardless of when fixtures load.
+     *
+     * @param array<string, User> $users
+     *
+     * @return iterable<array{0: Notification, 1: bool}> tuple of [notification, isRead]
+     */
+    private function notificationSeeds(array $users, int $currentYear): iterable
+    {
+        $admin = $users['admin@leaveflow.test'];
+        $manager = $users['manager@leaveflow.test'];
+        $employee = $users['employee@leaveflow.test'];
+
+        $now = new \DateTimeImmutable();
+
+        // Manager (Maya) — receives team-incoming signals.
+        yield [new Notification(
+            recipient: $manager,
+            type: NotificationType::ApprovalRequested,
+            payload: [
+                'employeeName' => 'Erik Employee',
+                'absenceTypeName' => 'Urlaub',
+                'startDate' => '06.07.2026',
+                'endDate' => '10.07.2026',
+            ],
+            createdAt: $now->modify('-2 hours'),
+        ), false];
+
+        yield [new Notification(
+            recipient: $manager,
+            type: NotificationType::CancelRequested,
+            payload: [
+                'employeeName' => 'Erik Employee',
+                'absenceTypeName' => 'Fortbildung',
+                'startDate' => '15.06.2026',
+                'endDate' => '17.06.2026',
+            ],
+            createdAt: $now->modify('-1 day'),
+        ), false];
+
+        yield [new Notification(
+            recipient: $manager,
+            type: NotificationType::RequestWithdrawn,
+            payload: [
+                'employeeName' => 'Erik Employee',
+                'absenceTypeName' => 'Sonderurlaub',
+                'startDate' => '02.05.2026',
+                'endDate' => '02.05.2026',
+            ],
+            createdAt: $now->modify('-3 days'),
+        ), true];
+
+        // Employee (Erik) — receives decisions about own requests + entitlement
+        // expiry warnings.
+        yield [new Notification(
+            recipient: $employee,
+            type: NotificationType::ApprovalDecided,
+            payload: [
+                'decision' => 'approved',
+                'approverName' => 'Maya Manager',
+                'absenceTypeName' => 'Urlaub',
+                'startDate' => '06.07.2026',
+                'endDate' => '10.07.2026',
+                'reason' => '',
+            ],
+            createdAt: $now->modify('-30 minutes'),
+        ), false];
+
+        yield [new Notification(
+            recipient: $employee,
+            type: NotificationType::ApprovalDecided,
+            payload: [
+                'decision' => 'rejected',
+                'approverName' => 'Maya Manager',
+                'absenceTypeName' => 'Fortbildung',
+                'startDate' => '15.06.2026',
+                'endDate' => '17.06.2026',
+                'reason' => 'Termin überschneidet sich mit Q3-Release.',
+            ],
+            createdAt: $now->modify('-5 days'),
+        ), true];
+
+        yield [new Notification(
+            recipient: $employee,
+            type: NotificationType::CancelDecided,
+            payload: [
+                'decision' => 'confirmed',
+                'approverName' => 'Maya Manager',
+                'absenceTypeName' => 'Sonderurlaub',
+                'startDate' => '02.05.2026',
+                'endDate' => '02.05.2026',
+                'reason' => '',
+            ],
+            createdAt: $now->modify('-7 days'),
+        ), true];
+
+        yield [new Notification(
+            recipient: $employee,
+            type: NotificationType::EntitlementExpiringSoon,
+            payload: [
+                'hoursRemaining' => 30.0,
+                'expiresAt' => \sprintf('31.03.%d', $currentYear + 1),
+                'daysRemaining' => 14,
+            ],
+            createdAt: $now->modify('-4 hours'),
+        ), false];
+
+        // Admin — receives the escalation backstop.
+        yield [new Notification(
+            recipient: $admin,
+            type: NotificationType::EscalationTriggered,
+            payload: [
+                'employeeName' => 'Erik Employee',
+                'absenceTypeName' => 'Urlaub',
+                'startDate' => '20.04.2026',
+                'endDate' => '24.04.2026',
+                'daysWaiting' => 5,
+            ],
+            createdAt: $now->modify('-6 hours'),
+        ), false];
     }
 }
