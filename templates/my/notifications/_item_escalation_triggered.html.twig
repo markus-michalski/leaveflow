@@ -1,5 +1,7 @@
 <p class="text-sm font-medium text-gray-900">
-    {{ 'notifications.item.escalation_triggered.title'|trans(payload, 'notifications') }}
+    {{ 'notifications.item.escalation_triggered.title'|trans({
+        '%daysWaiting%': payload.daysWaiting,
+    }, 'notifications') }}
 </p>
 <p class="mt-0.5 text-sm text-gray-600">
     {{ 'notifications.item.escalation_triggered.summary'|trans({
