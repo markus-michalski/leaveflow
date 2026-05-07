@@ -278,4 +278,93 @@ final class LeaveEntitlementTest extends TestCase
 
         self::assertNull($entitlement->getExpiresAt());
     }
+
+    #[Test]
+    #[DataProvider('expiresAtBeforeYearProvider')]
+    public function rejectsExpiresAtBeforeEntitlementYear(int $year, string $invalidExpiresAt): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('expiresAt');
+
+        new LeaveEntitlement(
+            $this->employee,
+            $year,
+            LeaveEntitlementType::Carryover,
+            40.0,
+            new \DateTimeImmutable($invalidExpiresAt),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{0: int, 1: string}>
+     */
+    public static function expiresAtBeforeYearProvider(): iterable
+    {
+        // The bug case from issue #23: 2027 carryover with expiry in 2026.
+        yield 'mid previous year' => [2027, '2026-05-23'];
+        yield 'last day of previous year' => [2027, '2026-12-31'];
+        yield 'long before entitlement year' => [2027, '2020-01-01'];
+    }
+
+    #[Test]
+    public function acceptsExpiresAtOnFirstDayOfEntitlementYear(): void
+    {
+        $entitlement = new LeaveEntitlement(
+            $this->employee,
+            2027,
+            LeaveEntitlementType::Carryover,
+            40.0,
+            new \DateTimeImmutable('2027-01-01'),
+        );
+
+        self::assertSame('2027-01-01', $entitlement->getExpiresAt()?->format('Y-m-d'));
+    }
+
+    #[Test]
+    public function acceptsBurlgDefaultExpiresAt(): void
+    {
+        // BUrlG §7 Abs. 3 default for a year-N carryover: N-03-31.
+        $entitlement = new LeaveEntitlement(
+            $this->employee,
+            2027,
+            LeaveEntitlementType::Carryover,
+            40.0,
+            new \DateTimeImmutable('2027-03-31'),
+        );
+
+        self::assertSame('2027-03-31', $entitlement->getExpiresAt()?->format('Y-m-d'));
+    }
+
+    #[Test]
+    public function acceptsAdminExtensionBeyondEntitlementYear(): void
+    {
+        // Admin can extend deadline (illness, parental leave, missing
+        // employer notice per BAG case law) past the entitlement year.
+        $entitlement = new LeaveEntitlement(
+            $this->employee,
+            2027,
+            LeaveEntitlementType::Carryover,
+            40.0,
+            new \DateTimeImmutable('2028-09-30'),
+        );
+
+        self::assertSame('2028-09-30', $entitlement->getExpiresAt()?->format('Y-m-d'));
+    }
+
+    #[Test]
+    public function adjustExpiresAtRejectsDateBeforeEntitlementYear(): void
+    {
+        $entitlement = new LeaveEntitlement(
+            $this->employee,
+            2027,
+            LeaveEntitlementType::Carryover,
+            40.0,
+            new \DateTimeImmutable('2027-03-31'),
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('expiresAt');
+
+        $entitlement->adjustExpiresAt(new \DateTimeImmutable('2026-05-23'));
+    }
 }

@@ -14,11 +14,15 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Range;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Admin form to create a new LeaveEntitlement for an employee.
@@ -31,6 +35,11 @@ use Symfony\Component\Validator\Constraints\Range;
  */
 final class LeaveEntitlementFormType extends AbstractType
 {
+    public function __construct(
+        private readonly TranslatorInterface $translator,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var Company $company */
@@ -85,7 +94,26 @@ final class LeaveEntitlementFormType extends AbstractType
                 'attr' => ['placeholder' => 'TT.MM.JJJJ', 'inputmode' => 'numeric'],
                 'mapped' => false,
                 'required' => false,
-            ]);
+            ])
+            ->addEventListener(
+                FormEvents::POST_SUBMIT,
+                function (FormEvent $event): void {
+                    $form = $event->getForm();
+                    $expiresAt = $form->get('expiresAt')->getData();
+                    $year = $form->get('year')->getData();
+                    if (!$expiresAt instanceof \DateTimeInterface || !\is_int($year)) {
+                        return;
+                    }
+                    $yearStart = new \DateTimeImmutable(\sprintf('%d-01-01', $year));
+                    if ($expiresAt < $yearStart) {
+                        $form->get('expiresAt')->addError(new FormError(
+                            $this->translator->trans('admin.entitlements.error.expires_before_year', [
+                                '%year%' => (string) $year,
+                            ])
+                        ));
+                    }
+                },
+            );
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -76,7 +76,9 @@ class LeaveEntitlement
         $this->assertHoursGrantedNotNegative($hoursGranted);
 
         if (null !== $expiresAt) {
-            $this->expiresAt = $expiresAt->setTime(0, 0);
+            $normalized = $expiresAt->setTime(0, 0);
+            $this->assertExpiresAtNotBeforeEntitlementYear($normalized, $year);
+            $this->expiresAt = $normalized;
         }
     }
 
@@ -168,7 +170,11 @@ class LeaveEntitlement
 
     public function adjustExpiresAt(?\DateTimeImmutable $expiresAt): void
     {
-        $this->expiresAt = $expiresAt?->setTime(0, 0);
+        $normalized = $expiresAt?->setTime(0, 0);
+        if (null !== $normalized) {
+            $this->assertExpiresAtNotBeforeEntitlementYear($normalized, $this->year);
+        }
+        $this->expiresAt = $normalized;
         // Reset idempotency: the deadline changed, so a new 30-day window
         // earns a new warning. Phase 9 admin-driven extensions rely on this.
         $this->expiryWarningSentAt = null;
@@ -195,6 +201,22 @@ class LeaveEntitlement
     {
         if ($hours < 0) {
             throw new \InvalidArgumentException('LeaveEntitlement.hoursGranted must not be negative.');
+        }
+    }
+
+    /**
+     * An expiry deadline that pre-dates the entitlement year is unusable —
+     * the carryover would be flagged as expiring before it can even be used.
+     * Earliest valid expiresAt is the first day of the entitlement year
+     * (year=N → expiresAt >= N-01-01). The BUrlG §7 Abs. 3 default of
+     * N-03-31 already complies; admin extensions for illness / parental
+     * leave (BAG case law) push it later within or beyond the year.
+     */
+    private function assertExpiresAtNotBeforeEntitlementYear(\DateTimeImmutable $expiresAt, int $year): void
+    {
+        $yearStart = new \DateTimeImmutable(\sprintf('%d-01-01', $year));
+        if ($expiresAt < $yearStart) {
+            throw new \InvalidArgumentException(\sprintf('LeaveEntitlement.expiresAt must not be before %d-01-01 (got %s).', $year, $expiresAt->format('Y-m-d')));
         }
     }
 }

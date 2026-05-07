@@ -209,6 +209,67 @@ final class AdminEntitlementControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function newFormRejectsExpiresAtBeforeEntitlementYear(): void
+    {
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements/new');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-form"]')->form();
+        $formName = $form->getName();
+
+        // Bug case from issue #23: 2027 carryover with expiry in 2026.
+        $this->client->submit($form, [
+            $formName.'[employee]' => (string) $this->employee->getId(),
+            $formName.'[year]' => '2027',
+            $formName.'[type]' => LeaveEntitlementType::Carryover->value,
+            $formName.'[hoursGranted]' => '40',
+            $formName.'[expiresAt]' => '23.05.2026',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        // No row created.
+        $created = $this->em->getRepository(LeaveEntitlement::class)->findOneBy([
+            'employee' => $this->employee,
+            'year' => 2027,
+            'type' => LeaveEntitlementType::Carryover,
+        ]);
+        self::assertNull($created);
+    }
+
+    #[Test]
+    public function editExpiryFormRejectsDateBeforeEntitlementYear(): void
+    {
+        $entitlement = $this->createEntitlement(
+            2027,
+            LeaveEntitlementType::Carryover,
+            240.0,
+            new \DateTimeImmutable('2027-03-31'),
+        );
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/entitlements/'.$id.'/expires');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-expiry-form"]')->form();
+        $formName = $form->getName();
+
+        // Bug case: 2027 carryover, admin tries to set expiry to 2026.
+        $this->client->submit($form, [
+            $formName.'[expiresAt]' => '23.05.2026',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        // Original expiry preserved.
+        $this->em->clear();
+        /** @var LeaveEntitlement $reloaded */
+        $reloaded = $this->em->getRepository(LeaveEntitlement::class)->find($id);
+        self::assertSame('2027-03-31', $reloaded->getExpiresAt()?->format('Y-m-d'));
+    }
+
+    #[Test]
     public function archivedEmployeeNotOfferedInDropdown(): void
     {
         $archived = new Employee(

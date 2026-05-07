@@ -105,25 +105,43 @@ final class AdminEntitlementController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $form = $this->createForm(LeaveEntitlementExpiresAtFormType::class);
+        $form = $this->createForm(LeaveEntitlementExpiresAtFormType::class, null, [
+            'entitlement_year' => $entry->getYear(),
+        ]);
         $form->get('expiresAt')->setData($entry->getExpiresAt());
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var \DateTimeImmutable|null $expiresAt */
             $expiresAt = $form->get('expiresAt')->getData();
-            $entry->adjustExpiresAt($expiresAt);
-            $this->entityManager->flush();
+
+            try {
+                $entry->adjustExpiresAt($expiresAt);
+                $this->entityManager->flush();
+            } catch (\InvalidArgumentException $e) {
+                // Defense in depth: form-level validation should have caught
+                // this. Surface as form error if the entity guard still fires.
+                $form->get('expiresAt')->addError(new FormError($e->getMessage()));
+
+                return $this->render('admin/entitlements/edit_expiry.html.twig', [
+                    'form' => $form,
+                    'entry' => $entry,
+                ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
+            }
 
             $this->addFlash('success', $this->translator->trans('admin.entitlements.flash.expiry_updated'));
 
             return $this->redirectToRoute('app_admin_entitlement_index');
         }
 
+        $status = $form->isSubmitted() && !$form->isValid()
+            ? Response::HTTP_UNPROCESSABLE_ENTITY
+            : Response::HTTP_OK;
+
         return $this->render('admin/entitlements/edit_expiry.html.twig', [
             'form' => $form,
             'entry' => $entry,
-        ]);
+        ], new Response('', $status));
     }
 
     private function requireCompany(): Company

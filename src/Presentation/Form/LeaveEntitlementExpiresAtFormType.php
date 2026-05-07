@@ -7,15 +7,32 @@ namespace App\Presentation\Form;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
+ * Edit-only form for the carryover expiry date. The owning entitlement's
+ * year is passed as `entitlement_year` so the cross-field rule can fire
+ * inline (issue #23): a carryover expiry that pre-dates the entitlement
+ * year would gate leave before it even applies.
+ *
  * @extends AbstractType<array{expiresAt: ?\DateTimeInterface}>
  */
 final class LeaveEntitlementExpiresAtFormType extends AbstractType
 {
+    public function __construct(
+        private readonly TranslatorInterface $translator,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var int $entitlementYear */
+        $entitlementYear = $options['entitlement_year'];
+
         $builder
             ->add('expiresAt', DateType::class, [
                 'label' => 'admin.entitlements.field.expires_at',
@@ -27,11 +44,31 @@ final class LeaveEntitlementExpiresAtFormType extends AbstractType
                 'mapped' => false,
                 // Admin may clear the expiry (e.g. illness / parental leave extension).
                 'required' => false,
-            ]);
+            ])
+            ->addEventListener(
+                FormEvents::POST_SUBMIT,
+                function (FormEvent $event) use ($entitlementYear): void {
+                    $expiresAt = $event->getForm()->get('expiresAt')->getData();
+                    if (!$expiresAt instanceof \DateTimeInterface) {
+                        return;
+                    }
+                    $yearStart = new \DateTimeImmutable(\sprintf('%d-01-01', $entitlementYear));
+                    if ($expiresAt < $yearStart) {
+                        $event->getForm()->get('expiresAt')->addError(new FormError(
+                            $this->translator->trans('admin.entitlements.error.expires_before_year', [
+                                '%year%' => (string) $entitlementYear,
+                            ])
+                        ));
+                    }
+                },
+            );
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => null]);
+        $resolver
+            ->setRequired('entitlement_year')
+            ->setAllowedTypes('entitlement_year', 'int')
+            ->setDefaults(['data_class' => null]);
     }
 }

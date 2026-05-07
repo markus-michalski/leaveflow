@@ -364,6 +364,8 @@ admin:
             created: "Urlaubsanspruch wurde angelegt."
             expiry_updated: "Ablauffrist wurde aktualisiert."
             duplicate: "Für diesen Mitarbeiter existiert bereits ein Eintrag mit diesem Jahr und dieser Art."
+        error:
+            expires_before_year: "Die Ablauffrist darf nicht vor dem 01.01.%year% liegen — sonst läuft der Anspruch ab, bevor er gilt."
         new:
             title: "Urlaubsanspruch anlegen"
             hint: "Richtwert: 30 Urlaubstage × Stunden/Tag laut Arbeitszeitmodell (z. B. Vollzeit 40 h/5 Tage → 240 h). Bei Resturlaub zusätzlich Ablauffrist setzen (Standard: 31.03. Folgejahr)."
