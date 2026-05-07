@@ -43,7 +43,9 @@ final class AdminEntitlementControllerTest extends WebTestCase
 
         $this->loginAs('admin@leaveflow.test');
 
-        $this->client->request('GET', '/admin/entitlements');
+        // Default filter is the current year — pass `year=all` so the 2025
+        // fixture row is visible regardless of when the test runs.
+        $this->client->request('GET', '/admin/entitlements?year=all');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Urlaubskonten');
@@ -209,6 +211,94 @@ final class AdminEntitlementControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function indexDefaultsToCurrentYear(): void
+    {
+        $currentYear = (int) (new \DateTimeImmutable())->format('Y');
+        $previousYear = $currentYear - 1;
+
+        $previous = $this->createEntitlement($previousYear, LeaveEntitlementType::Regular, 240.0, null);
+        $current = $this->createEntitlement($currentYear, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/entitlements');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="entitlement-row-'.$current->getId().'"]');
+        self::assertSelectorNotExists('[data-testid="entitlement-row-'.$previous->getId().'"]');
+    }
+
+    #[Test]
+    public function indexExplicitYearShowsOnlyThatYear(): void
+    {
+        $entry2025 = $this->createEntitlement(2025, LeaveEntitlementType::Regular, 240.0, null);
+        $entry2027 = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/entitlements?year=2025');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="entitlement-row-'.$entry2025->getId().'"]');
+        self::assertSelectorNotExists('[data-testid="entitlement-row-'.$entry2027->getId().'"]');
+    }
+
+    #[Test]
+    public function indexAllYearsShowsEverything(): void
+    {
+        $entry2025 = $this->createEntitlement(2025, LeaveEntitlementType::Regular, 240.0, null);
+        $entry2027 = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/entitlements?year=all');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="entitlement-row-'.$entry2025->getId().'"]');
+        self::assertSelectorExists('[data-testid="entitlement-row-'.$entry2027->getId().'"]');
+    }
+
+    #[Test]
+    public function indexInvalidYearFallsBackToCurrentYear(): void
+    {
+        $currentYear = (int) (new \DateTimeImmutable())->format('Y');
+        $current = $this->createEntitlement($currentYear, LeaveEntitlementType::Regular, 240.0, null);
+        $previous = $this->createEntitlement($currentYear - 1, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        // Garbage value: not "all", not numeric — controller defaults to current year.
+        $this->client->request('GET', '/admin/entitlements?year=foo');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="entitlement-row-'.$current->getId().'"]');
+        self::assertSelectorNotExists('[data-testid="entitlement-row-'.$previous->getId().'"]');
+    }
+
+    #[Test]
+    public function yearDropdownContainsAvailableYearsAndCurrentYear(): void
+    {
+        $currentYear = (int) (new \DateTimeImmutable())->format('Y');
+        // Seed two non-current years so the dropdown's option set is well-defined.
+        $this->createEntitlement(2024, LeaveEntitlementType::Regular, 240.0, null);
+        $this->createEntitlement(2025, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/entitlements');
+
+        self::assertResponseIsSuccessful();
+        $options = $crawler
+            ->filter('[data-testid="admin-entitlements-year-select"] option')
+            ->each(static fn ($n): string => trim($n->attr('value') ?? ''));
+
+        self::assertContains((string) $currentYear, $options);
+        self::assertContains('2024', $options);
+        self::assertContains('2025', $options);
+        self::assertContains('all', $options);
+    }
+
+    #[Test]
     public function newFormRejectsExpiresAtBelowBurlgFloor(): void
     {
         $this->loginAs('admin@leaveflow.test');
@@ -330,7 +420,8 @@ final class AdminEntitlementControllerTest extends WebTestCase
 
         $this->loginAs('admin@leaveflow.test');
 
-        $crawler = $this->client->request('GET', '/admin/entitlements');
+        // 2027 fixtures — explicit year filter so the test isn't tied to "now".
+        $crawler = $this->client->request('GET', '/admin/entitlements?year=2027');
 
         self::assertResponseIsSuccessful();
         // Carryover row has the edit-expiry link, Regular row does not.

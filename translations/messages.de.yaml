@@ -355,6 +355,10 @@ admin:
         edit_expiry: "Ablauf anpassen"
         expired_badge: "Abgelaufen"
         no_expiry: "—"
+        filter:
+            year_label: "Jahr"
+            all_years: "Alle Jahre"
+            apply: "Anwenden"
         field:
             employee: Mitarbeiter
             employee_placeholder: "Mitarbeiter auswählen …"
