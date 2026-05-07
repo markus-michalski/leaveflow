@@ -24,8 +24,8 @@ final class ResetPasswordRequestFormType extends AbstractType
                 'autofocus' => true,
             ],
             'constraints' => [
-                new NotBlank(['message' => 'security.reset_password.error.email_required']),
-                new Email(['message' => 'security.reset_password.error.email_invalid']),
+                new NotBlank(message: 'security.reset_password.error.email_required'),
+                new Email(message: 'security.reset_password.error.email_invalid'),
             ],
         ]);
     }

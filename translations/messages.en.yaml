@@ -31,6 +31,7 @@ nav:
     requests: Requests
     employees: Employees
     primary: "Primary navigation"
+    menu_label: "Open menu"
     user:
         menu_label: "Open user menu"
     admin:

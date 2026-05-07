@@ -26,13 +26,13 @@ final class ChangePasswordFormType extends AbstractType
                 'help' => 'security.reset_password.reset.password_help',
                 'attr' => ['autocomplete' => 'new-password'],
                 'constraints' => [
-                    new NotBlank(['message' => 'security.reset_password.error.password_required']),
-                    new Length([
-                        'min' => 10,
-                        'minMessage' => 'security.reset_password.error.password_too_short',
-                        'max' => 4096,
-                    ]),
-                    new NotCompromisedPassword(['message' => 'security.reset_password.error.password_compromised']),
+                    new NotBlank(message: 'security.reset_password.error.password_required'),
+                    new Length(
+                        min: 10,
+                        max: 4096,
+                        minMessage: 'security.reset_password.error.password_too_short',
+                    ),
+                    new NotCompromisedPassword(message: 'security.reset_password.error.password_compromised'),
                 ],
             ],
             'second_options' => [

@@ -22,7 +22,8 @@
     </header>
 
     <form method="post" action="{{ path('app_my_notification_preferences_save') }}"
-          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+          data-testid="my-notification-preferences-form">
         <input type="hidden" name="_token" value="{{ csrf_token('notifications-preferences') }}">
 
         <div class="border-b border-gray-200 bg-gray-50 px-6 py-3">

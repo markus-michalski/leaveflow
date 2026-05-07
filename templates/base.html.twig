@@ -20,30 +20,13 @@
         {% endif %}
     </head>
     <body class="h-full text-gray-900 antialiased">
-        {% block notification_bell %}
-            {# Global bell — visible on every authenticated page. Polled
-               every 30s by the auto-refresh Stimulus controller. Pages with
-               their own page-header still render normally; the bell is a
-               fixed-position overlay so it never disturbs page layout. #}
+        {% block app_header %}
+            {# Global header on every authenticated page (logo, nav, admin
+               menu, notification bell, user menu). Suppressed on /login,
+               password-reset flows, and error pages by overriding this
+               block with an empty body. #}
             {% if app.user %}
-                <div class="fixed top-4 right-4 z-40">
-                    <turbo-frame id="notification-bell"
-                                 src="{{ path('app_my_notification_bell') }}"
-                                 data-controller="auto-refresh"
-                                 data-auto-refresh-interval-value="30000"
-                                 loading="lazy">
-                        {# Skeleton — replaced once the frame loads. #}
-                        <a href="{{ path('app_my_notification_index') }}"
-                           data-turbo-frame="_top"
-                           class="inline-flex items-center justify-center rounded-full bg-white p-2 shadow ring-1 ring-gray-200"
-                           aria-label="{{ 'notifications.bell.aria_loading'|trans({}, 'notifications') }}">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                      d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                            </svg>
-                        </a>
-                    </turbo-frame>
-                </div>
+                {{ include('_partials/app_header.html.twig') }}
             {% endif %}
         {% endblock %}
 

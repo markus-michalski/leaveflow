@@ -43,7 +43,7 @@ final class MyNotificationPreferencesControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Benachrichtigungs-Einstellungen');
 
-        $form = $crawler->filter('form')->first()->form();
+        $form = $crawler->filter('form[data-testid="my-notification-preferences-form"]')->form();
         $values = $form->getPhpValues();
 
         $expected = [
@@ -73,7 +73,7 @@ final class MyNotificationPreferencesControllerTest extends WebTestCase
         $this->loginAs('admin@acme.test');
         $crawler = $this->client->request('GET', '/my/notifications/preferences');
 
-        $form = $crawler->filter('form')->first()->form();
+        $form = $crawler->filter('form[data-testid="my-notification-preferences-form"]')->form();
         $values = $form->getPhpValues();
 
         foreach (NotificationType::cases() as $type) {
@@ -92,7 +92,7 @@ final class MyNotificationPreferencesControllerTest extends WebTestCase
         $this->loginAs('jane@acme.test');
         $crawler = $this->client->request('GET', '/my/notifications/preferences');
 
-        $form = $crawler->filter('form')->first()->form();
+        $form = $crawler->filter('form[data-testid="my-notification-preferences-form"]')->form();
         $values = $form->getPhpValues();
         // ApprovalDecided must be absent from the submission set —
         // unchecked toggles are not posted.
