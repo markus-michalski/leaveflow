@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity;
 
+use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Repository\AbsenceTypeRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -18,6 +19,12 @@ use Doctrine\ORM\Mapping as ORM;
  * Policy flags:
  * - deductsFromLeave: true = consumes a regular/carryover entitlement
  * - requiresApproval: true = goes through manager approval state machine
+ * - requiredBucket: optional bucket binding for deducting types. null =
+ *   unified pool (any entitlement, FIFO by expiry); Regular = only counts
+ *   against the current year's grant; Carryover = only counts against
+ *   carryover entitlements. Used by the booker to scope consumption so
+ *   "Resturlaub" requests can't silently eat into the regular grant when
+ *   the carryover bucket is empty. Ignored when deductsFromLeave is false.
  *
  * Color is stored as uppercase 3- or 6-digit hex (#RGB or #RRGGBB) and used
  * for calendar rendering. An icon field will be added in Phase 7 when the
@@ -54,6 +61,8 @@ class AbsenceType
         string $color,
         #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
         private bool $active = true,
+        #[ORM\Column(name: 'required_bucket', length: 20, enumType: LeaveEntitlementType::class, nullable: true)]
+        private ?LeaveEntitlementType $requiredBucket = null,
     ) {
         $this->name = $this->normalizeName($name);
         $this->color = $this->normalizeColor($color);
@@ -94,6 +103,11 @@ class AbsenceType
         return $this->active;
     }
 
+    public function getRequiredBucket(): ?LeaveEntitlementType
+    {
+        return $this->requiredBucket;
+    }
+
     public function activate(): void
     {
         $this->active = true;
@@ -109,11 +123,13 @@ class AbsenceType
         bool $deductsFromLeave,
         bool $requiresApproval,
         string $color,
+        ?LeaveEntitlementType $requiredBucket = null,
     ): void {
         $this->name = $this->normalizeName($name);
         $this->color = $this->normalizeColor($color);
         $this->deductsFromLeave = $deductsFromLeave;
         $this->requiresApproval = $requiresApproval;
+        $this->requiredBucket = $deductsFromLeave ? $requiredBucket : null;
     }
 
     private function normalizeName(string $name): string

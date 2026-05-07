@@ -328,6 +328,12 @@ admin:
             requiresApproval: "Erfordert Genehmigung"
             color: Farbe
             active: Aktiv
+            requiredBucket: "Konto-Bindung"
+            requiredBucket_help: "Optional: bindet die Buchung an ein bestimmtes Konto. Ohne Auswahl zieht die Art FIFO aus dem gesamten Saldo (Resturlaub mit ablaufender Frist zuerst, dann Regulär)."
+        bucket:
+            unified: "Beliebiges Konto (FIFO)"
+            regular: "Nur reguläres Urlaubskonto"
+            carryover: "Nur Resturlaub-Konto"
         flash:
             created: "Urlaubsart wurde angelegt."
             updated: "Urlaubsart wurde aktualisiert."

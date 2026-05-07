@@ -328,6 +328,12 @@ admin:
             requiresApproval: "Requires approval"
             color: Color
             active: Active
+            requiredBucket: "Bucket binding"
+            requiredBucket_help: "Optional: pin deductions to a specific bucket. Without selection the type uses FIFO across the whole balance (carryover with the earliest expiry first, then regular)."
+        bucket:
+            unified: "Any bucket (FIFO)"
+            regular: "Regular leave only"
+            carryover: "Carryover only"
         flash:
             created: "Absence type has been created."
             updated: "Absence type has been updated."

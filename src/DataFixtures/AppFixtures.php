@@ -315,8 +315,11 @@ final class AppFixtures extends Fixture
      */
     private function absenceTypeSeeds(Company $company): iterable
     {
-        yield new AbsenceType($company, 'Urlaub', true, true, '#3B82F6');
-        yield new AbsenceType($company, 'Resturlaub', true, true, '#6366F1');
+        // Urlaub draws from the current year's Regular entitlement only —
+        // the Resturlaub (Carryover) bucket is reserved for the previous
+        // year's leftover with its own statutory expiry window.
+        yield new AbsenceType($company, 'Urlaub', true, true, '#3B82F6', true, LeaveEntitlementType::Regular);
+        yield new AbsenceType($company, 'Resturlaub', true, true, '#6366F1', true, LeaveEntitlementType::Carryover);
         // Krankheit: eAU since 2023 means no upload, no approval gate, no deduction.
         yield new AbsenceType($company, 'Krankheit', false, false, '#EF4444');
         // Überstundenabbau draws from an overtime balance we don't model yet.
