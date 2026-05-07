@@ -75,7 +75,7 @@ final class MyLeaveRequestControllerTest extends WebTestCase
         $crawler = $this->client->request('GET', '/my/leave-requests/new');
         self::assertResponseIsSuccessful();
 
-        $form = $crawler->filter('form')->first()->form();
+        $form = $crawler->filter('form[data-testid="my-leave-request-form"]')->form();
         $formName = $form->getName();
 
         $this->client->submit($form, [
@@ -106,7 +106,7 @@ final class MyLeaveRequestControllerTest extends WebTestCase
 
         $this->loginAs('employee@leaveflow.test');
         $crawler = $this->client->request('GET', '/my/leave-requests/new');
-        $form = $crawler->filter('form')->first()->form();
+        $form = $crawler->filter('form[data-testid="my-leave-request-form"]')->form();
         $formName = $form->getName();
 
         $this->client->submit($form, [
@@ -129,7 +129,7 @@ final class MyLeaveRequestControllerTest extends WebTestCase
 
         $this->loginAs('employee@leaveflow.test');
         $crawler = $this->client->request('GET', '/my/leave-requests/new');
-        $form = $crawler->filter('form')->first()->form();
+        $form = $crawler->filter('form[data-testid="my-leave-request-form"]')->form();
         $formName = $form->getName();
 
         $this->client->submit($form, [
@@ -150,7 +150,7 @@ final class MyLeaveRequestControllerTest extends WebTestCase
         // No entitlement at all — but Krankheit is non-deducting.
         $this->loginAs('employee@leaveflow.test');
         $crawler = $this->client->request('GET', '/my/leave-requests/new');
-        $form = $crawler->filter('form')->first()->form();
+        $form = $crawler->filter('form[data-testid="my-leave-request-form"]')->form();
         $formName = $form->getName();
 
         $this->client->submit($form, [
