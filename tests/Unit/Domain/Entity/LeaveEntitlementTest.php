@@ -423,6 +423,55 @@ final class LeaveEntitlementTest extends TestCase
     }
 
     #[Test]
+    public function adjustGrantedHoursReplacesValue(): void
+    {
+        $entitlement = new LeaveEntitlement($this->employee, 2026, LeaveEntitlementType::Regular, 240.0);
+
+        $entitlement->adjustGrantedHours(200.0);
+
+        self::assertSame(200.0, $entitlement->getHoursGranted());
+        self::assertSame(0.0, $entitlement->getHoursUsed());
+    }
+
+    #[Test]
+    public function adjustGrantedHoursAcceptsValueEqualToConsumed(): void
+    {
+        // Boundary: lowering the grant down to exactly what's already used
+        // is still consistent (entitlement is fully drained, no overdraft).
+        $entitlement = new LeaveEntitlement($this->employee, 2026, LeaveEntitlementType::Regular, 240.0);
+        $entitlement->consume(40.0);
+
+        $entitlement->adjustGrantedHours(40.0);
+
+        self::assertSame(40.0, $entitlement->getHoursGranted());
+    }
+
+    #[Test]
+    public function adjustGrantedHoursRejectsNegative(): void
+    {
+        $entitlement = new LeaveEntitlement($this->employee, 2026, LeaveEntitlementType::Regular, 240.0);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('hoursGranted');
+
+        $entitlement->adjustGrantedHours(-1.0);
+    }
+
+    #[Test]
+    public function adjustGrantedHoursRejectsBelowConsumed(): void
+    {
+        $entitlement = new LeaveEntitlement($this->employee, 2026, LeaveEntitlementType::Regular, 240.0);
+        $entitlement->consume(100.0);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('consumed');
+
+        // Trying to lower the grant below what's already been consumed —
+        // would leave the entitlement over-consumed, can't be allowed.
+        $entitlement->adjustGrantedHours(80.0);
+    }
+
+    #[Test]
     public function adjustExpiresAtAcceptsNullClearOnRegularEntitlement(): void
     {
         // Clearing a non-existent expiry is a no-op for Regular — must not throw.

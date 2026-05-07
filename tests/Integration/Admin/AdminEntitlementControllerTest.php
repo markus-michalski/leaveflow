@@ -511,6 +511,140 @@ final class AdminEntitlementControllerTest extends WebTestCase
         $this->em->flush();
     }
 
+    #[Test]
+    public function adminUpdatesGrantedHours(): void
+    {
+        $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/entitlements/'.$id.'/edit');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-edit-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[hoursGranted]' => '200.5',
+        ]);
+
+        self::assertResponseRedirects('/admin/entitlements?year=2027');
+
+        $this->em->clear();
+        /** @var LeaveEntitlement $reloaded */
+        $reloaded = $this->em->find(LeaveEntitlement::class, $id);
+        self::assertSame(200.5, $reloaded->getHoursGranted());
+    }
+
+    #[Test]
+    public function editFormRejectsGrantBelowConsumed(): void
+    {
+        $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $entitlement->consume(120.0);
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/entitlements/'.$id.'/edit');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-edit-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[hoursGranted]' => '100',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $this->em->clear();
+        /** @var LeaveEntitlement $reloaded */
+        $reloaded = $this->em->find(LeaveEntitlement::class, $id);
+        self::assertSame(240.0, $reloaded->getHoursGranted());
+    }
+
+    #[Test]
+    public function editForeignCompanyEntitlementReturns404(): void
+    {
+        $foreign = new Company('Other GmbH', 36);
+        $this->em->persist($foreign);
+        $foreignLocation = new Location($foreign, 'HQ', 'DE', 'DE-BE', 'Berlin');
+        $this->em->persist($foreignLocation);
+        $foreignEmployee = new Employee(
+            $foreign,
+            'Foreign Frank',
+            'EMP-F001',
+            $foreignLocation,
+            WorkSchedule::standardFullTime(),
+            new \DateTimeImmutable('2023-01-01'),
+        );
+        $this->em->persist($foreignEmployee);
+        $foreignEntitlement = new LeaveEntitlement($foreignEmployee, 2027, LeaveEntitlementType::Regular, 240.0);
+        $this->em->persist($foreignEntitlement);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/entitlements/'.$foreignEntitlement->getId().'/edit');
+
+        self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
+    #[Test]
+    public function adminDeletesUnusedEntitlement(): void
+    {
+        $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        // The delete button form lives in the index — fetch a fresh page so
+        // the CSRF token in the page matches the session.
+        $crawler = $this->client->request('GET', '/admin/entitlements?year=2027');
+        $form = $crawler->filter('form[data-testid="entitlement-delete-form-'.$id.'"]')->form();
+        $this->client->submit($form);
+
+        self::assertResponseRedirects('/admin/entitlements?year=2027');
+
+        $this->em->clear();
+        self::assertNull($this->em->find(LeaveEntitlement::class, $id));
+    }
+
+    #[Test]
+    public function deleteIsBlockedWhenHoursAreConsumed(): void
+    {
+        $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $entitlement->consume(40.0);
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/entitlements?year=2027');
+        $form = $crawler->filter('form[data-testid="entitlement-delete-form-'.$id.'"]')->form();
+        $this->client->submit($form);
+
+        self::assertResponseRedirects('/admin/entitlements?year=2027');
+
+        $this->em->clear();
+        // Entitlement still exists; flash error has been queued.
+        self::assertNotNull($this->em->find(LeaveEntitlement::class, $id));
+    }
+
+    #[Test]
+    public function deleteRejectsInvalidCsrf(): void
+    {
+        $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('POST', '/admin/entitlements/'.$id.'/delete', [
+            '_token' => 'wrong',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+
+        $this->em->clear();
+        self::assertNotNull($this->em->find(LeaveEntitlement::class, $id));
+    }
+
     private function loginAs(string $email): void
     {
         $crawler = $this->client->request('GET', '/login');

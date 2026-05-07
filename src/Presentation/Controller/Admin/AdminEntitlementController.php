@@ -12,6 +12,7 @@ use App\Domain\Repository\CompanyRepository;
 use App\Domain\Repository\LeaveEntitlementRepository;
 use App\Presentation\Form\LeaveEntitlementExpiresAtFormType;
 use App\Presentation\Form\LeaveEntitlementFormType;
+use App\Presentation\Form\LeaveEntitlementGrantedHoursFormType;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -165,6 +166,82 @@ final class AdminEntitlementController extends AbstractController
             'form' => $form,
             'entry' => $entry,
         ], new Response('', $status));
+    }
+
+    #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function edit(Request $request, LeaveEntitlement $entry): Response
+    {
+        $company = $this->requireCompany();
+        if ($entry->getEmployee()->getCompany() !== $company) {
+            throw $this->createNotFoundException();
+        }
+
+        $form = $this->createForm(LeaveEntitlementGrantedHoursFormType::class);
+        $form->get('hoursGranted')->setData($entry->getHoursGranted());
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $newGrant = (float) $form->get('hoursGranted')->getData();
+
+            try {
+                $entry->adjustGrantedHours($newGrant);
+                $this->entityManager->flush();
+            } catch (\InvalidArgumentException|\DomainException $e) {
+                $form->get('hoursGranted')->addError(new FormError($e->getMessage()));
+
+                return $this->render('admin/entitlements/edit.html.twig', [
+                    'form' => $form,
+                    'entry' => $entry,
+                ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
+            }
+
+            $this->addFlash('success', $this->translator->trans('admin.entitlements.flash.updated'));
+
+            return $this->redirectToRoute('app_admin_entitlement_index', ['year' => $entry->getYear()]);
+        }
+
+        $status = $form->isSubmitted() && !$form->isValid()
+            ? Response::HTTP_UNPROCESSABLE_ENTITY
+            : Response::HTTP_OK;
+
+        return $this->render('admin/entitlements/edit.html.twig', [
+            'form' => $form,
+            'entry' => $entry,
+        ], new Response('', $status));
+    }
+
+    #[Route('/{id}/delete', name: 'delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function delete(Request $request, LeaveEntitlement $entry): Response
+    {
+        $company = $this->requireCompany();
+        if ($entry->getEmployee()->getCompany() !== $company) {
+            throw $this->createNotFoundException();
+        }
+
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('entitlement-delete-'.$entry->getId(), $token)) {
+            throw $this->createAccessDeniedException();
+        }
+
+        // Hard guard: deleting an entitlement that already booked hours would
+        // leave LeaveRequest.hoursUsed orphaned and silently corrupt balances.
+        // Force the admin to first reverse approvals (cancel + confirm_cancel)
+        // before the entitlement can go.
+        if ($entry->getHoursUsed() > 0) {
+            $this->addFlash('error', $this->translator->trans('admin.entitlements.flash.delete_blocked', [
+                '%hoursUsed%' => number_format($entry->getHoursUsed(), 2, ',', '.'),
+            ]));
+
+            return $this->redirectToRoute('app_admin_entitlement_index', ['year' => $entry->getYear()]);
+        }
+
+        $year = $entry->getYear();
+        $this->entityManager->remove($entry);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', $this->translator->trans('admin.entitlements.flash.deleted'));
+
+        return $this->redirectToRoute('app_admin_entitlement_index', ['year' => $year]);
     }
 
     private function requireCompany(): Company

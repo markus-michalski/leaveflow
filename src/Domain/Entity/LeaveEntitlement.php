@@ -169,6 +169,25 @@ class LeaveEntitlement
         }
     }
 
+    /**
+     * Allows admins to correct a previously-granted balance — typo fix,
+     * adding rolled-over overtime hours, etc. Cannot drop below the
+     * already-consumed amount; that would leave the entitlement
+     * over-consumed (hoursUsed > hoursGranted), an inconsistent state
+     * the booker cannot recover from without reversing approved leave.
+     */
+    public function adjustGrantedHours(float $newGrant): void
+    {
+        if ($newGrant < 0) {
+            throw new \InvalidArgumentException('LeaveEntitlement.hoursGranted must not be negative.');
+        }
+        if ($newGrant + self::SUM_EPSILON < $this->hoursUsed) {
+            throw new \DomainException(\sprintf('Cannot lower granted hours to %.2fh: %.2fh have already been consumed.', $newGrant, $this->hoursUsed));
+        }
+
+        $this->hoursGranted = $newGrant;
+    }
+
     public function adjustExpiresAt(?\DateTimeImmutable $expiresAt): void
     {
         $normalized = $expiresAt?->setTime(0, 0);
