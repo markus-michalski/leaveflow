@@ -35,13 +35,29 @@ final class AdminEntitlementController extends AbstractController
     }
 
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $company = $this->requireCompany();
 
+        // Default to the current year so admins of long-running tenants
+        // don't have to scroll past years of history every visit. Explicit
+        // `?year=all` shows everything; `?year=2026` shows just that year.
+        $availableYears = $this->repository->findAvailableYears($company);
+        $currentYear = (int) (new \DateTimeImmutable())->format('Y');
+
+        $yearParam = $request->query->get('year');
+        $selectedYear = match (true) {
+            'all' === $yearParam => null,
+            \is_string($yearParam) && '' !== $yearParam && ctype_digit($yearParam) => (int) $yearParam,
+            default => $currentYear,
+        };
+
         return $this->render('admin/entitlements/index.html.twig', [
-            'entries' => $this->repository->findAllByCompany($company),
+            'entries' => $this->repository->findByCompanyAndYear($company, $selectedYear),
             'today' => new \DateTimeImmutable('today'),
+            'availableYears' => $availableYears,
+            'selectedYear' => $selectedYear,
+            'currentYear' => $currentYear,
         ]);
     }
 

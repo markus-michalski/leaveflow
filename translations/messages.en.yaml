@@ -368,6 +368,10 @@ admin:
         edit_expiry: "Adjust expiry"
         expired_badge: "Expired"
         no_expiry: "—"
+        filter:
+            year_label: "Year"
+            all_years: "All years"
+            apply: "Apply"
         field:
             employee: Employee
             employee_placeholder: "Select employee …"

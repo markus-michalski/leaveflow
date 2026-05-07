@@ -51,15 +51,52 @@ class LeaveEntitlementRepository extends ServiceEntityRepository
      */
     public function findAllByCompany(Company $company): array
     {
-        return $this->createQueryBuilder('e')
+        return $this->findByCompanyAndYear($company, null);
+    }
+
+    /**
+     * Year-scoped variant of {@see findAllByCompany}. Pass null to include
+     * every year. Used by the admin entitlement list to default to the
+     * current year (typical SMB doesn't want to scroll past three years
+     * of history every time they open the page).
+     *
+     * @return list<LeaveEntitlement>
+     */
+    public function findByCompanyAndYear(Company $company, ?int $year): array
+    {
+        $qb = $this->createQueryBuilder('e')
             ->join('e.employee', 'emp')
             ->andWhere('emp.company = :company')
             ->setParameter('company', $company)
             ->orderBy('e.year', 'DESC')
             ->addOrderBy('emp.fullName', 'ASC')
-            ->addOrderBy('e.type', 'ASC')
+            ->addOrderBy('e.type', 'ASC');
+
+        if (null !== $year) {
+            $qb->andWhere('e.year = :year')->setParameter('year', $year);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Distinct years that have entitlement records for this company,
+     * ordered newest-first. Drives the year-filter dropdown.
+     *
+     * @return list<int>
+     */
+    public function findAvailableYears(Company $company): array
+    {
+        $rows = $this->createQueryBuilder('e')
+            ->select('DISTINCT e.year')
+            ->join('e.employee', 'emp')
+            ->andWhere('emp.company = :company')
+            ->setParameter('company', $company)
+            ->orderBy('e.year', 'DESC')
             ->getQuery()
-            ->getResult();
+            ->getScalarResult();
+
+        return array_values(array_map(static fn (array $row): int => (int) $row['year'], $rows));
     }
 
     /**
