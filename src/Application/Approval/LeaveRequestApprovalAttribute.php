@@ -18,4 +18,11 @@ enum LeaveRequestApprovalAttribute: string
     case Reject = 'LEAVE_REQUEST_REJECT';
     case ConfirmCancel = 'LEAVE_REQUEST_CONFIRM_CANCEL';
     case DenyCancel = 'LEAVE_REQUEST_DENY_CANCEL';
+    /**
+     * Read-only access to a request from the manager surface — drives
+     * /manager/approvals/{id} for already-decided requests so the
+     * department lead/deputy can review their own history (issue #17).
+     * Same access scope as the action attributes (lead/deputy, no self).
+     */
+    case View = 'LEAVE_REQUEST_VIEW_FROM_MANAGER';
 }

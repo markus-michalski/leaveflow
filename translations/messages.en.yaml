@@ -258,6 +258,17 @@ admin:
             updated: Employee %name% has been updated.
         error:
             duplicate_number: "Employee number %number% is already taken in this company."
+        leave_requests:
+            button: "Request history"
+            title: "Request history for %name%"
+            heading: "Request history for %name%"
+            empty: "This employee has not submitted any requests yet."
+            no_match: "No requests for the selected year."
+            summary_heading: "Hours summary per year"
+            filter:
+                year_label: "Year"
+                all_years: "All years"
+                apply: "Apply"
     holidays:
         title: Holidays
         heading: Holiday calendar
@@ -607,6 +618,10 @@ manager:
         intro: "Leave requests from your team that need a decision. Admins see requests from the whole company."
         empty: No requests need your attention right now.
         review: Review
+        view: View
+        tab:
+            open: Open
+            all: All
         show:
             title: Review leave request
             heading: Review leave request

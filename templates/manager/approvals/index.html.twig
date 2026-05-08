@@ -10,10 +10,27 @@
             <p class="mt-1 max-w-3xl text-sm text-gray-500">{{ 'manager.approvals.intro'|trans }}</p>
         </div>
         <a href="{{ path('app_dashboard') }}"
-           class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+           class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             {{ 'nav.home'|trans }}
         </a>
     </header>
+
+    <div class="mb-4 flex items-center gap-2 border-b border-gray-200" role="tablist" data-testid="manager-approvals-tabs">
+        <a href="{{ path('app_manager_approval_index', { filter: 'open' }) }}"
+           class="-mb-px inline-flex items-center border-b-2 px-4 py-2 text-sm font-medium {{ filter == 'open' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }}"
+           data-testid="manager-approvals-tab-open"
+           role="tab"
+           aria-selected="{{ filter == 'open' ? 'true' : 'false' }}">
+            {{ 'manager.approvals.tab.open'|trans }}
+        </a>
+        <a href="{{ path('app_manager_approval_index', { filter: 'all' }) }}"
+           class="-mb-px inline-flex items-center border-b-2 px-4 py-2 text-sm font-medium {{ filter == 'all' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }}"
+           data-testid="manager-approvals-tab-all"
+           role="tab"
+           aria-selected="{{ filter == 'all' ? 'true' : 'false' }}">
+            {{ 'manager.approvals.tab.all'|trans }}
+        </a>
+    </div>
 
     <div class="overflow-hidden rounded-xl bg-white shadow-sm">
         <table class="min-w-full divide-y divide-gray-200">
@@ -49,6 +66,10 @@
                             {% set status_classes = {
                                 'pending': 'bg-amber-100 text-amber-800',
                                 'cancel_requested': 'bg-orange-100 text-orange-800',
+                                'approved': 'bg-green-100 text-green-800',
+                                'rejected': 'bg-rose-100 text-rose-800',
+                                'cancelled': 'bg-gray-100 text-gray-700',
+                                'recorded': 'bg-sky-100 text-sky-800',
                             } %}
                             <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {{ status_classes[req.status.value]|default('bg-gray-100 text-gray-700') }}">
                                 {{ ('my.leave_requests.status.' ~ req.status.value)|trans }}
@@ -56,10 +77,18 @@
                         </td>
                         <td class="px-6 py-3 whitespace-nowrap text-gray-500">{{ req.requestedAt|date('d.m.Y H:i') }}</td>
                         <td class="px-6 py-3 text-right">
-                            <a href="{{ path('app_manager_approval_show', { id: req.id }) }}"
-                               class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
-                                {{ 'manager.approvals.review'|trans }}
-                            </a>
+                            {% set actionable_statuses = ['pending', 'cancel_requested'] %}
+                            {% if req.status.value in actionable_statuses %}
+                                <a href="{{ path('app_manager_approval_show', { id: req.id }) }}"
+                                   class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                    {{ 'manager.approvals.review'|trans }}
+                                </a>
+                            {% else %}
+                                <a href="{{ path('app_manager_approval_show', { id: req.id }) }}"
+                                   class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                                    {{ 'manager.approvals.view'|trans }}
+                                </a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% else %}

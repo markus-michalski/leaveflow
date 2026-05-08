@@ -330,6 +330,103 @@ final class ManagerApprovalControllerTest extends WebTestCase
         $this->em->flush();
     }
 
+    #[Test]
+    public function defaultFilterShowsOnlyActionableRequests(): void
+    {
+        $pending = $this->storeRequest($this->teamMember);
+        // Approve a second request from the team member so we have one of
+        // each status — pending + approved.
+        $approved = $this->storeRequestStarting('2099-09-01', $this->teamMember);
+        $reflection = new \ReflectionProperty(LeaveRequest::class, 'status');
+        $reflection->setValue($approved, LeaveRequestStatus::Approved);
+        $this->em->flush();
+
+        $this->loginAs('lead@leaveflow.test');
+        $this->client->request('GET', '/manager/approvals');
+
+        self::assertResponseIsSuccessful();
+        // Default = Open: pending visible, approved not.
+        self::assertSelectorExists('[data-testid="manager-approval-row-'.$pending->getId().'"]');
+        self::assertSelectorNotExists('[data-testid="manager-approval-row-'.$approved->getId().'"]');
+    }
+
+    #[Test]
+    public function allFilterShowsTeamHistoryIncludingDecidedRequests(): void
+    {
+        $pending = $this->storeRequest($this->teamMember);
+        $approved = $this->storeRequestStarting('2099-09-01', $this->teamMember);
+        $reflection = new \ReflectionProperty(LeaveRequest::class, 'status');
+        $reflection->setValue($approved, LeaveRequestStatus::Approved);
+        $this->em->flush();
+
+        $this->loginAs('lead@leaveflow.test');
+        $this->client->request('GET', '/manager/approvals?filter=all');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="manager-approval-row-'.$pending->getId().'"]');
+        // Approved is now visible because filter=all drops the status filter.
+        self::assertSelectorExists('[data-testid="manager-approval-row-'.$approved->getId().'"]');
+    }
+
+    #[Test]
+    public function allFilterStillScopesToOwnTeamForLead(): void
+    {
+        $teamRequest = $this->storeRequest($this->teamMember);
+        $foreignRequest = $this->storeRequest($this->outsideEmployee);
+        $this->em->flush();
+
+        $this->loginAs('lead@leaveflow.test');
+        $this->client->request('GET', '/manager/approvals?filter=all');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="manager-approval-row-'.$teamRequest->getId().'"]');
+        // Different department — still hidden under filter=all.
+        self::assertSelectorNotExists('[data-testid="manager-approval-row-'.$foreignRequest->getId().'"]');
+    }
+
+    #[Test]
+    public function leadCanViewDecidedRequestFromTheirTeam(): void
+    {
+        $approved = $this->storeRequest($this->teamMember);
+        $reflection = new \ReflectionProperty(LeaveRequest::class, 'status');
+        $reflection->setValue($approved, LeaveRequestStatus::Approved);
+        $this->em->flush();
+
+        $this->loginAs('lead@leaveflow.test');
+        // Show route now uses the View attribute — the lead can pull up an
+        // approved request to look at the audit trail in the history tab.
+        $this->client->request('GET', '/manager/approvals/'.$approved->getId());
+
+        self::assertResponseIsSuccessful();
+    }
+
+    /**
+     * Single-day request at a configurable start date. Caller is responsible
+     * for ensuring an entitlement exists (typically via a prior storeRequest
+     * call which creates a 2099 entitlement on first use).
+     */
+    private function storeRequestStarting(string $isoStart, Employee $employee): LeaveRequest
+    {
+        $start = new \DateTimeImmutable($isoStart);
+        if (\in_array($start->format('N'), ['6', '7'], true)) {
+            $start = $start->modify('next monday');
+        }
+        $request = new LeaveRequest(
+            employee: $employee,
+            absenceType: $this->urlaub,
+            startDate: $start,
+            endDate: $start,
+            dayType: LeaveDayType::FullDay,
+            requestedAt: new \DateTimeImmutable('2099-04-01 09:00:00'),
+        );
+        $request->applyBreakdown(new LeaveBreakdown([
+            new LeaveDay($start, 8.0, LeaveDayStatus::Working),
+        ]));
+        $this->em->persist($request);
+
+        return $request;
+    }
+
     private function loginAs(string $email): void
     {
         $crawler = $this->client->request('GET', '/login');

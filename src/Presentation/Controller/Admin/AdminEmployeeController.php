@@ -12,6 +12,7 @@ use App\Domain\Entity\User;
 use App\Domain\Enum\Weekday;
 use App\Domain\Repository\CompanyRepository;
 use App\Domain\Repository\EmployeeRepository;
+use App\Domain\Repository\LeaveRequestRepository;
 use App\Domain\ValueObject\WorkSchedule;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,6 +30,7 @@ final class AdminEmployeeController extends AbstractController
     public function __construct(
         private readonly EmployeeRepository $employeeRepository,
         private readonly CompanyRepository $companyRepository,
+        private readonly LeaveRequestRepository $leaveRequestRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
     ) {
@@ -158,6 +160,49 @@ final class AdminEmployeeController extends AbstractController
             'form' => $form,
             'is_new' => false,
             'employee' => $employee,
+        ]);
+    }
+
+    #[Route('/{id}/leave-requests', name: 'leave_requests', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function leaveRequests(Request $request, Employee $employee): Response
+    {
+        $this->assertSameCompany($employee, $this->currentCompany());
+
+        $yearParam = $request->query->get('year');
+        $year = \is_string($yearParam) && '' !== $yearParam && ctype_digit($yearParam)
+            ? (int) $yearParam
+            : null;
+
+        $allRequests = $this->leaveRequestRepository->findAllByEmployee($employee, null);
+
+        // Build year-filter dropdown options from the employee's actual
+        // request history (start-year). De-duplicated, newest first.
+        $availableYears = [];
+        foreach ($allRequests as $req) {
+            $availableYears[(int) $req->getStartDate()->format('Y')] = true;
+        }
+        $availableYears = array_keys($availableYears);
+        rsort($availableYears);
+
+        $filteredRequests = null === $year
+            ? $allRequests
+            : $this->leaveRequestRepository->findAllByEmployee($employee, $year);
+
+        // Aggregate hours by year × absence type for the summary card.
+        $yearAggregates = [];
+        foreach ($allRequests as $req) {
+            $reqYear = (int) $req->getStartDate()->format('Y');
+            $typeName = $req->getAbsenceType()->getName();
+            $yearAggregates[$reqYear][$typeName] = ($yearAggregates[$reqYear][$typeName] ?? 0.0) + $req->getTotalHours();
+        }
+        krsort($yearAggregates);
+
+        return $this->render('admin/employees/leave_requests.html.twig', [
+            'employee' => $employee,
+            'requests' => $filteredRequests,
+            'availableYears' => $availableYears,
+            'selectedYear' => $year,
+            'yearAggregates' => $yearAggregates,
         ]);
     }
 

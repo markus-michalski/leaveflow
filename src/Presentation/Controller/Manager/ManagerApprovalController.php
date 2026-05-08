@@ -53,36 +53,46 @@ final class ManagerApprovalController extends AbstractController
     }
 
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $user = $this->currentUser();
+        // Toggle: ?filter=open (default, current behavior) or ?filter=all
+        // (full team / company history, regardless of status). Admin gets
+        // company-wide scope on both; manager stays inside their own
+        // department (matches ApproverResolver's lead/deputy boundary).
+        $filter = 'all' === $request->query->get('filter') ? 'all' : 'open';
 
         if (UserRole::Admin === $user->getRole()) {
-            $requests = $this->leaveRequestRepository->findActionableInCompany($this->requireCompany());
+            $company = $this->requireCompany();
+            $requests = 'all' === $filter
+                ? $this->leaveRequestRepository->findAllInCompany($company)
+                : $this->leaveRequestRepository->findActionableInCompany($company);
         } else {
             $employee = $user->getEmployee();
             if (!$employee instanceof Employee) {
                 // Non-admin without an employee link cannot approve anything.
                 $requests = [];
             } else {
-                $requests = $this->leaveRequestRepository->findActionableByApprover($employee);
+                $requests = 'all' === $filter
+                    ? $this->leaveRequestRepository->findAllByApprover($employee)
+                    : $this->leaveRequestRepository->findActionableByApprover($employee);
             }
         }
 
         return $this->render('manager/approvals/index.html.twig', [
             'requests' => $requests,
+            'filter' => $filter,
         ]);
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function show(Request $request, LeaveRequest $leaveRequest): Response
+    public function show(LeaveRequest $leaveRequest): Response
     {
-        $this->denyAccessUnlessOneOfGranted([
-            LeaveRequestApprovalAttribute::Approve->value,
-            LeaveRequestApprovalAttribute::Reject->value,
-            LeaveRequestApprovalAttribute::ConfirmCancel->value,
-            LeaveRequestApprovalAttribute::DenyCancel->value,
-        ], $leaveRequest);
+        // Loosened from the four action attributes to View so a dept lead or
+        // deputy can also pull up an already-decided request from the
+        // history tab. The show template already gates the action forms on
+        // status, so loosening the GET doesn't expose extra buttons.
+        $this->denyAccessUnlessGranted(LeaveRequestApprovalAttribute::View->value, $leaveRequest);
 
         return $this->render('manager/approvals/show.html.twig', [
             'leaveRequest' => $leaveRequest,
@@ -224,19 +234,6 @@ final class ManagerApprovalController extends AbstractController
         }
 
         return $this->redirectToRoute('app_manager_approval_index');
-    }
-
-    /**
-     * @param list<string> $attributes
-     */
-    private function denyAccessUnlessOneOfGranted(array $attributes, LeaveRequest $leaveRequest): void
-    {
-        foreach ($attributes as $attribute) {
-            if ($this->isGranted($attribute, $leaveRequest)) {
-                return;
-            }
-        }
-        throw $this->createAccessDeniedException();
     }
 
     private function currentUser(): User
