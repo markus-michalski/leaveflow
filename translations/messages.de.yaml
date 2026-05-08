@@ -380,6 +380,10 @@ admin:
         edit_expiry: "Ablauf anpassen"
         expired_badge: "Abgelaufen"
         no_expiry: "—"
+        # Source-Year-Hinweis bei Resturlaub: das year-Feld ist das
+        # Verbrauchsjahr, der Ursprung ist das Vorjahr. Erspart Admins
+        # die mentale Übersetzung "Resturlaub 2027" → "aus 2026".
+        from_year: "aus %year%"
         delete:
             button: "Löschen"
             confirm: "Diesen Urlaubsanspruch wirklich löschen?"

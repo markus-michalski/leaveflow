@@ -21,7 +21,14 @@
             <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.year'|trans }}</dt>
             <dd class="text-gray-900">{{ entry.year }}</dd>
             <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.type'|trans }}</dt>
-            <dd class="text-gray-900">{{ ('admin.entitlements.type.' ~ entry.type.value)|trans }}</dd>
+            <dd class="text-gray-900">
+                {{ ('admin.entitlements.type.' ~ entry.type.value)|trans }}
+                {% if entry.type.value == 'carryover' %}
+                    <span class="ml-1 text-xs text-gray-500">
+                        {{ 'admin.entitlements.from_year'|trans({ '%year%': entry.year - 1 }) }}
+                    </span>
+                {% endif %}
+            </dd>
             <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.used'|trans }}</dt>
             <dd class="text-gray-900 font-mono">{{ entry.hoursUsed|number_format(2, ',', '.') }}</dd>
             <dt class="font-medium text-gray-500">{{ 'admin.entitlements.field.remaining'|trans }}</dt>
