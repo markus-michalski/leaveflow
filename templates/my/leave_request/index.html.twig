@@ -4,19 +4,50 @@
 
 {% block body %}
 <div class="mx-auto max-w-5xl p-6">
-    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <header class="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold text-gray-900">{{ 'my.leave_requests.heading'|trans }}</h1>
             <p class="mt-1 text-sm text-gray-500">{{ 'my.leave_requests.description'|trans }}</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-end gap-3">
+            <form method="get"
+                  action="{{ path('app_my_leave_request_index') }}"
+                  class="flex items-end gap-2"
+                  data-testid="my-leave-requests-year-form">
+                <div>
+                    <label for="my-leave-requests-year" class="block text-xs font-medium text-gray-500">
+                        {{ 'my.leave_requests.filter.year_label'|trans }}
+                    </label>
+                    {% set yearOptions = availableYears %}
+                    {% if currentYear not in yearOptions %}
+                        {% set yearOptions = [currentYear]|merge(yearOptions)|sort|reverse %}
+                    {% endif %}
+                    <select id="my-leave-requests-year"
+                            name="year"
+                            onchange="this.form.requestSubmit()"
+                            class="mt-1 block w-32 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            data-testid="my-leave-requests-year-select">
+                        {% for y in yearOptions %}
+                            <option value="{{ y }}" {{ selectedYear == y ? 'selected' : '' }}>{{ y }}</option>
+                        {% endfor %}
+                        <option value="all" {{ selectedYear is null ? 'selected' : '' }}>
+                            {{ 'my.leave_requests.filter.all_years'|trans }}
+                        </option>
+                    </select>
+                </div>
+                <noscript>
+                    <button type="submit" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        {{ 'my.leave_requests.filter.apply'|trans }}
+                    </button>
+                </noscript>
+            </form>
             <a href="{{ path('app_dashboard') }}"
-               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+               class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 {{ 'nav.home'|trans }}
             </a>
             <a href="{{ path('app_my_leave_request_new') }}"
                data-testid="my-leave-requests-new"
-               class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+               class="whitespace-nowrap rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
                 {{ 'my.leave_requests.create'|trans }}
             </a>
         </div>

@@ -58,7 +58,9 @@ final class MyLeaveRequestControllerTest extends WebTestCase
         $this->em->flush();
 
         $this->loginAs('employee@leaveflow.test');
-        $this->client->request('GET', '/my/leave-requests');
+        // Test fixture is in 2099 — explicit ?year=all so it's visible
+        // regardless of when the test runs (default filter is current year).
+        $this->client->request('GET', '/my/leave-requests?year=all');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('[data-testid^="my-leave-request-row-"]');
@@ -403,6 +405,52 @@ final class MyLeaveRequestControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function indexDefaultsToCurrentYearAndHidesOtherYears(): void
+    {
+        $currentYear = (int) (new \DateTimeImmutable())->format('Y');
+        // Use a future year that's far from current — keeps the test stable
+        // even when the calendar rolls over.
+        $futureYear = $currentYear + 50;
+        $futureRequest = $this->createStoredRequestStartingIn($futureYear);
+        $this->em->flush();
+
+        $this->loginAs('employee@leaveflow.test');
+        $this->client->request('GET', '/my/leave-requests');
+
+        self::assertResponseIsSuccessful();
+        // Default = current year filter — future-year request is hidden.
+        self::assertSelectorNotExists('[data-testid="my-leave-request-row-'.$futureRequest->getId().'"]');
+    }
+
+    #[Test]
+    public function indexExplicitYearShowsOnlyThatYear(): void
+    {
+        $currentYear = (int) (new \DateTimeImmutable())->format('Y');
+        $futureYear = $currentYear + 50;
+        $futureRequest = $this->createStoredRequestStartingIn($futureYear);
+        $this->em->flush();
+
+        $this->loginAs('employee@leaveflow.test');
+        $this->client->request('GET', '/my/leave-requests?year='.$futureYear);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="my-leave-request-row-'.$futureRequest->getId().'"]');
+    }
+
+    #[Test]
+    public function indexAllYearsShowsEverything(): void
+    {
+        $futureRequest = $this->createStoredRequestStartingIn(2099);
+        $this->em->flush();
+
+        $this->loginAs('employee@leaveflow.test');
+        $this->client->request('GET', '/my/leave-requests?year=all');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="my-leave-request-row-'.$futureRequest->getId().'"]');
+    }
+
+    #[Test]
     public function userWithoutEmployeeIsRedirectedToProfile(): void
     {
         // admin user has no Employee link in this test seed.
@@ -418,6 +466,33 @@ final class MyLeaveRequestControllerTest extends WebTestCase
     private function createStoredRequest(): LeaveRequest
     {
         return $this->createStoredRequestFor($this->employee);
+    }
+
+    /**
+     * Single-day request starting on Mon 2nd of January in the given year —
+     * so the year filter has something stable to scope by.
+     */
+    private function createStoredRequestStartingIn(int $year): LeaveRequest
+    {
+        $start = new \DateTimeImmutable($year.'-01-02');
+        // Nudge to the next Monday if Jan 2 falls on a weekend.
+        if (\in_array($start->format('N'), ['6', '7'], true)) {
+            $start = $start->modify('next monday');
+        }
+        $request = new LeaveRequest(
+            $this->employee,
+            $this->urlaub,
+            $start,
+            $start,
+            \App\Domain\Enum\LeaveDayType::FullDay,
+            new \DateTimeImmutable($year.'-01-01 09:00:00'),
+        );
+        $request->applyBreakdown(new \App\Domain\ValueObject\LeaveBreakdown([
+            new \App\Domain\ValueObject\LeaveDay($start, 8.0, \App\Domain\Enum\LeaveDayStatus::Working),
+        ]));
+        $this->em->persist($request);
+
+        return $request;
     }
 
     private function createStoredRequestFor(Employee $employee): LeaveRequest

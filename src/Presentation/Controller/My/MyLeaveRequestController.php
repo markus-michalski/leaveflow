@@ -51,19 +51,42 @@ final class MyLeaveRequestController extends AbstractController
     }
 
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $employee = $this->getEmployeeOrRedirect();
         if ($employee instanceof Response) {
             return $employee;
         }
 
+        // Default to current year so the list stays scannable on long-tenured
+        // employees. ?year=N pins a specific year, ?year=all shows everything,
+        // garbage falls back to the current-year default.
+        $allRequests = $this->leaveRequestRepository->findAllByEmployee($employee, null);
+        $availableYears = [];
+        foreach ($allRequests as $req) {
+            $availableYears[(int) $req->getStartDate()->format('Y')] = true;
+        }
+        $availableYears = array_keys($availableYears);
+        rsort($availableYears);
+
+        $currentYear = (int) $this->clock->now()->format('Y');
+        $yearParam = $request->query->get('year');
+        $selectedYear = match (true) {
+            'all' === $yearParam => null,
+            \is_string($yearParam) && '' !== $yearParam && ctype_digit($yearParam) => (int) $yearParam,
+            default => $currentYear,
+        };
+
+        $filteredRequests = null === $selectedYear
+            ? $allRequests
+            : $this->leaveRequestRepository->findAllByEmployee($employee, $selectedYear);
+
         return $this->render('my/leave_request/index.html.twig', [
             'employee' => $employee,
-            'requests' => $this->leaveRequestRepository->findBy(
-                ['employee' => $employee],
-                ['requestedAt' => 'DESC'],
-            ),
+            'requests' => $filteredRequests,
+            'availableYears' => $availableYears,
+            'selectedYear' => $selectedYear,
+            'currentYear' => $currentYear,
         ]);
     }
 

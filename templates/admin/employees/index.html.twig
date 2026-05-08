@@ -3,7 +3,7 @@
 {% block title %}{{ 'admin.employees.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
 
 {% block body %}
-<div class="mx-auto max-w-6xl p-6">
+<div class="mx-auto max-w-7xl p-6">
     <header class="mb-6 flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.employees.heading'|trans }}</h1>
         <div class="flex items-center gap-3">
@@ -54,10 +54,17 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-3 text-right">
-                            <a href="{{ path('app_admin_employee_edit', { id: employee.id }) }}"
-                               class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-100">
-                                {{ 'admin.employees.edit'|trans }}
-                            </a>
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{{ path('app_admin_employee_leave_requests', { id: employee.id }) }}"
+                                   class="inline-flex items-center whitespace-nowrap rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                                   data-testid="admin-employee-leave-requests-link-{{ employee.id }}">
+                                    {{ 'admin.employees.leave_requests.button'|trans }}
+                                </a>
+                                <a href="{{ path('app_admin_employee_edit', { id: employee.id }) }}"
+                                   class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-100">
+                                    {{ 'admin.employees.edit'|trans }}
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 {% else %}

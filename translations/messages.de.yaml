@@ -258,6 +258,17 @@ admin:
             updated: Mitarbeiter %name% wurde aktualisiert.
         error:
             duplicate_number: "Personalnummer %number% ist im Unternehmen bereits vergeben."
+        leave_requests:
+            button: "Antragshistorie"
+            title: "Antragshistorie %name%"
+            heading: "Antragshistorie %name%"
+            empty: "Noch keine Anträge dieses Mitarbeiters."
+            no_match: "Keine Anträge im gewählten Jahr."
+            summary_heading: "Stunden-Übersicht pro Jahr"
+            filter:
+                year_label: "Jahr"
+                all_years: "Alle Jahre"
+                apply: "Anwenden"
     holidays:
         title: Feiertage
         heading: Feiertagskalender
@@ -514,6 +525,10 @@ my:
         create: Neuen Antrag stellen
         empty: Du hast noch keine Anträge gestellt.
         details: Details
+        filter:
+            year_label: Jahr
+            all_years: Alle Jahre
+            apply: Anwenden
         field:
             requested_at: Eingereicht
             range: Zeitraum
@@ -607,6 +622,10 @@ manager:
         intro: "Urlaubsanträge aus deinem Team, die eine Entscheidung brauchen. Admins sehen Anträge firmenweit."
         empty: Aktuell nichts zu entscheiden.
         review: Prüfen
+        view: Ansehen
+        tab:
+            open: Offen
+            all: Alle
         show:
             title: Antrag prüfen
             heading: Antrag prüfen

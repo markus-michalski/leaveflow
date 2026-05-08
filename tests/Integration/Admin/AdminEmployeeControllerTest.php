@@ -5,12 +5,19 @@ declare(strict_types=1);
 namespace App\Tests\Integration\Admin;
 
 use App\DataFixtures\AppFixtures;
+use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
+use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
+use App\Domain\Enum\LeaveDayStatus;
+use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\UserRole;
 use App\Domain\Enum\Weekday;
+use App\Domain\ValueObject\LeaveBreakdown;
+use App\Domain\ValueObject\LeaveDay;
+use App\Domain\ValueObject\WorkSchedule;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -116,6 +123,121 @@ final class AdminEmployeeControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
+    #[Test]
+    public function leaveRequestsDrilldownShowsEmployeeHistory(): void
+    {
+        [$employee, $request] = $this->seedEmployeeWithRequest('2026-07-06');
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/employees/'.$employee->getId().'/leave-requests');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', $employee->getFullName());
+        self::assertSelectorExists('[data-testid="employee-leave-request-row-'.$request->getId().'"]');
+        self::assertSelectorExists('[data-testid="leave-summary-2026"]');
+    }
+
+    #[Test]
+    public function leaveRequestsDrilldownYearFilterScopesByStartYear(): void
+    {
+        [$employee, $req2026] = $this->seedEmployeeWithRequest('2026-07-06');
+        $req2027 = $this->addRequestForEmployee($employee, '2027-03-15');
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/employees/'.$employee->getId().'/leave-requests?year=2027');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="employee-leave-request-row-'.$req2027->getId().'"]');
+        self::assertSelectorNotExists('[data-testid="employee-leave-request-row-'.$req2026->getId().'"]');
+    }
+
+    #[Test]
+    public function leaveRequestsDrilldownEmptyForEmployeeWithNoHistory(): void
+    {
+        [$employee] = $this->seedEmployeeWithoutRequests();
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/employees/'.$employee->getId().'/leave-requests');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="employee-leave-requests-empty"]');
+    }
+
+    #[Test]
+    public function managerCannotAccessAdminLeaveRequestsDrilldown(): void
+    {
+        [$employee] = $this->seedEmployeeWithoutRequests();
+        $this->em->flush();
+
+        $this->loginAs('manager@leaveflow.test');
+        $this->client->request('GET', '/admin/employees/'.$employee->getId().'/leave-requests');
+
+        self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+    }
+
+    /**
+     * @return array{0: Employee, 1: LeaveRequest}
+     */
+    private function seedEmployeeWithRequest(string $startDate): array
+    {
+        [$employee] = $this->seedEmployeeWithoutRequests();
+        $request = $this->addRequestForEmployee($employee, $startDate);
+
+        return [$employee, $request];
+    }
+
+    /**
+     * @return array{0: Employee}
+     */
+    private function seedEmployeeWithoutRequests(): array
+    {
+        $company = $this->em->getRepository(Company::class)->findOneBy([]);
+        \assert($company instanceof Company);
+
+        $employee = new Employee(
+            $company,
+            'Erik Employee',
+            'EMP-DRILL',
+            $this->hq,
+            WorkSchedule::standardFullTime(),
+            new \DateTimeImmutable('2024-01-01'),
+        );
+        $this->em->persist($employee);
+
+        return [$employee];
+    }
+
+    private function addRequestForEmployee(Employee $employee, string $startDate): LeaveRequest
+    {
+        $company = $employee->getCompany();
+        $absenceType = $this->em->getRepository(AbsenceType::class)
+            ->findOneBy(['company' => $company, 'name' => 'Urlaub']);
+        \assert($absenceType instanceof AbsenceType);
+
+        $start = new \DateTimeImmutable($startDate);
+        if (\in_array($start->format('N'), ['6', '7'], true)) {
+            $start = $start->modify('next monday');
+        }
+
+        $request = new LeaveRequest(
+            $employee,
+            $absenceType,
+            $start,
+            $start,
+            LeaveDayType::FullDay,
+            new \DateTimeImmutable($startDate.' 09:00:00'),
+        );
+        $request->applyBreakdown(new LeaveBreakdown([
+            new LeaveDay($start, 8.0, LeaveDayStatus::Working),
+        ]));
+        $this->em->persist($request);
+
+        return $request;
+    }
+
     private function seed(): void
     {
         $company = new Company('Acme GmbH', 36);
@@ -123,6 +245,10 @@ final class AdminEmployeeControllerTest extends WebTestCase
 
         $this->hq = new Location($company, 'HQ', 'DE', 'DE-BY', 'München');
         $this->em->persist($this->hq);
+
+        // Pre-seeded AbsenceType so the leave-requests drilldown tests can
+        // attach LeaveRequests without each test re-creating it.
+        $this->em->persist(new AbsenceType($company, 'Urlaub', true, true, '#3B82F6'));
 
         $hasher = self::getContainer()->get(UserPasswordHasherInterface::class);
         foreach ([

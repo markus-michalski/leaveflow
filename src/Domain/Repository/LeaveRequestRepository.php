@@ -76,6 +76,59 @@ class LeaveRequestRepository extends ServiceEntityRepository
     }
 
     /**
+     * Manager history: every request routed to this approver regardless of
+     * status — drives the "Alle" tab on /manager/approvals (#17). Mirrors
+     * the access scope of {@see findActionableByApprover} (department lead
+     * or deputy, excluding self) so a manager toggling between Open and All
+     * never sees requests they couldn't act on in the first place.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findAllByApprover(Employee $approver): array
+    {
+        return $this->createQueryBuilder('r')
+            ->innerJoin('r.employee', 'e')
+            ->innerJoin('e.department', 'd')
+            ->where('d.lead = :approver OR d.deputy = :approver')
+            ->andWhere('e != :approver')
+            ->setParameter('approver', $approver)
+            ->orderBy('r.requestedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Per-employee history: every request from a single employee, optionally
+     * scoped to a single year. Drives the per-employee drilldown (#18).
+     * Sorted requestedAt-desc within each year so the view shows the most
+     * recent action first.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findAllByEmployee(Employee $employee, ?int $year = null): array
+    {
+        $qb = $this->createQueryBuilder('r')
+            ->where('r.employee = :employee')
+            ->setParameter('employee', $employee)
+            ->orderBy('r.startDate', 'DESC')
+            ->addOrderBy('r.requestedAt', 'DESC');
+
+        if (null !== $year) {
+            // DQL doesn't ship a portable YEAR() function — use a half-open
+            // range on startDate instead. Cross-year requests are bucketed by
+            // their start; matches the user expectation when they pick "2026".
+            $start = (new \DateTimeImmutable())->setDate($year, 1, 1)->setTime(0, 0);
+            $end = (new \DateTimeImmutable())->setDate($year + 1, 1, 1)->setTime(0, 0);
+            $qb->andWhere('r.startDate >= :year_start')
+                ->andWhere('r.startDate < :year_end')
+                ->setParameter('year_start', $start)
+                ->setParameter('year_end', $end);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
      * Admin view: every actionable request in the company regardless of
      * department membership. Separate query so manager and admin code paths
      * stay cleanly split.
@@ -94,6 +147,24 @@ class LeaveRequestRepository extends ServiceEntityRepository
             ])
             ->setParameter('company', $company)
             ->orderBy('r.requestedAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Admin "all" view — every request in the company, any status, newest
+     * first. Counterpart to {@see findActionableInCompany} for the
+     * /manager/approvals "Alle" toggle when an admin opens it.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findAllInCompany(Company $company): array
+    {
+        return $this->createQueryBuilder('r')
+            ->innerJoin('r.employee', 'e')
+            ->where('e.company = :company')
+            ->setParameter('company', $company)
+            ->orderBy('r.requestedAt', 'DESC')
             ->getQuery()
             ->getResult();
     }
