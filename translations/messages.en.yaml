@@ -380,6 +380,7 @@ admin:
         edit_expiry: "Adjust expiry"
         expired_badge: "Expired"
         no_expiry: "—"
+        from_year: "from %year%"
         delete:
             button: "Delete"
             confirm: "Really delete this leave entitlement?"

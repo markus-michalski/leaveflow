@@ -512,6 +512,33 @@ final class AdminEntitlementControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function indexShowsSourceYearHintForCarryoverEntries(): void
+    {
+        $carryover = $this->createEntitlement(
+            2027,
+            LeaveEntitlementType::Carryover,
+            16.0,
+            new \DateTimeImmutable('2027-03-31'),
+        );
+        $regular = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/entitlements?year=2027');
+
+        self::assertResponseIsSuccessful();
+        // Carryover row carries the "aus 2026" hint — clarifies that the
+        // year field is the use-year, not the source year (#25 pragmatic UX).
+        self::assertSelectorExists('[data-testid="entitlement-source-year-'.$carryover->getId().'"]');
+        self::assertSelectorTextContains(
+            '[data-testid="entitlement-source-year-'.$carryover->getId().'"]',
+            'aus 2026',
+        );
+        // Regular row does not.
+        self::assertSelectorNotExists('[data-testid="entitlement-source-year-'.$regular->getId().'"]');
+    }
+
+    #[Test]
     public function adminUpdatesGrantedHours(): void
     {
         $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);

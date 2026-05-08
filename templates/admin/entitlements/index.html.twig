@@ -79,7 +79,14 @@
                             {{ is_new_employee ? entry.employee.fullName : '' }}
                         </td>
                         <td class="px-6 py-3">{{ entry.year }}</td>
-                        <td class="px-6 py-3">{{ ('admin.entitlements.type.' ~ entry.type.value)|trans }}</td>
+                        <td class="px-6 py-3">
+                            <div>{{ ('admin.entitlements.type.' ~ entry.type.value)|trans }}</div>
+                            {% if entry.type.value == 'carryover' %}
+                                <div class="text-xs text-gray-500" data-testid="entitlement-source-year-{{ entry.id }}">
+                                    {{ 'admin.entitlements.from_year'|trans({ '%year%': entry.year - 1 }) }}
+                                </div>
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-3 text-right font-mono">{{ entry.hoursGranted|number_format(2, ',', '.') }}</td>
                         <td class="px-6 py-3 text-right font-mono">{{ entry.hoursUsed|number_format(2, ',', '.') }}</td>
                         <td class="px-6 py-3 text-right font-mono">{{ entry.hoursRemaining|number_format(2, ',', '.') }}</td>
