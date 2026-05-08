@@ -525,6 +525,10 @@ my:
         create: Neuen Antrag stellen
         empty: Du hast noch keine Anträge gestellt.
         details: Details
+        filter:
+            year_label: Jahr
+            all_years: Alle Jahre
+            apply: Anwenden
         field:
             requested_at: Eingereicht
             range: Zeitraum

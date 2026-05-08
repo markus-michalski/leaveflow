@@ -524,6 +524,10 @@ my:
         description: Submit new requests and track the status of existing ones.
         create: Submit new request
         empty: You have not submitted any requests yet.
+        filter:
+            year_label: Year
+            all_years: All years
+            apply: Apply
         details: Details
         field:
             requested_at: Submitted
