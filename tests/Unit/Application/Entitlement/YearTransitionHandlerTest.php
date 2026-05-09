@@ -9,9 +9,11 @@ use App\Application\Entitlement\YearTransitionHandler;
 use App\Application\Entitlement\YearTransitionMessage;
 use App\Application\Entitlement\YearTransitionServiceInterface;
 use App\Application\Entitlement\YearTransitionStatus;
+use App\Application\Scheduler\ScheduledJobConfigManagerInterface;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\Location;
+use App\Domain\Enum\ScheduledJobRunStatus;
 use App\Domain\ValueObject\WorkSchedule;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -35,13 +37,17 @@ use Symfony\Component\Clock\MockClock;
 final class YearTransitionHandlerTest extends TestCase
 {
     private YearTransitionServiceInterface&MockObject $service;
+    private ScheduledJobConfigManagerInterface&MockObject $jobConfig;
     private LoggerInterface&MockObject $logger;
     private Employee $jane;
 
     protected function setUp(): void
     {
         $this->service = $this->createMock(YearTransitionServiceInterface::class);
+        $this->jobConfig = $this->createMock(ScheduledJobConfigManagerInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
+        // Default: toggle enabled — most tests exercise the happy path.
+        $this->jobConfig->method('isEnabled')->willReturn(true);
 
         $acme = new Company('Acme GmbH');
         $hq = new Location($acme, 'HQ', 'DE', 'DE-BY', 'München');
@@ -115,10 +121,57 @@ final class YearTransitionHandlerTest extends TestCase
         self::assertSame(0, $loggedContexts[1]['skippedEmptyBalance']);
     }
 
+    #[Test]
+    public function skipsWorkWhenToggleIsDisabled(): void
+    {
+        $clock = new MockClock('2027-01-01 01:00:00');
+
+        // Override the default-enabled stub.
+        $this->jobConfig = $this->createMock(ScheduledJobConfigManagerInterface::class);
+        $this->jobConfig->method('isEnabled')->willReturn(false);
+
+        $this->service->expects(self::never())->method('transition');
+        $this->jobConfig->expects(self::once())
+            ->method('markRun')
+            ->with(YearTransitionHandler::JOB_NAME, ScheduledJobRunStatus::Skipped);
+
+        $this->handler($clock)->__invoke(new YearTransitionMessage());
+    }
+
+    #[Test]
+    public function recordsSuccessAfterCompletedRun(): void
+    {
+        $clock = new MockClock('2027-01-01 01:00:00');
+        $this->service->method('transition')->willReturn([]);
+
+        $this->jobConfig->expects(self::once())
+            ->method('markRun')
+            ->with(YearTransitionHandler::JOB_NAME, ScheduledJobRunStatus::Success);
+
+        $this->handler($clock)->__invoke(new YearTransitionMessage());
+    }
+
+    #[Test]
+    public function recordsFailureAndRethrowsWhenServiceThrows(): void
+    {
+        $clock = new MockClock('2027-01-01 01:00:00');
+        $this->service->method('transition')->willThrowException(new \RuntimeException('repo dead'));
+
+        $this->jobConfig->expects(self::once())
+            ->method('markRun')
+            ->with(YearTransitionHandler::JOB_NAME, ScheduledJobRunStatus::Failure, 'repo dead');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('repo dead');
+
+        $this->handler($clock)->__invoke(new YearTransitionMessage());
+    }
+
     private function handler(MockClock $clock): YearTransitionHandler
     {
         return new YearTransitionHandler(
             $this->service,
+            $this->jobConfig,
             $clock,
             $this->logger,
         );

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Entitlement;
 
+use App\Application\Scheduler\ScheduledJobConfigManagerInterface;
+use App\Domain\Enum\ScheduledJobRunStatus;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -17,6 +19,10 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
  * by design — the underlying service skips employees that already have a
  * carryover row for the target year, so accidental re-runs are harmless.
  *
+ * Toggleable via the ScheduledJobConfig row named `year-transition`. When
+ * disabled the handler short-circuits and records a Skipped run so admins
+ * still see the trigger in the run log.
+ *
  * Logs the per-status counts so admins reviewing the messenger transport log
  * can see at a glance whether a run created entries, found nothing, or
  * skipped duplicates.
@@ -24,8 +30,11 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final readonly class YearTransitionHandler
 {
+    public const string JOB_NAME = 'year-transition';
+
     public function __construct(
         private YearTransitionServiceInterface $service,
+        private ScheduledJobConfigManagerInterface $jobConfig,
         private ClockInterface $clock,
         private LoggerInterface $logger,
     ) {
@@ -33,11 +42,28 @@ final readonly class YearTransitionHandler
 
     public function __invoke(YearTransitionMessage $message): void
     {
+        if (!$this->jobConfig->isEnabled(self::JOB_NAME)) {
+            $this->logger->info('Year-transition sweep skipped (toggle disabled).');
+            $this->jobConfig->markRun(self::JOB_NAME, ScheduledJobRunStatus::Skipped);
+
+            return;
+        }
+
         $sourceYear = (int) $this->clock->now()->format('Y') - 1;
 
         $this->logger->info('Year-transition sweep starting.', ['sourceYear' => $sourceYear]);
 
-        $report = $this->service->transition($sourceYear);
+        try {
+            $report = $this->service->transition($sourceYear);
+        } catch (\Throwable $e) {
+            $this->logger->error('Year-transition sweep failed.', [
+                'sourceYear' => $sourceYear,
+                'error' => $e->getMessage(),
+            ]);
+            $this->jobConfig->markRun(self::JOB_NAME, ScheduledJobRunStatus::Failure, $e->getMessage());
+
+            throw $e;
+        }
 
         $created = 0;
         $skippedExists = 0;
@@ -56,5 +82,7 @@ final readonly class YearTransitionHandler
             'skippedAlreadyExists' => $skippedExists,
             'skippedEmptyBalance' => $skippedEmpty,
         ]);
+
+        $this->jobConfig->markRun(self::JOB_NAME, ScheduledJobRunStatus::Success);
     }
 }

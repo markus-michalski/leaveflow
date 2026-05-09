@@ -27,29 +27,46 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final readonly class EntitlementExpiryCheckHandler
 {
+    public const string JOB_NAME = 'entitlement-expiry-check';
+
     private const int WARNING_WINDOW_DAYS = 30;
 
     public function __construct(
         private LeaveEntitlementRepository $entitlementRepository,
         private NotificationDispatcherInterface $dispatcher,
         private EntityManagerInterface $entityManager,
+        private \App\Application\Scheduler\ScheduledJobConfigManagerInterface $jobConfig,
         private ClockInterface $clock,
     ) {
     }
 
     public function __invoke(EntitlementExpiryCheckMessage $message): void
     {
-        $today = $this->clock->now()->setTime(0, 0);
-        $entitlements = $this->entitlementRepository->findExpiringWithoutWarning(
-            $today,
-            self::WARNING_WINDOW_DAYS,
-        );
+        if (!$this->jobConfig->isEnabled(self::JOB_NAME)) {
+            $this->jobConfig->markRun(self::JOB_NAME, \App\Domain\Enum\ScheduledJobRunStatus::Skipped);
 
-        foreach ($entitlements as $entitlement) {
-            $this->processEntitlement($entitlement, $today);
+            return;
         }
 
-        $this->entityManager->flush();
+        try {
+            $today = $this->clock->now()->setTime(0, 0);
+            $entitlements = $this->entitlementRepository->findExpiringWithoutWarning(
+                $today,
+                self::WARNING_WINDOW_DAYS,
+            );
+
+            foreach ($entitlements as $entitlement) {
+                $this->processEntitlement($entitlement, $today);
+            }
+
+            $this->entityManager->flush();
+        } catch (\Throwable $e) {
+            $this->jobConfig->markRun(self::JOB_NAME, \App\Domain\Enum\ScheduledJobRunStatus::Failure, $e->getMessage());
+
+            throw $e;
+        }
+
+        $this->jobConfig->markRun(self::JOB_NAME, \App\Domain\Enum\ScheduledJobRunStatus::Success);
     }
 
     private function processEntitlement(LeaveEntitlement $entitlement, \DateTimeImmutable $today): void

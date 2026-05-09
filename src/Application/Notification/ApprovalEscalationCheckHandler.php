@@ -30,29 +30,46 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final readonly class ApprovalEscalationCheckHandler
 {
+    public const string JOB_NAME = 'approval-escalation-check';
+
     public function __construct(
         private LeaveRequestRepository $leaveRequestRepository,
         private UserRepository $userRepository,
         private NotificationDispatcherInterface $dispatcher,
         private EntityManagerInterface $entityManager,
+        private \App\Application\Scheduler\ScheduledJobConfigManagerInterface $jobConfig,
         private ClockInterface $clock,
     ) {
     }
 
     public function __invoke(ApprovalEscalationCheckMessage $message): void
     {
-        $now = $this->clock->now();
-        $requests = $this->leaveRequestRepository->findPendingNeedingEscalation($now);
+        if (!$this->jobConfig->isEnabled(self::JOB_NAME)) {
+            $this->jobConfig->markRun(self::JOB_NAME, \App\Domain\Enum\ScheduledJobRunStatus::Skipped);
 
-        // Cache admins per-company so a batch with many requests from the
-        // same company doesn't re-query for each row.
-        $adminsByCompanyId = [];
-
-        foreach ($requests as $request) {
-            $this->processRequest($request, $now, $adminsByCompanyId);
+            return;
         }
 
-        $this->entityManager->flush();
+        try {
+            $now = $this->clock->now();
+            $requests = $this->leaveRequestRepository->findPendingNeedingEscalation($now);
+
+            // Cache admins per-company so a batch with many requests from the
+            // same company doesn't re-query for each row.
+            $adminsByCompanyId = [];
+
+            foreach ($requests as $request) {
+                $this->processRequest($request, $now, $adminsByCompanyId);
+            }
+
+            $this->entityManager->flush();
+        } catch (\Throwable $e) {
+            $this->jobConfig->markRun(self::JOB_NAME, \App\Domain\Enum\ScheduledJobRunStatus::Failure, $e->getMessage());
+
+            throw $e;
+        }
+
+        $this->jobConfig->markRun(self::JOB_NAME, \App\Domain\Enum\ScheduledJobRunStatus::Success);
     }
 
     /**
