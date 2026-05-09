@@ -293,6 +293,29 @@ admin:
             updated: Mitarbeiter %name% wurde aktualisiert.
         error:
             duplicate_number: "Personalnummer %number% ist im Unternehmen bereits vergeben."
+        import:
+            title: "Mitarbeiter-Import"
+            heading: "Mitarbeiter aus CSV importieren"
+            preview_title: "Vorschau Mitarbeiter-Import"
+            intro_heading: "So funktioniert der Import"
+            intro_body: "Lade eine CSV mit Mitarbeitern hoch — wir validieren jede Zeile und zeigen dir das Ergebnis. Erst nach deiner Bestätigung wird tatsächlich importiert. <strong>Pflichtspalten:</strong> fullName, employeeNumber, locationName, weeklyHours, workingDays, joinedAt. <strong>Optional:</strong> leftAt, userEmail, departmentName."
+            download_template: "CSV-Vorlage herunterladen"
+            preview: "Vorschau anzeigen"
+            commit: "%count% Mitarbeiter importieren"
+            upload_again: "Andere Datei wählen"
+            blocked_hint: "Mindestens eine Zeile ist ungültig — bitte CSV korrigieren und erneut hochladen."
+            summary: "%valid% gültige · %invalid% ungültige Zeilen"
+            row_valid: "Gültig"
+            empty: "Keine Datenzeilen in der CSV gefunden."
+            field:
+                file: "CSV-Datei"
+                line: "Zeile"
+                status: "Status"
+            error:
+                invalid_extension: "Nur .csv-Dateien werden akzeptiert."
+            flash:
+                success: "%count% Mitarbeiter wurden importiert."
+                revalidation_failed: "Beim Bestätigen sind neue Validierungsfehler aufgetreten — vermutlich hat sich der DB-Stand zwischenzeitlich geändert. Bitte nochmal prüfen und erneut hochladen."
         leave_requests:
             button: "Antragshistorie"
             title: "Antragshistorie %name%"

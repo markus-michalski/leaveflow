@@ -293,6 +293,29 @@ admin:
             updated: Employee %name% has been updated.
         error:
             duplicate_number: "Employee number %number% is already taken in this company."
+        import:
+            title: "Employee import"
+            heading: "Import employees from CSV"
+            preview_title: "Employee import preview"
+            intro_heading: "How the import works"
+            intro_body: "Upload a CSV with employees — we validate each row and show you the result. The actual import only runs after you confirm. <strong>Required columns:</strong> fullName, employeeNumber, locationName, weeklyHours, workingDays, joinedAt. <strong>Optional:</strong> leftAt, userEmail, departmentName."
+            download_template: "Download CSV template"
+            preview: "Preview"
+            commit: "Import %count% employees"
+            upload_again: "Pick another file"
+            blocked_hint: "At least one row is invalid — please correct the CSV and re-upload."
+            summary: "%valid% valid · %invalid% invalid rows"
+            row_valid: "Valid"
+            empty: "No data rows found in the CSV."
+            field:
+                file: "CSV file"
+                line: "Line"
+                status: "Status"
+            error:
+                invalid_extension: "Only .csv files are accepted."
+            flash:
+                success: "%count% employees were imported."
+                revalidation_failed: "New validation errors surfaced during commit — the DB state probably changed in the meantime. Please re-check and upload again."
         leave_requests:
             button: "Request history"
             title: "Request history for %name%"
