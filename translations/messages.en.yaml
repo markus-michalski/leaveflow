@@ -275,6 +275,11 @@ admin:
         schedule: Work schedule
         weekly_hours: Weekly hours
         working_days: Working days
+        distribution_mode: Distribution
+        distribution_mode_auto: Even
+        distribution_mode_manual: Manual per day
+        distribution_per_day: Hours per day
+        distribution_per_day_help: "Enter hours for each weekday. Days with 0 hours are non-working. The sum must match weekly hours."
         joined_at: Joined
         left_at: Left (optional)
         period: Period

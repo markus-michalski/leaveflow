@@ -79,6 +79,113 @@ final class AdminEmployeeControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function adminCreatesEmployeeWithManualPerDayDistribution(): void
+    {
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/employees/new');
+        $form = $crawler->filter('form[data-testid="admin-employee-form"]')->form();
+        $formName = $form->getName();
+
+        // Mon+Wed 8h, Fri 4h — 20h split asymmetrically across 3 days.
+        $this->client->submit($form, [
+            $formName.'[fullName]' => 'Pia Parttime',
+            $formName.'[employeeNumber]' => 'EMP-PT-1',
+            $formName.'[location]' => (string) $this->hq->getId(),
+            $formName.'[weeklyHours]' => '20',
+            $formName.'[distributionMode]' => 'manual',
+            $formName.'[hoursMonday]' => '8',
+            $formName.'[hoursWednesday]' => '8',
+            $formName.'[hoursFriday]' => '4',
+            $formName.'[joinedAt]' => '01.01.2026',
+        ]);
+
+        self::assertResponseRedirects('/admin/employees');
+
+        /** @var Employee|null $created */
+        $created = $this->em->getRepository(Employee::class)->findOneBy(['employeeNumber' => 'EMP-PT-1']);
+        self::assertNotNull($created);
+        self::assertSame(20.0, $created->getWorkSchedule()->weeklyHours());
+        self::assertSame(8.0, $created->getWorkSchedule()->hoursForDay(Weekday::Monday));
+        self::assertSame(0.0, $created->getWorkSchedule()->hoursForDay(Weekday::Tuesday));
+        self::assertSame(8.0, $created->getWorkSchedule()->hoursForDay(Weekday::Wednesday));
+        self::assertSame(4.0, $created->getWorkSchedule()->hoursForDay(Weekday::Friday));
+        self::assertSame([
+            Weekday::Monday,
+            Weekday::Wednesday,
+            Weekday::Friday,
+        ], $created->getWorkSchedule()->workingDays());
+    }
+
+    #[Test]
+    public function manualModeRejectsHoursThatDontSumToWeekly(): void
+    {
+        $this->loginAs('admin@leaveflow.test');
+
+        $crawler = $this->client->request('GET', '/admin/employees/new');
+        $form = $crawler->filter('form[data-testid="admin-employee-form"]')->form();
+        $formName = $form->getName();
+
+        // weeklyHours=40, but per-day sum = 30 → server rejects.
+        $this->client->submit($form, [
+            $formName.'[fullName]' => 'Mismatch Mike',
+            $formName.'[employeeNumber]' => 'EMP-MM-1',
+            $formName.'[location]' => (string) $this->hq->getId(),
+            $formName.'[weeklyHours]' => '40',
+            $formName.'[distributionMode]' => 'manual',
+            $formName.'[hoursMonday]' => '8',
+            $formName.'[hoursTuesday]' => '8',
+            $formName.'[hoursWednesday]' => '8',
+            $formName.'[hoursThursday]' => '6',
+            $formName.'[joinedAt]' => '01.01.2026',
+        ]);
+
+        // Form re-renders with error; no employee persisted.
+        self::assertNull($this->em->getRepository(Employee::class)->findOneBy(['employeeNumber' => 'EMP-MM-1']));
+        self::assertStringContainsString(
+            'Sum of daily hours',
+            (string) $this->client->getResponse()->getContent(),
+        );
+    }
+
+    #[Test]
+    public function editPrefillsManualModeWhenScheduleIsUneven(): void
+    {
+        $company = $this->em->getRepository(Company::class)->findOneBy([]);
+        \assert($company instanceof Company);
+
+        $unevenSchedule = WorkSchedule::manual(20.0, [
+            Weekday::Monday->value => 8.0,
+            Weekday::Wednesday->value => 8.0,
+            Weekday::Friday->value => 4.0,
+        ]);
+        $employee = new Employee(
+            $company,
+            'Pia Parttime',
+            'EMP-PT-EDIT',
+            $this->hq,
+            $unevenSchedule,
+            new \DateTimeImmutable('2024-01-01'),
+        );
+        $this->em->persist($employee);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/employees/'.$employee->getId().'/edit');
+        $form = $crawler->filter('form[data-testid="admin-employee-form"]')->form();
+        $values = $form->getPhpValues();
+        $employeeValues = $values['employee'] ?? [];
+        \assert(\is_array($employeeValues));
+
+        self::assertSame('manual', $employeeValues['distributionMode'] ?? null);
+        self::assertSame('8.00', $employeeValues['hoursMonday'] ?? null);
+        self::assertSame('8.00', $employeeValues['hoursWednesday'] ?? null);
+        self::assertSame('4.00', $employeeValues['hoursFriday'] ?? null);
+        // Non-working days are blank, not "0".
+        self::assertSame('', $employeeValues['hoursTuesday'] ?? null);
+    }
+
+    #[Test]
     public function duplicateEmployeeNumberShowsFormErrorNotCrash(): void
     {
         $this->loginAs('admin@leaveflow.test');

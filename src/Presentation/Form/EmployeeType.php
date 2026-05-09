@@ -23,15 +23,47 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
- * Admin form to create/edit an Employee. WorkSchedule is collected as
- * weeklyHours + checkbox list of working days and then auto-distributed.
+ * Admin form to create/edit an Employee.
  *
- * Manual per-day distribution is supported by the VO but UI-deferred to Phase 9.
+ * WorkSchedule has two distribution modes (Phase 9):
+ * - "auto" — weeklyHours spread evenly across the chosen working days
+ *   (the original Phase-2 path, still the default).
+ * - "manual" — admin types the hours per weekday directly. Days with
+ *   zero hours don't count as a working day. The VO's sum-epsilon
+ *   validation surfaces here as a form error if the entered hours
+ *   don't add up to weeklyHours.
  *
  * @extends AbstractType<Employee>
  */
 final class EmployeeType extends AbstractType
 {
+    public const string MODE_AUTO = 'auto';
+    public const string MODE_MANUAL = 'manual';
+
+    /**
+     * Order matches the Weekday enum so iteration in the template stays
+     * predictable (Mon..Sun).
+     *
+     * @var list<array{0: string, 1: Weekday}>
+     */
+    private const array WEEKDAY_FIELDS = [
+        ['hoursMonday', Weekday::Monday],
+        ['hoursTuesday', Weekday::Tuesday],
+        ['hoursWednesday', Weekday::Wednesday],
+        ['hoursThursday', Weekday::Thursday],
+        ['hoursFriday', Weekday::Friday],
+        ['hoursSaturday', Weekday::Saturday],
+        ['hoursSunday', Weekday::Sunday],
+    ];
+
+    /**
+     * @return list<array{0: string, 1: Weekday}>
+     */
+    public static function weekdayFieldMap(): array
+    {
+        return self::WEEKDAY_FIELDS;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var Company $company */
@@ -100,8 +132,41 @@ final class EmployeeType extends AbstractType
                 'choice_translation_domain' => 'messages',
                 'multiple' => true,
                 'expanded' => true,
+                // Required only in auto mode; the controller does the
+                // mode-aware validation since constraints cannot read
+                // sibling field state cleanly here.
+                'required' => false,
+            ])
+            ->add('distributionMode', ChoiceType::class, [
+                'label' => 'admin.employees.distribution_mode',
+                'mapped' => false,
+                'choices' => [
+                    'admin.employees.distribution_mode_auto' => self::MODE_AUTO,
+                    'admin.employees.distribution_mode_manual' => self::MODE_MANUAL,
+                ],
+                'expanded' => true,
+                'multiple' => false,
+                // Default kicks in only when the controller hasn't called
+                // setData() on this field yet (i.e. /new action). For edit
+                // the controller resolves the actual mode from the saved
+                // schedule via prefillForm().
+                'empty_data' => self::MODE_AUTO,
                 'constraints' => [new NotBlank()],
             ])
+        ;
+
+        foreach (self::WEEKDAY_FIELDS as [$fieldName, $weekday]) {
+            $builder->add($fieldName, NumberType::class, [
+                'label' => $weekday->label(),
+                'mapped' => false,
+                'required' => false,
+                'scale' => 2,
+                'html5' => true,
+                'attr' => ['min' => '0', 'step' => '0.25', 'inputmode' => 'decimal'],
+            ]);
+        }
+
+        $builder
             ->add('joinedAt', DateType::class, [
                 'label' => 'admin.employees.joined_at',
                 'mapped' => false,
