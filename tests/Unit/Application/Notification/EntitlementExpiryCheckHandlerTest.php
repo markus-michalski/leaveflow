@@ -56,10 +56,15 @@ final class EntitlementExpiryCheckHandlerTest extends TestCase
 
     private function createHandler(): EntitlementExpiryCheckHandler
     {
+        // Always-enabled stub — toggle behavior tested separately.
+        $jobConfig = $this->createMock(\App\Application\Scheduler\ScheduledJobConfigManagerInterface::class);
+        $jobConfig->method('isEnabled')->willReturn(true);
+
         return new EntitlementExpiryCheckHandler(
             $this->entitlementRepository,
             $this->dispatcher,
             $this->entityManager,
+            $jobConfig,
             $this->clock,
         );
     }

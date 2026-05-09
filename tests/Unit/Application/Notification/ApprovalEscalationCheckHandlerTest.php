@@ -61,11 +61,19 @@ final class ApprovalEscalationCheckHandlerTest extends TestCase
 
     private function createHandler(): ApprovalEscalationCheckHandler
     {
+        // Always-enabled stub — these tests don't care about the toggle layer
+        // (#35 phase 2), they exercise the escalation logic. The toggle's own
+        // skip behavior is covered separately in YearTransitionHandlerTest +
+        // ScheduledJobConfigManagerTest.
+        $jobConfig = $this->createMock(\App\Application\Scheduler\ScheduledJobConfigManagerInterface::class);
+        $jobConfig->method('isEnabled')->willReturn(true);
+
         return new ApprovalEscalationCheckHandler(
             $this->leaveRequestRepository,
             $this->userRepository,
             $this->dispatcher,
             $this->entityManager,
+            $jobConfig,
             $this->clock,
         );
     }
