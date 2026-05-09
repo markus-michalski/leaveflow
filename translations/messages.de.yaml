@@ -275,6 +275,11 @@ admin:
         schedule: Arbeitszeit
         weekly_hours: Wochenstunden
         working_days: Arbeitstage
+        distribution_mode: Verteilung
+        distribution_mode_auto: Gleichmäßig
+        distribution_mode_manual: Manuell pro Tag
+        distribution_per_day: Stunden pro Tag
+        distribution_per_day_help: "Trage hier die Stunden pro Wochentag ein. Tage mit 0 Stunden sind freie Tage. Die Summe muss den Wochenstunden entsprechen."
         joined_at: Eintritt
         left_at: Austritt (optional)
         period: Zeitraum

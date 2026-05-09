@@ -55,6 +55,9 @@ final class AdminEmployeeController extends AbstractController
             'company' => $company,
             'is_edit' => false,
         ]);
+        // Auto is the default for fresh creates — admins flip to manual
+        // explicitly when they need an uneven distribution.
+        $form->get('distributionMode')->setData(\App\Presentation\Form\EmployeeType::MODE_AUTO);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -288,6 +291,25 @@ final class AdminEmployeeController extends AbstractController
     private function buildSchedule(FormInterface $form): WorkSchedule
     {
         $weeklyHours = (float) $form->get('weeklyHours')->getData();
+        $mode = (string) $form->get('distributionMode')->getData();
+
+        if (\App\Presentation\Form\EmployeeType::MODE_MANUAL === $mode) {
+            $hoursPerDay = [];
+            foreach (\App\Presentation\Form\EmployeeType::weekdayFieldMap() as [$fieldName, $weekday]) {
+                $value = $form->get($fieldName)->getData();
+                if (null === $value) {
+                    continue;
+                }
+                $hours = (float) $value;
+                if ($hours <= 0.0) {
+                    continue;
+                }
+                $hoursPerDay[$weekday->value] = $hours;
+            }
+
+            return WorkSchedule::manual($weeklyHours, $hoursPerDay);
+        }
+
         $dayValues = $form->get('workingDays')->getData();
         if (!\is_array($dayValues) || [] === $dayValues) {
             throw new \InvalidArgumentException('At least one working day is required.');
@@ -306,16 +328,54 @@ final class AdminEmployeeController extends AbstractController
      */
     private function prefillForm(FormInterface $form, Employee $employee): void
     {
+        $schedule = $employee->getWorkSchedule();
+
         $form->get('fullName')->setData($employee->getFullName());
         $form->get('employeeNumber')->setData($employee->getEmployeeNumber());
         $form->get('location')->setData($employee->getLocation());
-        $form->get('weeklyHours')->setData($employee->getWorkSchedule()->weeklyHours());
+        $form->get('weeklyHours')->setData($schedule->weeklyHours());
         $form->get('workingDays')->setData(
-            array_map(static fn (Weekday $d): int => $d->value, $employee->getWorkSchedule()->workingDays()),
+            array_map(static fn (Weekday $d): int => $d->value, $schedule->workingDays()),
         );
         $form->get('joinedAt')->setData($employee->getJoinedAt());
         $form->get('leftAt')->setData($employee->getLeftAt());
         $form->get('user')->setData($employee->getUser());
         $form->get('department')->setData($employee->getDepartment());
+
+        // Per-day fields always reflect the saved schedule so a switch to
+        // manual mode in the UI starts from the current values.
+        foreach (\App\Presentation\Form\EmployeeType::weekdayFieldMap() as [$fieldName, $weekday]) {
+            $hours = $schedule->hoursForDay($weekday);
+            $form->get($fieldName)->setData($hours > 0.0 ? $hours : null);
+        }
+
+        $form->get('distributionMode')->setData(
+            $this->detectDistributionMode($schedule)
+                ? \App\Presentation\Form\EmployeeType::MODE_AUTO
+                : \App\Presentation\Form\EmployeeType::MODE_MANUAL,
+        );
+    }
+
+    /**
+     * Returns true if every working day has the same hours (within the
+     * VO's epsilon tolerance) — the canonical "auto-distributed" shape.
+     * Anything uneven gets surfaced as the manual mode so the admin sees
+     * the per-day breakdown they're actually editing.
+     */
+    private function detectDistributionMode(WorkSchedule $schedule): bool
+    {
+        $days = $schedule->workingDays();
+        if (\count($days) <= 1) {
+            return true;
+        }
+
+        $reference = $schedule->hoursForDay($days[0]);
+        foreach ($days as $day) {
+            if (abs($schedule->hoursForDay($day) - $reference) > 0.01) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
