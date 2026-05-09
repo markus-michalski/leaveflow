@@ -66,6 +66,7 @@ final class AdminAbsenceTypeController extends AbstractController
                     // Bucket only meaningful for deducting types — silently
                     // discard a stale value if the admin unticked deducts.
                     $deducts ? $bucket : null,
+                    illnessTracking: (bool) $form->get('illnessTracking')->getData(),
                 );
                 $this->entityManager->persist($entry);
                 $this->entityManager->flush();
@@ -109,6 +110,7 @@ final class AdminAbsenceTypeController extends AbstractController
         $form->get('color')->setData($entry->getColor());
         $form->get('active')->setData($entry->isActive());
         $form->get('requiredBucket')->setData($entry->getRequiredBucket());
+        $form->get('illnessTracking')->setData($entry->isIllnessTracking());
 
         $form->handleRequest($request);
 
@@ -122,6 +124,7 @@ final class AdminAbsenceTypeController extends AbstractController
                     (bool) $form->get('requiresApproval')->getData(),
                     (string) $form->get('color')->getData(),
                     $bucket,
+                    illnessTracking: (bool) $form->get('illnessTracking')->getData(),
                 );
                 // active is independent of update()
                 if ((bool) $form->get('active')->getData()) {

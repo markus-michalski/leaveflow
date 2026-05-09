@@ -340,6 +340,14 @@ final class MyNotificationsControllerTest extends WebTestCase
                 'adminName' => 'Sample Admin',
                 'reason' => 'Sample reason',
             ],
+            NotificationType::IllnessSixWeekAlert => [
+                'employeeName' => 'Sample Employee',
+                'employeeNumber' => 'EMP-1',
+                'periodStartedOn' => '01.04.2026',
+                'periodEndsOn' => '12.05.2026',
+                'daysCount' => 42,
+                'thresholdDays' => 42,
+            ],
         };
     }
 

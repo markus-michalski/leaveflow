@@ -16,7 +16,7 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
- * @extends AbstractType<array{name: string, deductsFromLeave: bool, requiresApproval: bool, color: string, active: bool, requiredBucket: ?LeaveEntitlementType}>
+ * @extends AbstractType<array{name: string, deductsFromLeave: bool, requiresApproval: bool, color: string, active: bool, requiredBucket: ?LeaveEntitlementType, illnessTracking: bool}>
  */
 final class AbsenceTypeFormType extends AbstractType
 {
@@ -57,6 +57,12 @@ final class AbsenceTypeFormType extends AbstractType
                 'class' => LeaveEntitlementType::class,
                 'choice_label' => static fn (LeaveEntitlementType $t): string => 'admin.absence_types.bucket.'.$t->value,
                 'placeholder' => 'admin.absence_types.bucket.unified',
+                'required' => false,
+            ])
+            ->add('illnessTracking', CheckboxType::class, [
+                'label' => 'admin.absence_types.field.illnessTracking',
+                'help' => 'admin.absence_types.field.illnessTracking_help',
+                'mapped' => false,
                 'required' => false,
             ]);
     }

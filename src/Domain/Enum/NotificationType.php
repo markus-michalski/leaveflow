@@ -31,6 +31,10 @@ namespace App\Domain\Enum;
  *                              (Phase 9, e.g. wrongly classified as Urlaub
  *                              instead of Sonderurlaub)
  *                              recipient = request owner (employee)
+ * - IllnessSixWeekAlert      — Scheduler: employee has reached 42 consecutive
+ *                              calendar days of illness-tracking absences
+ *                              (Phase 9, §3 EntgFG threshold)
+ *                              recipient = department lead with Admin fallback
  */
 enum NotificationType: string
 {
@@ -42,6 +46,7 @@ enum NotificationType: string
     case EscalationTriggered = 'escalation_triggered';
     case EntitlementExpiringSoon = 'entitlement_expiring_soon';
     case AdminTypeChange = 'admin_type_change';
+    case IllnessSixWeekAlert = 'illness_six_week_alert';
 
     /**
      * Symfony role that can ever be a recipient of this notification type.
@@ -57,7 +62,12 @@ enum NotificationType: string
             // ApproverResolver.
             self::ApprovalRequested,
             self::RequestWithdrawn,
-            self::CancelRequested => 'ROLE_MANAGER',
+            self::CancelRequested,
+            // 6-week illness alert: primary recipient is the dept lead;
+            // admins act as fallback when no lead exists. ROLE_MANAGER
+            // covers both because admins implicitly inherit it via the
+            // role hierarchy (security.yaml).
+            self::IllnessSixWeekAlert => 'ROLE_MANAGER',
 
             // Admin-only signal — escalation backstop fan-out.
             self::EscalationTriggered => 'ROLE_ADMIN',

@@ -182,7 +182,11 @@ final class MyNotificationsController extends AbstractController
 
             // No useful per-entitlement detail page yet (Phase 9 admin UI).
             // Falling back to the inbox keeps the click meaningful.
-            NotificationType::EntitlementExpiringSoon => null,
+            NotificationType::EntitlementExpiringSoon,
+            // Six-week illness alert points at an employee — but there's
+            // no admin per-employee detail page yet. Inbox + payload
+            // carry the actionable info (name, days, period dates).
+            NotificationType::IllnessSixWeekAlert => null,
         };
     }
 }

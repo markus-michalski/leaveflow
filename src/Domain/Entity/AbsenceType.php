@@ -63,6 +63,8 @@ class AbsenceType
         private bool $active = true,
         #[ORM\Column(name: 'required_bucket', length: 20, enumType: LeaveEntitlementType::class, nullable: true)]
         private ?LeaveEntitlementType $requiredBucket = null,
+        #[ORM\Column(name: 'is_illness_tracking', type: Types::BOOLEAN, options: ['default' => false])]
+        private bool $illnessTracking = false,
     ) {
         $this->name = $this->normalizeName($name);
         $this->color = $this->normalizeColor($color);
@@ -108,6 +110,16 @@ class AbsenceType
         return $this->requiredBucket;
     }
 
+    /**
+     * Whether requests of this type feed the rolling 6-week illness
+     * counter. Companies typically flip this on for "Krankheit" only;
+     * "Sonderurlaub", "Kur" etc. stay false even though they're absences.
+     */
+    public function isIllnessTracking(): bool
+    {
+        return $this->illnessTracking;
+    }
+
     public function activate(): void
     {
         $this->active = true;
@@ -124,12 +136,14 @@ class AbsenceType
         bool $requiresApproval,
         string $color,
         ?LeaveEntitlementType $requiredBucket = null,
+        bool $illnessTracking = false,
     ): void {
         $this->name = $this->normalizeName($name);
         $this->color = $this->normalizeColor($color);
         $this->deductsFromLeave = $deductsFromLeave;
         $this->requiresApproval = $requiresApproval;
         $this->requiredBucket = $deductsFromLeave ? $requiredBucket : null;
+        $this->illnessTracking = $illnessTracking;
     }
 
     private function normalizeName(string $name): string

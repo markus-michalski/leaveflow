@@ -1,0 +1,18 @@
+{% extends 'emails/notifications/base.txt.twig' %}
+
+{% block body %}
+{{ 'email.illness_six_week_alert.heading'|trans({}, 'notifications') }}
+
+{{ 'email.illness_six_week_alert.intro'|trans({
+    '%employeeName%': payload.employeeName,
+    '%employeeNumber%': payload.employeeNumber,
+    '%daysCount%': payload.daysCount,
+    '%thresholdDays%': payload.thresholdDays,
+}, 'notifications') }}
+
+{{ 'email.field.period_started_on'|trans({}, 'notifications') }}: {{ payload.periodStartedOn }}
+{{ 'email.field.period_ends_on'|trans({}, 'notifications') }}: {{ payload.periodEndsOn }}
+{{ 'email.field.days_count'|trans({}, 'notifications') }}: {{ payload.daysCount }}
+
+{{ 'email.illness_six_week_alert.outro'|trans({}, 'notifications') }}
+{% endblock %}

@@ -217,6 +217,9 @@ admin:
             approval_escalation_check:
                 label: "Approval escalation sweep"
                 description: "Hourly — finds Pending requests past the company's escalation threshold and notifies admins."
+            illness_alert_check:
+                label: "6-week illness sweep"
+                description: "Daily at 06:00 — checks for employees on continuous sick leave for 42 calendar days (statutory wage continuation ends) and notifies the team lead with an admin fallback."
     blackout_periods:
         title: Blackout periods
         heading: Blackout periods
@@ -413,6 +416,8 @@ admin:
             active: Active
             requiredBucket: "Bucket binding"
             requiredBucket_help: "Optional: pin deductions to a specific bucket. Without selection the type uses FIFO across the whole balance (carryover with the earliest expiry first, then regular)."
+            illnessTracking: "Counts toward the 6-week illness threshold"
+            illnessTracking_help: "Enable for absence types that count as sickness (e.g. illness, rehab, child sick). Consecutive days feed into the §3 EntgFG 42-day threshold — when reached, an alert goes to the team lead or admin."
         bucket:
             unified: "Any bucket (FIFO)"
             regular: "Regular leave only"

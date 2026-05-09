@@ -1,0 +1,14 @@
+<p class="text-sm font-medium text-gray-900">
+    {{ 'notifications.item.illness_six_week_alert.title'|trans({
+        '%employeeName%': payload.employeeName,
+    }, 'notifications') }}
+</p>
+<p class="mt-0.5 text-sm text-gray-600">
+    {{ 'notifications.item.illness_six_week_alert.summary'|trans({
+        '%employeeName%': payload.employeeName,
+        '%employeeNumber%': payload.employeeNumber,
+        '%daysCount%': payload.daysCount,
+        '%periodStartedOn%': payload.periodStartedOn,
+        '%periodEndsOn%': payload.periodEndsOn,
+    }, 'notifications') }}
+</p>
