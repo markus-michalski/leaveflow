@@ -1,0 +1,12 @@
+# LeaveFlow scheduled jobs — example crontab
+#
+# Copy to /etc/cron.d/leaveflow or merge into the deploy user's crontab.
+# Replace /var/www/leaveflow with your actual install path.
+#
+# See docs/DEPLOYMENT.md for the systemd alternative (recommended).
+
+# Notifications worker (drives entitlement-expiry-check + approval-escalation-check)
+* * * * * www-data cd /var/www/leaveflow && php bin/console messenger:consume scheduler_notifications --time-limit=60 --memory-limit=128M --quiet >> /var/log/leaveflow/messenger-notifications.log 2>&1
+
+# Maintenance worker (drives year-transition)
+* * * * * www-data cd /var/www/leaveflow && php bin/console messenger:consume scheduler_maintenance --time-limit=60 --memory-limit=128M --quiet >> /var/log/leaveflow/messenger-maintenance.log 2>&1

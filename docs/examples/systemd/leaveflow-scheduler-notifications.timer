@@ -1,0 +1,14 @@
+# Triggers the LeaveFlow notifications worker every minute.
+# Persistent=true catches up on missed ticks after a reboot.
+
+[Unit]
+Description=Triggers LeaveFlow notifications worker every minute
+
+[Timer]
+OnCalendar=*:*:00
+Unit=leaveflow-scheduler-notifications.service
+AccuracySec=1s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

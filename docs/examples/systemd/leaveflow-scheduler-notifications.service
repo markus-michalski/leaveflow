@@ -1,0 +1,32 @@
+# LeaveFlow scheduler worker — notifications transport
+#
+# Drives entitlement-expiry-check (daily 03:00) and
+# approval-escalation-check (hourly).
+#
+# Install:
+#   sudo cp leaveflow-scheduler-notifications.service /etc/systemd/system/
+#   sudo cp leaveflow-scheduler-notifications.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now leaveflow-scheduler-notifications.timer
+#
+# Monitor:
+#   systemctl list-timers leaveflow-*
+#   journalctl -u leaveflow-scheduler-notifications.service --since '1 hour ago'
+
+[Unit]
+Description=LeaveFlow scheduler worker (notifications)
+After=mariadb.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/www/leaveflow
+ExecStart=/usr/bin/php bin/console messenger:consume scheduler_notifications --time-limit=60 --memory-limit=128M
+User=www-data
+Group=www-data
+
+# Hardening
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+ReadWritePaths=/var/www/leaveflow/var
