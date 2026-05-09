@@ -11,6 +11,11 @@
                class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 {{ 'nav.home'|trans }}
             </a>
+            <a href="{{ path('app_admin_employee_import_index') }}"
+               class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
+               data-testid="employee-import-link">
+                {{ 'admin.employees.import.heading'|trans }}
+            </a>
             <a href="{{ path('app_admin_employee_new') }}"
                class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
                 {{ 'admin.employees.create'|trans }}

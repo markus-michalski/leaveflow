@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.employees.import.preview_title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-7xl p-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.employees.import.preview_title'|trans }}</h1>
+            <p class="mt-1 text-sm text-gray-500"
+               data-testid="employee-import-summary">
+                {{ 'admin.employees.import.summary'|trans({ '%valid%': validCount, '%invalid%': invalidCount }) }}
+            </p>
+        </div>
+        <a href="{{ path('app_admin_employee_import_index') }}"
+           class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ 'admin.employees.import.upload_again'|trans }}
+        </a>
+    </header>
+
+    {% if not allValid %}
+        <div class="mb-6 rounded-md bg-rose-50 p-4 text-sm text-rose-800"
+             data-testid="employee-import-blocked">
+            {{ 'admin.employees.import.blocked_hint'|trans }}
+        </div>
+    {% endif %}
+
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th class="px-4 py-3">{{ 'admin.employees.import.field.line'|trans }}</th>
+                    <th class="px-4 py-3">{{ 'admin.employees.full_name'|trans }}</th>
+                    <th class="px-4 py-3">{{ 'admin.employees.employee_number'|trans }}</th>
+                    <th class="px-4 py-3">{{ 'admin.employees.location'|trans }}</th>
+                    <th class="px-4 py-3">{{ 'admin.employees.weekly_hours'|trans }}</th>
+                    <th class="px-4 py-3">{{ 'admin.employees.joined_at'|trans }}</th>
+                    <th class="px-4 py-3">{{ 'admin.employees.import.field.status'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
+                {% for result in results %}
+                    {% set row = result.row %}
+                    <tr data-testid="employee-import-row-{{ row.lineNumber }}"
+                        class="{{ result.isValid ? '' : 'bg-rose-50' }}">
+                        <td class="px-4 py-3 align-top font-mono text-xs text-gray-500">{{ row.lineNumber }}</td>
+                        <td class="px-4 py-3 align-top">{{ row.fullName }}</td>
+                        <td class="px-4 py-3 align-top font-mono text-xs">{{ row.employeeNumber }}</td>
+                        <td class="px-4 py-3 align-top">{{ row.locationName }}</td>
+                        <td class="px-4 py-3 align-top">{{ row.weeklyHours }}</td>
+                        <td class="px-4 py-3 align-top">{{ row.joinedAt }}</td>
+                        <td class="px-4 py-3 align-top">
+                            {% if result.isValid %}
+                                <span class="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                                    {{ 'admin.employees.import.row_valid'|trans }}
+                                </span>
+                            {% else %}
+                                <ul class="list-inside list-disc text-xs text-rose-700">
+                                    {% for error in result.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="px-4 py-6 text-center text-gray-500" data-testid="employee-import-empty">
+                            {{ 'admin.employees.import.empty'|trans }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if allValid %}
+        <form method="post"
+              action="{{ path('app_admin_employee_import_commit') }}"
+              class="mt-6 flex items-center justify-end gap-3"
+              data-testid="employee-import-commit-form"
+              data-turbo="false">
+            <input type="hidden" name="_token" value="{{ csrf_token('employee-import-commit') }}">
+            <input type="hidden" name="csvBase64" value="{{ csvBase64 }}">
+            <a href="{{ path('app_admin_employee_import_index') }}"
+               class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'form.cancel'|trans }}
+            </a>
+            <button type="submit"
+                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    data-testid="employee-import-commit-submit">
+                {{ 'admin.employees.import.commit'|trans({ '%count%': validCount }) }}
+            </button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}
