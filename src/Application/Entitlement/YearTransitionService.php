@@ -23,7 +23,7 @@ use Doctrine\ORM\EntityManagerInterface;
  * exists for the target year, the employee is skipped rather than overwritten.
  * Dry-run mode builds the same report but persists nothing.
  */
-final readonly class YearTransitionService
+final readonly class YearTransitionService implements YearTransitionServiceInterface
 {
     public function __construct(
         private LeaveEntitlementRepository $repository,
