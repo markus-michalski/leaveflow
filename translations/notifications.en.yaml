@@ -55,6 +55,9 @@ notifications:
             admin_type_change:
                 label: "Reclassification by an admin"
                 description: "Get an email when an admin retroactively changes the absence type of one of your approved requests (e.g. from regular vacation to special leave)."
+            illness_six_week_alert:
+                label: "6-week illness alert"
+                description: "Managers and admins get an email when an employee has been on continuous sick leave for 42 calendar days (statutory wage continuation ends)."
     item:
         request_withdrawn:
             title: "Request withdrawn"
@@ -88,6 +91,9 @@ notifications:
         admin_type_change:
             title: "Absence type updated"
             summary: "%adminName% changed the type of your request from %startDate% to %endDate% from %oldTypeName% to %newTypeName%."
+        illness_six_week_alert:
+            title: "6-week illness: %employeeName%"
+            summary: "%employeeName% (%employeeNumber%) has been on sick leave since %periodStartedOn% — %daysCount% calendar days today. Statutory wage continuation ends; coordinate with payroll."
 
 email:
     field:
@@ -99,6 +105,9 @@ email:
         absence_type_old: "Previous type"
         absence_type_new: "New type"
         period: "Period"
+        period_started_on: "Sick since"
+        period_ends_on: "Last recorded sick day"
+        days_count: "Calendar days"
     footer:
         notification_preferences_hint: "You receive this email because your notification settings allow it. You can adjust your preferences in your profile."
 
@@ -155,3 +164,9 @@ email:
         heading: "An admin updated the absence type"
         intro: "<strong>%adminName%</strong> changed the absence type of your approved request from <strong>%oldTypeName%</strong> to <strong>%newTypeName%</strong>. Your remaining leave balance was rebalanced automatically."
         outro: "If you have questions, reach out to the admin or your HR contact."
+
+    illness_six_week_alert:
+        subject: "6-week threshold reached: %employeeName% has been sick for %daysCount% days"
+        heading: "An employee is reaching the 6-week illness threshold"
+        intro: "<strong>%employeeName%</strong> (employee number %employeeNumber%) is on day <strong>%daysCount%</strong> of continuous sick leave — the statutory 6-week threshold (%thresholdDays% calendar days) has been reached."
+        outro: "From day 43 onward, statutory wage continuation ends and the health insurance fund pays sick pay. Please coordinate with HR / payroll on whether the salary calculation needs to be adjusted."

@@ -55,6 +55,9 @@ notifications:
             admin_type_change:
                 label: "Reklassifizierung durch den Admin"
                 description: "Du erhältst eine Mail, wenn ein Admin den Abwesenheitstyp eines deiner genehmigten Anträge nachträglich ändert (z. B. von Urlaub auf Sonderurlaub)."
+            illness_six_week_alert:
+                label: "6-Wochen-Krankheits-Alarm"
+                description: "Manager und Admins erhalten eine Mail, wenn ein Mitarbeiter durchgehend 42 Kalendertage krank gemeldet ist (Lohnfortzahlung läuft aus)."
     item:
         request_withdrawn:
             title: "Antrag zurückgezogen"
@@ -88,6 +91,9 @@ notifications:
         admin_type_change:
             title: "Abwesenheitstyp angepasst"
             summary: "%adminName% hat den Typ deines Antrags vom %startDate% bis %endDate% von %oldTypeName% auf %newTypeName% geändert."
+        illness_six_week_alert:
+            title: "6-Wochen-Krankheit: %employeeName%"
+            summary: "%employeeName% (%employeeNumber%) ist seit %periodStartedOn% durchgehend krank — heute %daysCount% Kalendertage. Lohnfortzahlung läuft aus, ggf. Krankengeld-Ablauf prüfen."
 
 email:
     field:
@@ -99,6 +105,9 @@ email:
         absence_type_old: "Bisheriger Typ"
         absence_type_new: "Neuer Typ"
         period: "Zeitraum"
+        period_started_on: "Krank seit"
+        period_ends_on: "Letzter erfasster Krankheitstag"
+        days_count: "Kalendertage"
     footer:
         notification_preferences_hint: "Du erhältst diese E-Mail, weil deine Benachrichtigungseinstellungen es erlauben. Du kannst die Einstellungen in deinem Profil anpassen."
 
@@ -155,3 +164,9 @@ email:
         heading: "Ein Admin hat den Abwesenheitstyp angepasst"
         intro: "<strong>%adminName%</strong> hat den Abwesenheitstyp deines genehmigten Antrags von <strong>%oldTypeName%</strong> auf <strong>%newTypeName%</strong> geändert. Der zugehörige Resturlaub-Saldo wurde automatisch angepasst."
         outro: "Falls du Rückfragen hast, sprich kurz mit dem zuständigen Admin oder deiner Personalabteilung."
+
+    illness_six_week_alert:
+        subject: "6-Wochen-Grenze erreicht: %employeeName% ist seit %daysCount% Tagen krank"
+        heading: "Ein Mitarbeiter erreicht die 6-Wochen-Krankheitsschwelle"
+        intro: "<strong>%employeeName%</strong> (Personalnummer %employeeNumber%) ist heute den <strong>%daysCount%. Tag</strong> in Folge krank gemeldet — die gesetzliche 6-Wochen-Grenze (%thresholdDays% Kalendertage) ist erreicht."
+        outro: "Ab Tag 43 endet die Lohnfortzahlung; die Krankenkasse zahlt Krankengeld. Bitte mit Personalwesen / Buchhaltung abstimmen, ob die Entgeltabrechnung anzupassen ist."

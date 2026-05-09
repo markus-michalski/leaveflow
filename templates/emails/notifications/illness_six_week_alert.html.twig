@@ -1,0 +1,34 @@
+{% extends 'emails/notifications/base.html.twig' %}
+
+{% block title %}{{ 'email.illness_six_week_alert.subject'|trans(payload, 'notifications') }}{% endblock %}
+
+{% block body %}
+    <h2 style="margin: 0 0 16px; font-size: 18px; color: #111827;">
+        {{ 'email.illness_six_week_alert.heading'|trans({}, 'notifications') }}
+    </h2>
+    <p style="margin: 0 0 16px;">
+        {{ 'email.illness_six_week_alert.intro'|trans({
+            '%employeeName%': payload.employeeName,
+            '%employeeNumber%': payload.employeeNumber,
+            '%daysCount%': payload.daysCount,
+            '%thresholdDays%': payload.thresholdDays,
+        }, 'notifications')|raw }}
+    </p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 16px 0; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 16px 8px 0; color: #6b7280;">{{ 'email.field.period_started_on'|trans({}, 'notifications') }}</td>
+            <td style="padding: 8px 0; font-weight: 500;">{{ payload.periodStartedOn }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 16px 8px 0; color: #6b7280;">{{ 'email.field.period_ends_on'|trans({}, 'notifications') }}</td>
+            <td style="padding: 8px 0; font-weight: 500;">{{ payload.periodEndsOn }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 16px 8px 0; color: #6b7280;">{{ 'email.field.days_count'|trans({}, 'notifications') }}</td>
+            <td style="padding: 8px 0; font-weight: 500;">{{ payload.daysCount }}</td>
+        </tr>
+    </table>
+    <p style="margin: 16px 0 0; color: #6b7280; font-size: 13px;">
+        {{ 'email.illness_six_week_alert.outro'|trans({}, 'notifications') }}
+    </p>
+{% endblock %}

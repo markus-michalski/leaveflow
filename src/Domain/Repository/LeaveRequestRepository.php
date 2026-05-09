@@ -98,6 +98,35 @@ class LeaveRequestRepository extends ServiceEntityRepository
     }
 
     /**
+     * Illness-tracking requests for a single employee, oldest first.
+     * Drives the IllnessRunCalculator — only requests whose AbsenceType
+     * has the isIllnessTracking flag set are returned.
+     *
+     * Statuses: Recorded (Krankheit's default since eAU) and Approved
+     * (in case a company configures Krankheit to require approval).
+     * Withdrawn / Rejected / Pending are excluded — those don't count
+     * toward sick leave on the books.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findIllnessRequestsForEmployee(Employee $employee): array
+    {
+        return $this->createQueryBuilder('r')
+            ->innerJoin('r.absenceType', 't')
+            ->where('r.employee = :employee')
+            ->andWhere('t.isIllnessTracking = true')
+            ->andWhere('r.status IN (:statuses)')
+            ->setParameter('employee', $employee)
+            ->setParameter('statuses', [
+                LeaveRequestStatus::Recorded->value,
+                LeaveRequestStatus::Approved->value,
+            ])
+            ->orderBy('r.startDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Per-employee history: every request from a single employee, optionally
      * scoped to a single year. Drives the per-employee drilldown (#18).
      * Sorted requestedAt-desc within each year so the view shows the most

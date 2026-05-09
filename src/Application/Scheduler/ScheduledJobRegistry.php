@@ -7,6 +7,7 @@ namespace App\Application\Scheduler;
 use App\Application\Entitlement\YearTransitionHandler;
 use App\Application\Notification\ApprovalEscalationCheckHandler;
 use App\Application\Notification\EntitlementExpiryCheckHandler;
+use App\Application\Notification\IllnessAlertCheckHandler;
 
 /**
  * Source of truth for "which scheduled jobs exist" in the admin UI (#35).
@@ -47,6 +48,12 @@ final readonly class ScheduledJobRegistry
                 cronExpression: '0 * * * *',
                 labelKey: 'admin.scheduled_jobs.job.approval_escalation_check.label',
                 descriptionKey: 'admin.scheduled_jobs.job.approval_escalation_check.description',
+            ),
+            new ScheduledJobMetadata(
+                name: IllnessAlertCheckHandler::JOB_NAME,
+                cronExpression: '0 6 * * *',
+                labelKey: 'admin.scheduled_jobs.job.illness_alert_check.label',
+                descriptionKey: 'admin.scheduled_jobs.job.illness_alert_check.description',
             ),
         ];
     }

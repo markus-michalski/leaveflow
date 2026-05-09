@@ -45,4 +45,24 @@ class EmployeeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Active employees (joinedAt has passed, no leftAt or leftAt in the
+     * future). Drives cross-company sweeps such as the 6-week illness
+     * alert.
+     *
+     * @return list<Employee>
+     */
+    public function findAllActive(\DateTimeImmutable $asOf): array
+    {
+        $asOf = $asOf->setTime(0, 0);
+
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.joinedAt <= :asOf')
+            ->andWhere('e.leftAt IS NULL OR e.leftAt >= :asOf')
+            ->setParameter('asOf', $asOf)
+            ->orderBy('e.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

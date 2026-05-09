@@ -217,6 +217,9 @@ admin:
             approval_escalation_check:
                 label: "Genehmigungs-Eskalation"
                 description: "Prüft stündlich nach offenen Anträgen, die den firmenspezifischen Eskalations-Schwellwert überschritten haben, und benachrichtigt die Admins."
+            illness_alert_check:
+                label: "6-Wochen-Krankheits-Alarm"
+                description: "Prüft täglich um 06:00, ob ein Mitarbeiter durchgehend 42 Kalendertage krank gemeldet ist (Lohnfortzahlung läuft aus), und benachrichtigt die Team-Leitung mit Admin-Fallback."
     blackout_periods:
         title: Sperrfristen
         heading: Sperrfristen
@@ -413,6 +416,8 @@ admin:
             active: Aktiv
             requiredBucket: "Konto-Bindung"
             requiredBucket_help: "Optional: bindet die Buchung an ein bestimmtes Konto. Ohne Auswahl zieht die Art FIFO aus dem gesamten Saldo (Resturlaub mit ablaufender Frist zuerst, dann Regulär)."
+            illnessTracking: "Zählt zur 6-Wochen-Krankheits-Schwelle"
+            illnessTracking_help: "Aktivieren bei Urlaubsarten, die als Krankheit zählen (z. B. Krankheit, Reha, Kind krank). Zusammenhängende Tage werden auf die 42-Tage-Schwelle (§3 EntgFG) gerechnet — bei Erreichen geht ein Alarm an Team-Lead bzw. Admin."
         bucket:
             unified: "Beliebiges Konto (FIFO)"
             regular: "Nur reguläres Urlaubskonto"

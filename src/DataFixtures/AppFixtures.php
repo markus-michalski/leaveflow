@@ -320,8 +320,16 @@ final class AppFixtures extends Fixture
         // year's leftover with its own statutory expiry window.
         yield new AbsenceType($company, 'Urlaub', true, true, '#3B82F6', true, LeaveEntitlementType::Regular);
         yield new AbsenceType($company, 'Resturlaub', true, true, '#6366F1', true, LeaveEntitlementType::Carryover);
-        // Krankheit: eAU since 2023 means no upload, no approval gate, no deduction.
-        yield new AbsenceType($company, 'Krankheit', false, false, '#EF4444');
+        // Krankheit: eAU since 2023 means no upload, no approval gate, no
+        // deduction. illnessTracking=true feeds the 6-week-illness alarm.
+        yield new AbsenceType(
+            $company,
+            'Krankheit',
+            false,
+            false,
+            '#EF4444',
+            illnessTracking: true,
+        );
         // Überstundenabbau draws from an overtime balance we don't model yet.
         // Until that bank exists, we don't deduct from the regular leave balance —
         // otherwise taking TOIL would wrongly eat vacation days.
