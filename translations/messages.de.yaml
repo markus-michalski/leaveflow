@@ -45,6 +45,7 @@ nav:
         absence_types: Urlaubsarten
         entitlements: Urlaubskonten
         blackout_periods: Sperrfristen
+        scheduled_jobs: "Cron-Jobs"
     manager:
         approvals: Genehmigungen
     team:
@@ -182,6 +183,40 @@ admin:
             activated: Team %name% ist jetzt aktiv.
             deactivated: Team %name% wurde deaktiviert.
             deleted: Team %name% wurde gelöscht.
+    scheduled_jobs:
+        title: "Cron-Jobs"
+        heading: "Cron-Jobs"
+        description: "Geplante Hintergrund-Aufgaben (Jahresübergang, Resturlaub-Verfall-Warnung, Eskalation). Jeder Job lässt sich einzeln deaktivieren — die Trigger-Zeit selbst wird im Code gepflegt."
+        field:
+            name: "Aufgabe"
+            cron: "Frequenz"
+            status: "Status"
+            last_run: "Letzter Lauf"
+            actions: "Aktionen"
+        toggle:
+            enabled: "Aktiv"
+            disabled: "Deaktiviert"
+        action:
+            enable: "Aktivieren"
+            disable: "Deaktivieren"
+        status:
+            success: "Erfolgreich"
+            failure: "Fehler"
+            skipped: "Übersprungen"
+        never_ran: "Noch nie gelaufen"
+        flash:
+            enabled: "Cron-Job %name% wurde aktiviert."
+            disabled: "Cron-Job %name% wurde deaktiviert."
+        job:
+            year_transition:
+                label: "Jahresübergang"
+                description: "Erzeugt am 1. Januar 01:00 die Resturlaub-Einträge aus dem Vorjahres-Saldo."
+            entitlement_expiry_check:
+                label: "Resturlaub-Verfall-Warnung"
+                description: "Prüft täglich um 03:00 nach Resturlaub-Konten, die innerhalb der nächsten 30 Tage verfallen, und benachrichtigt deren Besitzer."
+            approval_escalation_check:
+                label: "Genehmigungs-Eskalation"
+                description: "Prüft stündlich nach offenen Anträgen, die den firmenspezifischen Eskalations-Schwellwert überschritten haben, und benachrichtigt die Admins."
     blackout_periods:
         title: Sperrfristen
         heading: Sperrfristen

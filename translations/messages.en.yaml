@@ -45,6 +45,7 @@ nav:
         entitlements: Leave balances
         leave_requests: Leave requests
         blackout_periods: Blackout periods
+        scheduled_jobs: "Cron jobs"
     manager:
         approvals: Approvals
     team:
@@ -182,6 +183,40 @@ admin:
             activated: Department %name% has been activated.
             deactivated: Department %name% has been deactivated.
             deleted: Department %name% has been deleted.
+    scheduled_jobs:
+        title: "Cron jobs"
+        heading: "Cron jobs"
+        description: "Scheduled background tasks (year transition, expiry warning, escalation). Each job can be toggled independently — the trigger schedule itself is code-managed."
+        field:
+            name: "Task"
+            cron: "Frequency"
+            status: "Status"
+            last_run: "Last run"
+            actions: "Actions"
+        toggle:
+            enabled: "Active"
+            disabled: "Disabled"
+        action:
+            enable: "Enable"
+            disable: "Disable"
+        status:
+            success: "Success"
+            failure: "Failure"
+            skipped: "Skipped"
+        never_ran: "Never ran"
+        flash:
+            enabled: "Cron job %name% has been enabled."
+            disabled: "Cron job %name% has been disabled."
+        job:
+            year_transition:
+                label: "Year transition"
+                description: "Creates carryover entries from last year's remaining balance, runs January 1st at 01:00."
+            entitlement_expiry_check:
+                label: "Expiry warning sweep"
+                description: "Daily at 03:00 — finds carryover entitlements expiring within 30 days and notifies their owners."
+            approval_escalation_check:
+                label: "Approval escalation sweep"
+                description: "Hourly — finds Pending requests past the company's escalation threshold and notifies admins."
     blackout_periods:
         title: Blackout periods
         heading: Blackout periods
