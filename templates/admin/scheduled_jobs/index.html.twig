@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.scheduled_jobs.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-7xl p-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.scheduled_jobs.heading'|trans }}</h1>
+            <p class="mt-1 max-w-3xl text-sm text-gray-500">{{ 'admin.scheduled_jobs.description'|trans }}</p>
+        </div>
+        <a href="{{ path('app_dashboard') }}"
+           class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ 'nav.home'|trans }}
+        </a>
+    </header>
+
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th class="px-6 py-3">{{ 'admin.scheduled_jobs.field.name'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.scheduled_jobs.field.cron'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.scheduled_jobs.field.status'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.scheduled_jobs.field.last_run'|trans }}</th>
+                    <th class="px-6 py-3 text-right">{{ 'admin.scheduled_jobs.field.actions'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700" data-testid="admin-scheduled-jobs-list">
+                {% for job in jobs %}
+                    {% set metadata = job.metadata %}
+                    {% set config = job.config %}
+                    {% set is_enabled = config is not null ? config.isEnabled : true %}
+                    {% set last_status = config is not null ? config.lastRunStatus : null %}
+                    {% set last_status_value = last_status is not null ? last_status.value : null %}
+                    {% set last_run_at = config is not null ? config.lastRunAt : null %}
+                    {% set last_error = config is not null ? config.lastError : null %}
+
+                    <tr data-testid="scheduled-job-row-{{ metadata.name }}">
+                        <td class="px-6 py-3 align-top">
+                            <div class="font-medium text-gray-900">{{ metadata.labelKey|trans }}</div>
+                            <div class="mt-0.5 text-xs text-gray-500">{{ metadata.descriptionKey|trans }}</div>
+                            <div class="mt-0.5 font-mono text-xs text-gray-400">{{ metadata.name }}</div>
+                        </td>
+                        <td class="px-6 py-3 align-top">
+                            <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">{{ metadata.cronExpression }}</code>
+                        </td>
+                        <td class="px-6 py-3 align-top">
+                            {% if is_enabled %}
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
+                                      data-testid="scheduled-job-status-{{ metadata.name }}">
+                                    {{ 'admin.scheduled_jobs.toggle.enabled'|trans }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600"
+                                      data-testid="scheduled-job-status-{{ metadata.name }}">
+                                    {{ 'admin.scheduled_jobs.toggle.disabled'|trans }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 align-top">
+                            {% if last_run_at is null %}
+                                <span class="text-gray-400">{{ 'admin.scheduled_jobs.never_ran'|trans }}</span>
+                            {% else %}
+                                <div class="text-gray-900">{{ last_run_at|date('d.m.Y H:i') }}</div>
+                                {% set status_classes = {
+                                    'success': 'bg-green-100 text-green-800',
+                                    'failure': 'bg-rose-100 text-rose-800',
+                                    'skipped': 'bg-gray-100 text-gray-700',
+                                } %}
+                                {% if last_status_value %}
+                                    <span class="mt-1 inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium {{ status_classes[last_status_value]|default('bg-gray-100 text-gray-700') }}">
+                                        {{ ('admin.scheduled_jobs.status.' ~ last_status_value)|trans }}
+                                    </span>
+                                {% endif %}
+                                {% if last_error %}
+                                    <div class="mt-1 max-w-md text-xs text-rose-700" title="{{ last_error }}">
+                                        {{ last_error|length > 80 ? last_error|slice(0, 80) ~ '…' : last_error }}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 align-top text-right">
+                            <form method="post"
+                                  action="{{ path('app_admin_scheduled_job_toggle', { name: metadata.name }) }}"
+                                  data-testid="scheduled-job-toggle-form-{{ metadata.name }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('scheduled-job-toggle-' ~ metadata.name) }}">
+                                {% if is_enabled %}
+                                    <button type="submit"
+                                            class="inline-flex items-center whitespace-nowrap rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100"
+                                            data-testid="scheduled-job-disable-{{ metadata.name }}">
+                                        {{ 'admin.scheduled_jobs.action.disable'|trans }}
+                                    </button>
+                                {% else %}
+                                    <button type="submit"
+                                            class="inline-flex items-center whitespace-nowrap rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
+                                            data-testid="scheduled-job-enable-{{ metadata.name }}">
+                                        {{ 'admin.scheduled_jobs.action.enable'|trans }}
+                                    </button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
