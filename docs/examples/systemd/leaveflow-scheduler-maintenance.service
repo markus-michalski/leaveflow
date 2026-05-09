@@ -1,0 +1,30 @@
+# LeaveFlow scheduler worker — maintenance transport
+#
+# Drives year-transition (annually, January 1st 01:00).
+#
+# Install:
+#   sudo cp leaveflow-scheduler-maintenance.service /etc/systemd/system/
+#   sudo cp leaveflow-scheduler-maintenance.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now leaveflow-scheduler-maintenance.timer
+#
+# Separate transport from notifications so a backed-up notification
+# queue can't delay year-end work.
+
+[Unit]
+Description=LeaveFlow scheduler worker (maintenance)
+After=mariadb.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/var/www/leaveflow
+ExecStart=/usr/bin/php bin/console messenger:consume scheduler_maintenance --time-limit=60 --memory-limit=128M
+User=www-data
+Group=www-data
+
+# Hardening
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+ReadWritePaths=/var/www/leaveflow/var

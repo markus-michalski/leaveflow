@@ -1,0 +1,19 @@
+# Triggers the LeaveFlow maintenance worker every minute.
+# Persistent=true makes systemd replay missed minute-ticks after the
+# host comes back online — bridges short outages cleanly. For longer
+# downtime spanning the year-transition window (Jan 1, 01:00) you'll
+# still need the manual `app:entitlement:year-transition --year=N`
+# command since Symfony Scheduler doesn't backfill cron expressions
+# across host downtime.
+
+[Unit]
+Description=Triggers LeaveFlow maintenance worker every minute
+
+[Timer]
+OnCalendar=*:*:00
+Unit=leaveflow-scheduler-maintenance.service
+AccuracySec=1s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
