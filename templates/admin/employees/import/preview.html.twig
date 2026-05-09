@@ -78,7 +78,8 @@
         <form method="post"
               action="{{ path('app_admin_employee_import_commit') }}"
               class="mt-6 flex items-center justify-end gap-3"
-              data-testid="employee-import-commit-form">
+              data-testid="employee-import-commit-form"
+              data-turbo="false">
             <input type="hidden" name="_token" value="{{ csrf_token('employee-import-commit') }}">
             <input type="hidden" name="csvBase64" value="{{ csvBase64 }}">
             <a href="{{ path('app_admin_employee_import_index') }}"

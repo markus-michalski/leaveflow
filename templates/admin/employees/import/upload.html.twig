@@ -25,7 +25,7 @@
     </section>
 
     <div class="rounded-xl bg-white p-6 shadow-sm">
-        {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'employee-import-upload-form', enctype: 'multipart/form-data' }, action: path('app_admin_employee_import_preview') }) }}
+        {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'employee-import-upload-form', 'data-turbo': 'false', enctype: 'multipart/form-data' }, action: path('app_admin_employee_import_preview') }) }}
             {{ form_errors(form) }}
             {{ form_row(form.file, {
                 label_attr: { class: 'block text-sm font-medium text-gray-700' },
