@@ -14,6 +14,7 @@ use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\Notification;
 use App\Domain\Entity\User;
+use App\Domain\Enum\ExclusionReason;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveEntitlementType;
@@ -99,15 +100,46 @@ final class AppFixtures extends Fixture
         );
         $manager->persist($hannah);
 
-        // Phase 6: single default "Alle" department per company. Maya
-        // (Manager role) is the lead — Erik submits, Maya approves. No
-        // deputy in the demo seed so the Admin fallback path is visible
-        // when Maya herself submits a request.
-        $alle = new Department($company, 'Alle', lead: $maya);
-        $manager->persist($alle);
-        $maya->assignToDepartment($alle);
-        $erik->assignToDepartment($alle);
-        $hannah->assignToDepartment($alle);
+        // Phase 10: two realistic departments so the statistics dashboard
+        // shows non-empty department aggregates and the k-anonymity hide
+        // logic is demonstrable side-by-side. Maya leads Engineering (4
+        // members, visible); Operations has 3 members (visible). Hannah
+        // is left orphaned to demonstrate the "Ohne Abteilung" bucket.
+        $engineering = new Department($company, 'Engineering', lead: $maya);
+        $operations = new Department($company, 'Operations');
+        $manager->persist($engineering);
+        $manager->persist($operations);
+        $maya->assignToDepartment($engineering);
+        $erik->assignToDepartment($operations);
+
+        // Five additional employees so Engineering hits 4 active members
+        // (well above k=3) and Operations hits exactly 3 (right at the
+        // threshold). Mix full-time + part-time + late joiner for variety.
+        $extraSeeds = [
+            ['Lukas Lehmann', 'EMP-0010', $hq, WorkSchedule::standardFullTime(), '2024-06-01', $engineering],
+            ['Sarah Sommer', 'EMP-0011', $hq, WorkSchedule::standardFullTime(), '2025-02-10', $engineering],
+            ['David Diakos', 'EMP-0012', $hq, WorkSchedule::autoDistribute(32.0, [
+                Weekday::Monday, Weekday::Tuesday, Weekday::Wednesday, Weekday::Thursday,
+            ]), '2025-08-01', $engineering],
+            ['Pia Petersen', 'EMP-0013', $branchBerlin, WorkSchedule::standardFullTime(), '2024-11-15', $operations],
+            ['Tom Tannenbaum', 'EMP-0014', $branchBerlin, WorkSchedule::autoDistribute(20.0, [
+                Weekday::Tuesday, Weekday::Wednesday, Weekday::Thursday,
+            ]), '2025-09-01', $operations],
+        ];
+        $extraEmployees = [];
+        foreach ($extraSeeds as [$name, $number, $loc, $schedule, $joinedAt, $dept]) {
+            $emp = new Employee(
+                $company,
+                $name,
+                $number,
+                $loc,
+                $schedule,
+                new \DateTimeImmutable($joinedAt),
+            );
+            $emp->assignToDepartment($dept);
+            $manager->persist($emp);
+            $extraEmployees[$number] = $emp;
+        }
 
         // Phase 3: demo holiday configuration for the current + next year.
         // No state-wide override demo on purpose — Augsburger Friedensfest (8.8.)
@@ -205,6 +237,40 @@ final class AppFixtures extends Fixture
         );
         $manager->persist($approvedRequest);
 
+        // Phase 10 demo: realistic distribution of approved vacation +
+        // sick recordings + one pending request across the extra
+        // employees, so the statistics dashboard shows non-empty cards
+        // and bars right after `make fixtures`. Entitlements are sized
+        // per employee schedule (~30 working days each).
+        $this->seedStatisticsDemoData(
+            $manager,
+            $extraEmployees,
+            $absenceTypesByName,
+            $currentYear,
+        );
+
+        // Phase 10: populate the action-briefing buckets so admins land
+        // on a realistic dashboard, not a "Alles im grünen Bereich"
+        // banner. Two carryovers expiring within the 90-day horizon
+        // (one red < 30d, one yellow ≥ 60d) plus a pending request
+        // sitting > 14 days in the queue (red).
+        $this->seedActionDemoData(
+            $manager,
+            $extraEmployees,
+            $absenceTypesByName,
+            $currentYear,
+        );
+
+        // Phase 10: populate the "Aktuell abwesend" card with a realistic
+        // mix of approved leave + recorded illness covering the day the
+        // fixtures load. Multiple employees with different end dates so
+        // both the "endsToday" and the "until X" branches render.
+        $this->seedCurrentAbsenceDemoData(
+            $manager,
+            array_merge(['EMP-0002' => $erik], $extraEmployees),
+            $absenceTypesByName,
+        );
+
         // Phase 8: pre-populated inbox so a fresh `make fixtures` lands on a
         // realistic notification screen — every per-type Twig partial gets
         // exercised, and a mix of read/unread shows both visual states.
@@ -220,6 +286,351 @@ final class AppFixtures extends Fixture
         }
 
         $manager->flush();
+    }
+
+    /**
+     * Seeds approved vacation + sick recordings + one pending request
+     * across the extra employees. The result populates the Phase 10
+     * statistics dashboard with realistic non-zero KPIs and bars.
+     *
+     * @param array<string, Employee>     $employees           keyed by employeeNumber
+     * @param array<string, AbsenceType>  $absenceTypesByName
+     */
+    private function seedStatisticsDemoData(
+        ObjectManager $manager,
+        array $employees,
+        array $absenceTypesByName,
+        int $currentYear,
+    ): void {
+        $urlaub = $absenceTypesByName['Urlaub'];
+        $krankheit = $absenceTypesByName['Krankheit'];
+
+        // Per-employee plan: vacation date ranges + sick date ranges. All
+        // dates are weekday-only in the past half of $currentYear so they
+        // contribute to the dashboard's "until today" range cap.
+        $plans = [
+            'EMP-0010' => [ // Lukas — heavy vacation user
+                'grantDays' => 30,
+                'vacation' => [
+                    [\sprintf('%d-02-09', $currentYear), \sprintf('%d-02-13', $currentYear)],
+                    [\sprintf('%d-04-13', $currentYear), \sprintf('%d-04-17', $currentYear)],
+                ],
+                'sick' => [
+                    [\sprintf('%d-03-23', $currentYear), \sprintf('%d-03-25', $currentYear)],
+                ],
+            ],
+            'EMP-0011' => [ // Sarah — moderate user
+                'grantDays' => 30,
+                'vacation' => [
+                    [\sprintf('%d-03-02', $currentYear), \sprintf('%d-03-06', $currentYear)],
+                ],
+                'sick' => [
+                    [\sprintf('%d-01-19', $currentYear), \sprintf('%d-01-23', $currentYear)],
+                ],
+            ],
+            'EMP-0012' => [ // David — part-time, light user
+                'grantDays' => 24,
+                'vacation' => [
+                    [\sprintf('%d-04-06', $currentYear), \sprintf('%d-04-09', $currentYear)],
+                ],
+                'sick' => [
+                    [\sprintf('%d-02-17', $currentYear), \sprintf('%d-02-18', $currentYear)],
+                ],
+            ],
+            'EMP-0013' => [ // Pia — moderate user, Operations
+                'grantDays' => 30,
+                'vacation' => [
+                    [\sprintf('%d-01-12', $currentYear), \sprintf('%d-01-16', $currentYear)],
+                    [\sprintf('%d-03-30', $currentYear), \sprintf('%d-04-02', $currentYear)],
+                ],
+                'sick' => [
+                    [\sprintf('%d-04-27', $currentYear), \sprintf('%d-04-29', $currentYear)],
+                ],
+            ],
+            'EMP-0014' => [ // Tom — part-time 3d/week, light user
+                'grantDays' => 18,
+                'vacation' => [
+                    [\sprintf('%d-02-24', $currentYear), \sprintf('%d-02-26', $currentYear)],
+                ],
+                'sick' => [],
+            ],
+        ];
+
+        foreach ($plans as $empNumber => $plan) {
+            $emp = $employees[$empNumber];
+            $schedule = $emp->getWorkSchedule();
+            $workingDayCount = \count($schedule->workingDays());
+            $hoursPerDay = $schedule->weeklyHours() / $workingDayCount;
+
+            // Grant ≈ schedule × given working-day count, rounded to half hours
+            // so the admin entitlement view stays tidy.
+            $grantHours = round($hoursPerDay * $plan['grantDays'] * 2.0) / 2.0;
+            $entitlement = new LeaveEntitlement(
+                $emp,
+                $currentYear,
+                LeaveEntitlementType::Regular,
+                $grantHours,
+            );
+            $manager->persist($entitlement);
+
+            foreach ($plan['vacation'] as [$start, $end]) {
+                $request = $this->buildDemoRequest(
+                    $emp,
+                    $urlaub,
+                    new \DateTimeImmutable($start),
+                    new \DateTimeImmutable($end),
+                    $hoursPerDay,
+                    LeaveRequestStatus::Approved,
+                );
+                if (null !== $request) {
+                    $entitlement->consume($request->getTotalHours());
+                    $manager->persist($request);
+                }
+            }
+
+            foreach ($plan['sick'] as [$start, $end]) {
+                $request = $this->buildDemoRequest(
+                    $emp,
+                    $krankheit,
+                    new \DateTimeImmutable($start),
+                    new \DateTimeImmutable($end),
+                    $hoursPerDay,
+                    LeaveRequestStatus::Recorded,
+                );
+                if (null !== $request) {
+                    $manager->persist($request);
+                }
+            }
+        }
+
+        // One pending vacation request from Sarah so the "Offene Anträge"
+        // KPI shows >1 right after `make fixtures` (Erik already has the
+        // 2026-08 approved one + we add a pending June slot here).
+        $sarah = $employees['EMP-0011'];
+        $pendingStart = (new \DateTimeImmutable())->setDate($currentYear, 6, 15)->setTime(0, 0);
+        $pendingEnd = (new \DateTimeImmutable())->setDate($currentYear, 6, 19)->setTime(0, 0);
+        $sarahHoursPerDay = $sarah->getWorkSchedule()->weeklyHours()
+            / \count($sarah->getWorkSchedule()->workingDays());
+        $pending = $this->buildDemoRequest(
+            $sarah,
+            $urlaub,
+            $pendingStart,
+            $pendingEnd,
+            $sarahHoursPerDay,
+            LeaveRequestStatus::Pending,
+            requestedAt: (new \DateTimeImmutable())->modify('-2 days')->setTime(9, 30),
+        );
+        if (null !== $pending) {
+            $manager->persist($pending);
+        }
+    }
+
+    /**
+     * Creates a LeaveRequest with one LeaveDay per working day of the
+     * employee's schedule between $start and $end (inclusive). Returns
+     * null if the range contains no working days. Status is forced via
+     * reflection to skip the workflow — fixtures only.
+     *
+     * `requestedAt` defaults to start@09:00; override when a Pending
+     * demo needs to land in the dashboard's overdue bucket (must be
+     * older than the threshold-days window).
+     */
+    private function buildDemoRequest(
+        Employee $employee,
+        AbsenceType $absenceType,
+        \DateTimeImmutable $start,
+        \DateTimeImmutable $end,
+        float $hoursPerDay,
+        LeaveRequestStatus $status,
+        ?\DateTimeImmutable $requestedAt = null,
+    ): ?LeaveRequest {
+        $schedule = $employee->getWorkSchedule();
+        $days = [];
+        $workingDayCount = 0;
+        for ($cursor = $start; $cursor <= $end; $cursor = $cursor->modify('+1 day')) {
+            $weekday = Weekday::fromDateTime($cursor);
+            if ($schedule->isWorkingDay($weekday)) {
+                $days[] = new LeaveDay($cursor, $hoursPerDay, LeaveDayStatus::Working);
+                ++$workingDayCount;
+                continue;
+            }
+            // Cover the full date range so LeaveRequest::applyBreakdown is happy:
+            // Sa/So end up as Excluded(weekend), other off-days as NonWorkingDay
+            // (matches part-time schedules like Tom's Tue/Wed/Thu pattern).
+            $isWeekend = Weekday::Saturday === $weekday || Weekday::Sunday === $weekday;
+            $days[] = new LeaveDay(
+                $cursor,
+                0.0,
+                LeaveDayStatus::Excluded,
+                $isWeekend ? ExclusionReason::Weekend : ExclusionReason::NonWorkingDay,
+            );
+        }
+
+        if (0 === $workingDayCount) {
+            return null;
+        }
+
+        $request = new LeaveRequest(
+            $employee,
+            $absenceType,
+            $start,
+            $end,
+            LeaveDayType::FullDay,
+            $requestedAt ?? $start->setTime(9, 0),
+        );
+        $request->applyBreakdown(new LeaveBreakdown($days));
+        $request->setStatus($status);
+
+        return $request;
+    }
+
+    /**
+     * Seeds the action-briefing buckets on the statistics dashboard.
+     *
+     * Two carryovers chosen so admins see both tone variants right after
+     * fixtures load: David's expires in 25 days (red, urgent) and Lukas's
+     * in 66 days (yellow, on the radar). Both are admin-extended carryover
+     * (BUrlG §7 Abs. 3 floor would have been year-03-31; the extension
+     * pattern is realistic — illness-cause or BAG-recognized notification
+     * gap). The expiry dates clamp upward against a "always in the
+     * future"-floor so loads early in the year (before April) don't run
+     * into the BUrlG floor exception.
+     *
+     * Pending request: Pia's late-May vacation request, requestedAt set
+     * to 15 days ago — past the 5-day overdue threshold, far enough to
+     * trigger the red tone (>14 days waiting). Demonstrates that the
+     * dashboard can also surface admin-level intervention when the
+     * manager hasn't acted.
+     *
+     * @param array<string, Employee>     $employees keyed by employeeNumber
+     * @param array<string, AbsenceType>  $absenceTypesByName
+     */
+    private function seedActionDemoData(
+        ObjectManager $manager,
+        array $employees,
+        array $absenceTypesByName,
+        int $currentYear,
+    ): void {
+        $now = new \DateTimeImmutable();
+        // Smallest legal expiry for a Year=$currentYear carryover is the
+        // BUrlG floor (year-03-31). For a fixture that runs deterministically
+        // any time of year, clamp upward.
+        $burlgSafeFloor = (new \DateTimeImmutable())->setDate($currentYear, 4, 1)->setTime(0, 0);
+
+        $expires25 = max($now->modify('+25 days')->setTime(0, 0), $burlgSafeFloor);
+        $expires66 = max($now->modify('+66 days')->setTime(0, 0), $burlgSafeFloor->modify('+30 days'));
+
+        $manager->persist(new LeaveEntitlement(
+            $employees['EMP-0012'], // David — part-time, 32h/week
+            $currentYear,
+            LeaveEntitlementType::Carryover,
+            16.0,
+            $expires25,
+        ));
+        $manager->persist(new LeaveEntitlement(
+            $employees['EMP-0010'], // Lukas — full-time
+            $currentYear,
+            LeaveEntitlementType::Carryover,
+            24.0,
+            $expires66,
+        ));
+
+        // Overdue pending request from Pia. requestedAt is 15 days ago so
+        // the dashboard's red-tone branch (> 14 days waiting) renders.
+        // Range pinned to Mon-Fri so the LeaveBreakdown coverage check
+        // doesn't trip on weekends inside the requested span.
+        $pia = $employees['EMP-0013'];
+        $piaHoursPerDay = $pia->getWorkSchedule()->weeklyHours()
+            / \count($pia->getWorkSchedule()->workingDays());
+        $cursor = $now->modify('+45 days');
+        while ('1' !== $cursor->format('N')) {
+            $cursor = $cursor->modify('+1 day');
+        }
+        $overdueStart = $cursor->setTime(0, 0);
+        $overdueEnd = $overdueStart->modify('+4 days');
+        $overdue = $this->buildDemoRequest(
+            $pia,
+            $absenceTypesByName['Urlaub'],
+            $overdueStart,
+            $overdueEnd,
+            $piaHoursPerDay,
+            LeaveRequestStatus::Pending,
+            requestedAt: $now->modify('-15 days')->setTime(9, 0),
+        );
+        if (null !== $overdue) {
+            $manager->persist($overdue);
+        }
+    }
+
+    /**
+     * Seeds the "Aktuell abwesend" card on the dashboard. Five overlapping
+     * absences spread around `now` so admins immediately see what the
+     * widget looks like with mixed states: one ending today, one in the
+     * middle of a longer leave, one fresh sick recording.
+     *
+     * Each absence picks the next available Mon-anchored week so the
+     * range never crosses a weekend in a way buildDemoRequest can't
+     * cover (the helper handles weekends as Excluded days now, but
+     * Mon-Fri ranges keep the breakdown small and the demo data
+     * predictable across DST / year boundaries).
+     *
+     * @param array<string, Employee>     $employees keyed by employeeNumber
+     * @param array<string, AbsenceType>  $absenceTypesByName
+     */
+    private function seedCurrentAbsenceDemoData(
+        ObjectManager $manager,
+        array $employees,
+        array $absenceTypesByName,
+    ): void {
+        $now = (new \DateTimeImmutable())->setTime(0, 0);
+        $urlaub = $absenceTypesByName['Urlaub'];
+        $krankheit = $absenceTypesByName['Krankheit'];
+
+        // Walk to the Monday of the current week so the seven-day spans
+        // line up with weekends predictably regardless of which day the
+        // fixtures load on.
+        $monday = $now;
+        while ('1' !== $monday->format('N')) {
+            $monday = $monday->modify('-1 day');
+        }
+
+        // Anchor every range to $monday with enough padding either side
+        // that "today" stays inside the range no matter which weekday
+        // the fixtures load on. Without this, weekend loads silently
+        // drop the demo entries from the dashboard's "aktiv heute" view.
+        $plans = [
+            // Erik — long approved vacation, last week through next week.
+            ['EMP-0002', $urlaub, $monday->modify('-14 days'), $monday->modify('+11 days'), LeaveRequestStatus::Approved],
+            // Pia — approved vacation, this Monday through next Friday.
+            ['EMP-0013', $urlaub, $monday, $monday->modify('+11 days'), LeaveRequestStatus::Approved],
+            // Tom — recorded illness across last + this week (Tom only works Tue-Thu, so the wide range still produces working days).
+            ['EMP-0014', $krankheit, $monday->modify('-7 days'), $monday->modify('+6 days'), LeaveRequestStatus::Recorded],
+            // Lukas — recorded illness this week, including the weekend.
+            ['EMP-0010', $krankheit, $monday, $monday->modify('+6 days'), LeaveRequestStatus::Recorded],
+            // David — approved vacation that ends today (drives the endsToday=true branch). Range starts the Saturday of the previous week.
+            ['EMP-0012', $urlaub, $monday->modify('-2 days'), $now, LeaveRequestStatus::Approved],
+        ];
+
+        foreach ($plans as [$empKey, $type, $start, $end, $status]) {
+            if (!isset($employees[$empKey])) {
+                continue;
+            }
+            $employee = $employees[$empKey];
+            $schedule = $employee->getWorkSchedule();
+            $hoursPerDay = $schedule->weeklyHours() / \count($schedule->workingDays());
+            $request = $this->buildDemoRequest(
+                $employee,
+                $type,
+                $start,
+                $end,
+                $hoursPerDay,
+                $status,
+                requestedAt: $start->modify('-2 days')->setTime(9, 0),
+            );
+            if (null !== $request) {
+                $manager->persist($request);
+            }
+        }
     }
 
     /**

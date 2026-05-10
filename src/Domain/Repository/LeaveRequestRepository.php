@@ -114,7 +114,7 @@ class LeaveRequestRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->innerJoin('r.absenceType', 't')
             ->where('r.employee = :employee')
-            ->andWhere('t.isIllnessTracking = true')
+            ->andWhere('t.illnessTracking = true')
             ->andWhere('r.status IN (:statuses)')
             ->setParameter('employee', $employee)
             ->setParameter('statuses', [
@@ -196,6 +196,125 @@ class LeaveRequestRepository extends ServiceEntityRepository
             ->orderBy('r.requestedAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Approved leave requests that overlap a given date — i.e. the
+     * employees currently away on that day. Drives the "Aktuell abwesend"
+     * card on the admin statistics dashboard. Sorted by employee name
+     * for stable, alphabetical rendering, capped by `limit`.
+     *
+     * Excludes Recorded illness on purpose: the dashboard column lives
+     * next to the team-calendar link, which by default doesn't show
+     * recorded-only absences either. Counterpart {@see countActiveAbsencesOn}
+     * returns the unfiltered total so the UI can show "+N more".
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findActiveAbsencesOn(
+        Company $company,
+        \DateTimeImmutable $date,
+        int $limit,
+    ): array {
+        $date = $date->setTime(0, 0);
+
+        return $this->createQueryBuilder('r')
+            ->innerJoin('r.employee', 'e')
+            ->where('r.status IN (:statuses)')
+            ->andWhere('e.company = :company')
+            ->andWhere('r.startDate <= :date')
+            ->andWhere('r.endDate >= :date')
+            ->setParameter('statuses', [
+                LeaveRequestStatus::Approved->value,
+                LeaveRequestStatus::Recorded->value,
+            ])
+            ->setParameter('company', $company)
+            ->setParameter('date', $date)
+            ->orderBy('e.fullName', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Total count for the "+N more"-link on the absences card. Mirrors
+     * {@see findActiveAbsencesOn}'s WHERE clause exactly so the limit
+     * vs. total math is consistent.
+     */
+    public function countActiveAbsencesOn(Company $company, \DateTimeImmutable $date): int
+    {
+        $date = $date->setTime(0, 0);
+
+        $count = $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->innerJoin('r.employee', 'e')
+            ->where('r.status IN (:statuses)')
+            ->andWhere('e.company = :company')
+            ->andWhere('r.startDate <= :date')
+            ->andWhere('r.endDate >= :date')
+            ->setParameter('statuses', [
+                LeaveRequestStatus::Approved->value,
+                LeaveRequestStatus::Recorded->value,
+            ])
+            ->setParameter('company', $company)
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $count;
+    }
+
+    /**
+     * Pending requests in a company that have been sitting longer than
+     * the given day threshold, oldest first. Drives the "liegende
+     * Anträge"-action on the admin statistics dashboard. Independent of
+     * {@see findPendingNeedingEscalation} — that one respects the
+     * per-company escalation_days setting and idempotency stamp; this one
+     * is a flat overview using the same threshold the dashboard explains
+     * in its detail line.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findOverduePendingInCompany(
+        Company $company,
+        \DateTimeImmutable $now,
+        int $daysThreshold,
+    ): array {
+        $cutoff = $now->modify(\sprintf('-%d days', $daysThreshold));
+
+        return $this->createQueryBuilder('r')
+            ->innerJoin('r.employee', 'e')
+            ->where('r.status = :pending')
+            ->andWhere('e.company = :company')
+            ->andWhere('r.requestedAt <= :cutoff')
+            ->setParameter('pending', LeaveRequestStatus::Pending->value)
+            ->setParameter('company', $company)
+            ->setParameter('cutoff', $cutoff)
+            ->orderBy('r.requestedAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count of pending and cancel-requested company-wide. Drives the
+     * "open requests" KPI on the admin statistics dashboard.
+     */
+    public function countAwaitingDecisionInCompany(Company $company): int
+    {
+        $count = $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->innerJoin('r.employee', 'e')
+            ->where('r.status IN (:statuses)')
+            ->andWhere('e.company = :company')
+            ->setParameter('statuses', [
+                LeaveRequestStatus::Pending->value,
+                LeaveRequestStatus::CancelRequested->value,
+            ])
+            ->setParameter('company', $company)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $count;
     }
 
     /**

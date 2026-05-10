@@ -46,6 +46,7 @@ nav:
         entitlements: Urlaubskonten
         blackout_periods: Sperrfristen
         scheduled_jobs: "Cron-Jobs"
+        statistics: Statistik
     manager:
         approvals: Genehmigungen
     team:
@@ -505,6 +506,99 @@ admin:
         edit_expiry_view:
             title: "Ablauffrist bearbeiten"
             hint: "Leer lassen, um die Ablauffrist zu entfernen (z. B. bei anerkannter BAG-Aufklärungspflicht-Ausnahme)."
+    statistics:
+        title: Statistik
+        heading: Statistik-Dashboard
+        description: "Anonymisierte Kennzahlen zu Auslastung, Krankheit und offenen Anträgen. Teams unterhalb des Anonymitäts-Schwellenwerts werden in den Aggregaten nicht ausgewiesen."
+        range: "Zeitraum: %start% bis %end%"
+        section:
+            actions: "Handlungsbedarf"
+            absences: "Aktuell abwesend"
+            kpis: "Kennzahlen"
+            charts: "Diagramme"
+            department_table: "Teams im Detail"
+        actions:
+            heading: "Handlungsbedarf"
+            days_unit: "Tage"
+            all_clear:
+                title: "Alles im grünen Bereich"
+                detail: "Keine Carryover laufen in den nächsten %horizon% Tagen ab und kein Antrag liegt länger als %threshold% Tage."
+            expiring:
+                title: "Verfalls-Risiko: %count% Mitarbeitende"
+                detail: "Carryover-Stunden, die in den nächsten %horizon% Tagen ablaufen. Mit den Mitarbeitenden klären (Urlaub einplanen oder Auszahlung), sonst Verfall nach BUrlG §7 Abs. 3."
+                cta: "Zu den Urlaubskonten"
+                col:
+                    employee: "Mitarbeiter:in"
+                    hours: "Stunden offen"
+                    expires_at: "Verfällt am"
+                    days_left: "Verbleibend"
+            overdue:
+                title: "Liegende Anträge: %count%"
+                detail: "Pending-Anträge, die seit mehr als %threshold% Tagen warten. Manager-Eskalation läuft automatisch — als Admin kannst du selbst übernehmen, falls der Manager nicht erreichbar ist."
+                cta: "Zur Antrags-Übersicht"
+                col:
+                    employee: "Mitarbeiter:in"
+                    type: "Art"
+                    range: "Zeitraum"
+                    requested_at: "Eingereicht"
+                    days_waiting: "Liegezeit"
+        absences:
+            heading: "Aktuell abwesend"
+            none:
+                title: "Niemand abwesend"
+                detail: "Heute ist niemand laut System im Urlaub oder krank gemeldet."
+            count: "%count% Mitarbeitende sind heute abwesend"
+            count_one: "1 Mitarbeitende:r ist heute abwesend"
+            cta: "Zum Team-Kalender"
+            more: "+ %count% weitere im Team-Kalender"
+            today: "heute"
+            until: "bis %date%"
+            col:
+                employee: "Mitarbeiter:in"
+                type: "Art"
+                until: "Bis"
+        filter:
+            year_label: "Jahr"
+            apply: "Anwenden"
+        kpi:
+            utilization:
+                label: "Urlaubs-Auslastung"
+                sublabel: "Genutzte Stunden über alle Mitarbeitenden"
+                detail: "%used% h genutzt von %granted% h gewährt (Jahres-Urlaub + übertragener Resturlaub aus Vorjahr; abgelaufene Carryover ausgenommen). Faustregel: Ende Q3 sollte der Wert bei ~75% liegen, sonst droht Q4-Stau oder Verfall."
+            illness:
+                label: "Krankenquote"
+                sublabel: "Krankheits-Stunden vs. Soll-Arbeitszeit"
+                detail: "%illness% h Krankheit / %scheduled% h Vertragsstunden im Zeitraum. Branchenschnitt liegt bei 4-5%; Werte deutlich darüber sind ein Hinweis auf strukturelle Belastung im Team."
+            pending:
+                label: "Offene Anträge"
+                sublabel: "Warten auf Manager-Entscheidung"
+                detail: "Pending-Anträge plus offene Storno-Bestätigungen. Liegezeit > 5 Tage = Eskalations-Mail wird ausgelöst (Konfiguration in den Firmen-Einstellungen)."
+            avg_remaining:
+                label: "Ø verfügbarer Urlaub"
+                sublabel: "Pro aktiver Mitarbeiter:in noch offen"
+                detail: "Nicht genutzter Urlaub (Jahres-Anspruch + nicht abgelaufener Resturlaub) geteilt durch %count% aktive Mitarbeitende. Genutzt für Bilanz-Rückstellung (HGB §249) und Verfallsrisiko-Frühwarnung — hohe Werte ab Q3 brauchen Personalplanung oder Auszahlungs-Entscheidung."
+        chart:
+            hours_unit: "Stunden"
+            monthly:
+                title: "Urlaubsverteilung über das Jahr"
+                description: "Genehmigte, urlaubsmindernde Stunden pro Monat (alle abzugsfähigen Abwesenheitsarten)."
+                dataset: "Genommene Urlaubsstunden"
+            departments:
+                title: "Auslastung nach Team"
+                description: "Auslastung in Prozent. Teams mit weniger als %threshold% Mitarbeitenden werden zur Anonymisierung ausgeblendet."
+                utilization: "Auslastung in %"
+        table:
+            departments:
+                title: "Teams im Detail"
+                description: "Volle Tabelle inklusive ausgeblendeter Teams. Werte unter %threshold% Mitarbeitenden bleiben verborgen."
+                empty: "Keine Teams angelegt."
+                hidden: "Verborgen (weniger als %threshold% Mitarbeitende)"
+                col:
+                    name: "Team"
+                    headcount: "Mitarbeitende"
+                    granted: "Gewährt"
+                    used: "Genutzt"
+                    utilization: "Auslastung"
     leave_requests:
         title: Urlaubsanträge
         heading: Urlaubsanträge
@@ -772,3 +866,20 @@ pagination:
     prev: Zurück
     next: Weiter
     summary: "Seite %page% von %totalPages%"
+statistics:
+    department:
+        orphan: "Ohne Abteilung"
+month:
+    short:
+        jan: Jan
+        feb: Feb
+        mar: Mär
+        apr: Apr
+        may: Mai
+        jun: Jun
+        jul: Jul
+        aug: Aug
+        sep: Sep
+        oct: Okt
+        nov: Nov
+        dec: Dez

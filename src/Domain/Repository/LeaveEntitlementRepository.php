@@ -100,6 +100,40 @@ class LeaveEntitlementRepository extends ServiceEntityRepository
     }
 
     /**
+     * Carryovers in a company that expire within the next N days and still
+     * have hours left. Drives the "Verfalls-Risiko"-action on the admin
+     * statistics dashboard. Unlike {@see findExpiringWithoutWarning} this
+     * does NOT consider the warning-sent-at flag — the dashboard always
+     * shows the current at-risk set so it can serve as a planning tool, not
+     * just a one-shot notification trigger.
+     *
+     * @return list<LeaveEntitlement>
+     */
+    public function findCarryoversExpiringWithin(
+        Company $company,
+        \DateTimeImmutable $today,
+        int $daysAhead,
+    ): array {
+        $today = $today->setTime(0, 0);
+        $threshold = $today->modify(\sprintf('+%d days', $daysAhead));
+
+        return $this->createQueryBuilder('e')
+            ->join('e.employee', 'emp')
+            ->andWhere('emp.company = :company')
+            ->andWhere('e.expiresAt IS NOT NULL')
+            ->andWhere('e.expiresAt >= :today')
+            ->andWhere('e.expiresAt <= :threshold')
+            ->andWhere('(e.hoursGranted - e.hoursUsed) > 0')
+            ->setParameter('company', $company)
+            ->setParameter('today', $today)
+            ->setParameter('threshold', $threshold)
+            ->orderBy('e.expiresAt', 'ASC')
+            ->addOrderBy('emp.fullName', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Drives the EntitlementExpiringSoon scheduler. Returns entitlements
      * whose expiresAt falls within [today, today+daysAhead] AND have not yet
      * triggered an expiry warning AND still have hours remaining (no point

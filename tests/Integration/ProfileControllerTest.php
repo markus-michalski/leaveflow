@@ -100,7 +100,11 @@ final class ProfileControllerTest extends WebTestCase
             '_password' => AppFixtures::DEFAULT_PASSWORD,
         ]);
         $this->client->submit($form);
-        $this->client->followRedirect();
+        // Follow every redirect — admins now hop /login → / → /admin/statistics
+        // so a single followRedirect would leave us on a 302 response.
+        while ($this->client->getResponse()->isRedirection()) {
+            $this->client->followRedirect();
+        }
 
         if (Response::HTTP_OK !== $this->client->getResponse()->getStatusCode()) {
             throw new \RuntimeException('Login failed for '.$email);
