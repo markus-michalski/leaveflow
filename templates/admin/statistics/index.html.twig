@@ -221,7 +221,7 @@
                             {{ 'admin.statistics.absences.count'|trans({ '%count%': snapshot.currentAbsencesTotal }) }}
                         {% endif %}
                     </p>
-                    <a href="{{ path('app_team_calendar') }}"
+                    <a href="{{ path('app_team_calendar_index') }}"
                        class="whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
                         {{ 'admin.statistics.absences.cta'|trans }}
                     </a>
@@ -257,7 +257,7 @@
                 </table>
                 {% if snapshot.hasMoreAbsencesThanShown() %}
                     <p class="mt-3 text-sm text-gray-500" data-testid="absences-more">
-                        <a href="{{ path('app_team_calendar') }}" class="text-blue-600 hover:underline">
+                        <a href="{{ path('app_team_calendar_index') }}" class="text-blue-600 hover:underline">
                             {{ 'admin.statistics.absences.more'|trans({ '%count%': snapshot.additionalAbsencesCount() }) }}
                         </a>
                     </p>
