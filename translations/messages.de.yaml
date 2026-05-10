@@ -46,6 +46,7 @@ nav:
         entitlements: Urlaubskonten
         blackout_periods: Sperrfristen
         scheduled_jobs: "Cron-Jobs"
+        statistics: Statistik
     manager:
         approvals: Genehmigungen
     team:
@@ -505,6 +506,53 @@ admin:
         edit_expiry_view:
             title: "Ablauffrist bearbeiten"
             hint: "Leer lassen, um die Ablauffrist zu entfernen (z. B. bei anerkannter BAG-Aufklärungspflicht-Ausnahme)."
+    statistics:
+        title: Statistik
+        heading: Statistik-Dashboard
+        description: "Anonymisierte Kennzahlen zu Auslastung, Krankheit und offenen Anträgen. Teams unterhalb des Anonymitäts-Schwellenwerts werden in den Aggregaten nicht ausgewiesen."
+        range: "Zeitraum: %start% bis %end%"
+        section:
+            kpis: "Kennzahlen"
+            charts: "Diagramme"
+            department_table: "Teams im Detail"
+        filter:
+            year_label: "Jahr"
+            apply: "Anwenden"
+        kpi:
+            utilization:
+                label: "Genutzter Urlaub"
+                detail: "%used% h von %granted% h genutzt"
+            illness:
+                label: "Krankenquote"
+                detail: "%illness% h Krankheit / %scheduled% h Soll-Arbeitszeit"
+            pending:
+                label: "Offene Anträge"
+                detail: "Wartet auf Genehmigung oder Storno-Bestätigung"
+            avg_remaining:
+                label: "Ø Resturlaub"
+                detail: "Pro Mitarbeiter (%count% aktiv im Zeitraum)"
+        chart:
+            hours_unit: "Stunden"
+            monthly:
+                title: "Urlaubsverteilung über das Jahr"
+                description: "Genehmigte, urlaubsmindernde Stunden pro Monat (alle abzugsfähigen Abwesenheitsarten)."
+                dataset: "Genommene Urlaubsstunden"
+            departments:
+                title: "Auslastung nach Team"
+                description: "Auslastung in Prozent. Teams mit weniger als %threshold% Mitarbeitenden werden zur Anonymisierung ausgeblendet."
+                utilization: "Auslastung in %"
+        table:
+            departments:
+                title: "Teams im Detail"
+                description: "Volle Tabelle inklusive ausgeblendeter Teams. Werte unter %threshold% Mitarbeitenden bleiben verborgen."
+                empty: "Keine Teams angelegt."
+                hidden: "Verborgen (weniger als %threshold% Mitarbeitende)"
+                col:
+                    name: "Team"
+                    headcount: "Mitarbeitende"
+                    granted: "Gewährt"
+                    used: "Genutzt"
+                    utilization: "Auslastung"
     leave_requests:
         title: Urlaubsanträge
         heading: Urlaubsanträge
@@ -772,3 +820,20 @@ pagination:
     prev: Zurück
     next: Weiter
     summary: "Seite %page% von %totalPages%"
+statistics:
+    department:
+        orphan: "Ohne Abteilung"
+month:
+    short:
+        jan: Jan
+        feb: Feb
+        mar: Mär
+        apr: Apr
+        may: Mai
+        jun: Jun
+        jul: Jul
+        aug: Aug
+        sep: Sep
+        oct: Okt
+        nov: Nov
+        dec: Dez

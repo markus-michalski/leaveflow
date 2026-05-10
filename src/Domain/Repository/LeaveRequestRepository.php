@@ -114,7 +114,7 @@ class LeaveRequestRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->innerJoin('r.absenceType', 't')
             ->where('r.employee = :employee')
-            ->andWhere('t.isIllnessTracking = true')
+            ->andWhere('t.illnessTracking = true')
             ->andWhere('r.status IN (:statuses)')
             ->setParameter('employee', $employee)
             ->setParameter('statuses', [
@@ -196,6 +196,28 @@ class LeaveRequestRepository extends ServiceEntityRepository
             ->orderBy('r.requestedAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Count of pending and cancel-requested company-wide. Drives the
+     * "open requests" KPI on the admin statistics dashboard.
+     */
+    public function countAwaitingDecisionInCompany(Company $company): int
+    {
+        $count = $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->innerJoin('r.employee', 'e')
+            ->where('r.status IN (:statuses)')
+            ->andWhere('e.company = :company')
+            ->setParameter('statuses', [
+                LeaveRequestStatus::Pending->value,
+                LeaveRequestStatus::CancelRequested->value,
+            ])
+            ->setParameter('company', $company)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $count;
     }
 
     /**

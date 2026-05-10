@@ -46,6 +46,7 @@ nav:
         leave_requests: Leave requests
         blackout_periods: Blackout periods
         scheduled_jobs: "Cron jobs"
+        statistics: Statistics
     manager:
         approvals: Approvals
     team:
@@ -502,6 +503,53 @@ admin:
         edit_expiry_view:
             title: "Edit expiry"
             hint: "Leave empty to remove the expiry (e.g. for a recognized BAG notification-duty exception)."
+    statistics:
+        title: Statistics
+        heading: Statistics dashboard
+        description: "Anonymized leave-utilization, illness rate, and pending-request KPIs. Teams below the anonymity threshold are excluded from aggregates."
+        range: "Range: %start% to %end%"
+        section:
+            kpis: "KPIs"
+            charts: "Charts"
+            department_table: "Department details"
+        filter:
+            year_label: "Year"
+            apply: "Apply"
+        kpi:
+            utilization:
+                label: "Leave utilization"
+                detail: "%used% h used of %granted% h granted"
+            illness:
+                label: "Illness rate"
+                detail: "%illness% h illness / %scheduled% h scheduled"
+            pending:
+                label: "Open requests"
+                detail: "Awaiting approval or cancellation decision"
+            avg_remaining:
+                label: "Avg. remaining"
+                detail: "Per employee (%count% active in range)"
+        chart:
+            hours_unit: "Hours"
+            monthly:
+                title: "Leave distribution across the year"
+                description: "Approved, leave-deducting hours per month (all deducting absence types)."
+                dataset: "Leave hours taken"
+            departments:
+                title: "Utilization by team"
+                description: "Utilization in percent. Teams with fewer than %threshold% members are hidden for anonymization."
+                utilization: "Utilization (%)"
+        table:
+            departments:
+                title: "Department details"
+                description: "Full table including hidden teams. Aggregates remain withheld below %threshold% members."
+                empty: "No departments configured."
+                hidden: "Hidden (fewer than %threshold% members)"
+                col:
+                    name: "Team"
+                    headcount: "Members"
+                    granted: "Granted"
+                    used: "Used"
+                    utilization: "Utilization"
     leave_requests:
         title: Leave requests
         heading: Leave requests
@@ -769,3 +817,20 @@ pagination:
     prev: Previous
     next: Next
     summary: "Page %page% of %totalPages%"
+statistics:
+    department:
+        orphan: "No department"
+month:
+    short:
+        jan: Jan
+        feb: Feb
+        mar: Mar
+        apr: Apr
+        may: May
+        jun: Jun
+        jul: Jul
+        aug: Aug
+        sep: Sep
+        oct: Oct
+        nov: Nov
+        dec: Dec

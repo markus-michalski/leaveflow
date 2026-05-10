@@ -1,0 +1,208 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.statistics.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-7xl p-6"
+     data-controller="statistics-charts"
+     data-statistics-charts-monthly-value="{{ snapshot.monthlyDistribution|json_encode }}"
+     data-statistics-charts-departments-value="{{ snapshot.departmentBreakdown|map(d => {
+        name: d.name,
+        granted: d.totalGrantedHours,
+        used: d.totalUsedHours,
+        utilization: d.utilizationPercent,
+        hidden: d.hidden,
+     })|json_encode }}"
+     data-statistics-charts-month-labels-value="{{ [
+        'month.short.jan'|trans,
+        'month.short.feb'|trans,
+        'month.short.mar'|trans,
+        'month.short.apr'|trans,
+        'month.short.may'|trans,
+        'month.short.jun'|trans,
+        'month.short.jul'|trans,
+        'month.short.aug'|trans,
+        'month.short.sep'|trans,
+        'month.short.oct'|trans,
+        'month.short.nov'|trans,
+        'month.short.dec'|trans,
+     ]|json_encode }}"
+     data-statistics-charts-monthly-label-value="{{ 'admin.statistics.chart.monthly.dataset'|trans }}"
+     data-statistics-charts-utilization-label-value="{{ 'admin.statistics.chart.departments.utilization'|trans }}"
+     data-statistics-charts-hours-label-value="{{ 'admin.statistics.chart.hours_unit'|trans }}">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.statistics.heading'|trans }}</h1>
+            <p class="mt-1 max-w-3xl text-sm text-gray-500">{{ 'admin.statistics.description'|trans }}</p>
+            <p class="mt-1 text-xs text-gray-400">
+                {{ 'admin.statistics.range'|trans({
+                    '%start%': snapshot.rangeStart|date('d.m.Y'),
+                    '%end%': snapshot.rangeEnd|date('d.m.Y'),
+                }) }}
+            </p>
+        </div>
+        <div class="flex flex-wrap items-end gap-3">
+            <form method="get"
+                  action="{{ path('app_admin_statistics_index') }}"
+                  class="flex items-end gap-2"
+                  data-testid="admin-statistics-year-form">
+                <div>
+                    <label for="admin-statistics-year" class="block text-xs font-medium text-gray-500">
+                        {{ 'admin.statistics.filter.year_label'|trans }}
+                    </label>
+                    <select id="admin-statistics-year"
+                            name="year"
+                            onchange="this.form.requestSubmit()"
+                            class="mt-1 block w-32 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            data-testid="admin-statistics-year-select">
+                        {% for y in snapshot.availableYears %}
+                            <option value="{{ y }}" {{ snapshot.year == y ? 'selected' : '' }}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <noscript>
+                    <button type="submit" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        {{ 'admin.statistics.filter.apply'|trans }}
+                    </button>
+                </noscript>
+            </form>
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+        </div>
+    </header>
+
+    {# KPI cards #}
+    <section class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+             aria-label="{{ 'admin.statistics.section.kpis'|trans }}">
+        <div class="rounded-xl bg-white p-5 shadow-sm" data-testid="kpi-utilization">
+            <p class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                {{ 'admin.statistics.kpi.utilization.label'|trans }}
+            </p>
+            <p class="mt-2 text-3xl font-semibold text-gray-900">
+                {{ snapshot.utilization.utilizationPercent|number_format(1, ',', '.') }}<span class="text-lg font-medium text-gray-500"> %</span>
+            </p>
+            <p class="mt-2 text-xs text-gray-500">
+                {{ 'admin.statistics.kpi.utilization.detail'|trans({
+                    '%used%': snapshot.utilization.totalUsedHours|number_format(1, ',', '.'),
+                    '%granted%': snapshot.utilization.totalGrantedHours|number_format(1, ',', '.'),
+                }) }}
+            </p>
+        </div>
+
+        <div class="rounded-xl bg-white p-5 shadow-sm" data-testid="kpi-illness">
+            <p class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                {{ 'admin.statistics.kpi.illness.label'|trans }}
+            </p>
+            <p class="mt-2 text-3xl font-semibold text-gray-900">
+                {{ snapshot.illnessRate.illnessRatePercent|number_format(1, ',', '.') }}<span class="text-lg font-medium text-gray-500"> %</span>
+            </p>
+            <p class="mt-2 text-xs text-gray-500">
+                {{ 'admin.statistics.kpi.illness.detail'|trans({
+                    '%illness%': snapshot.illnessRate.totalIllnessHours|number_format(1, ',', '.'),
+                    '%scheduled%': snapshot.illnessRate.totalScheduledHours|number_format(1, ',', '.'),
+                }) }}
+            </p>
+        </div>
+
+        <div class="rounded-xl bg-white p-5 shadow-sm" data-testid="kpi-pending">
+            <p class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                {{ 'admin.statistics.kpi.pending.label'|trans }}
+            </p>
+            <p class="mt-2 text-3xl font-semibold text-gray-900">{{ snapshot.awaitingDecisionCount }}</p>
+            <p class="mt-2 text-xs text-gray-500">{{ 'admin.statistics.kpi.pending.detail'|trans }}</p>
+        </div>
+
+        <div class="rounded-xl bg-white p-5 shadow-sm" data-testid="kpi-avg-remaining">
+            <p class="text-xs font-medium uppercase tracking-wider text-gray-500">
+                {{ 'admin.statistics.kpi.avg_remaining.label'|trans }}
+            </p>
+            <p class="mt-2 text-3xl font-semibold text-gray-900">
+                {{ snapshot.averageRemainingHours|number_format(1, ',', '.') }}<span class="text-lg font-medium text-gray-500"> h</span>
+            </p>
+            <p class="mt-2 text-xs text-gray-500">
+                {{ 'admin.statistics.kpi.avg_remaining.detail'|trans({
+                    '%count%': snapshot.activeEmployeeCount,
+                }) }}
+            </p>
+        </div>
+    </section>
+
+    {# Charts #}
+    <section class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2"
+             aria-label="{{ 'admin.statistics.section.charts'|trans }}">
+        <div class="rounded-xl bg-white p-5 shadow-sm">
+            <h2 class="mb-3 text-lg font-semibold text-gray-900">
+                {{ 'admin.statistics.chart.monthly.title'|trans }}
+            </h2>
+            <p class="mb-4 text-xs text-gray-500">{{ 'admin.statistics.chart.monthly.description'|trans }}</p>
+            <div class="relative h-72">
+                <canvas data-statistics-charts-target="monthlyChart"
+                        data-testid="chart-monthly"
+                        aria-label="{{ 'admin.statistics.chart.monthly.title'|trans }}"></canvas>
+            </div>
+        </div>
+
+        <div class="rounded-xl bg-white p-5 shadow-sm">
+            <h2 class="mb-3 text-lg font-semibold text-gray-900">
+                {{ 'admin.statistics.chart.departments.title'|trans }}
+            </h2>
+            <p class="mb-4 text-xs text-gray-500">
+                {{ 'admin.statistics.chart.departments.description'|trans({ '%threshold%': snapshot.anonymityThreshold }) }}
+            </p>
+            <div class="relative h-72">
+                <canvas data-statistics-charts-target="departmentsChart"
+                        data-testid="chart-departments"
+                        aria-label="{{ 'admin.statistics.chart.departments.title'|trans }}"></canvas>
+            </div>
+        </div>
+    </section>
+
+    {# Department breakdown table — accessible fallback to the chart, also shows hidden rows. #}
+    <section class="rounded-xl bg-white shadow-sm" aria-label="{{ 'admin.statistics.section.department_table'|trans }}">
+        <div class="border-b border-gray-200 px-6 py-4">
+            <h2 class="text-lg font-semibold text-gray-900">
+                {{ 'admin.statistics.table.departments.title'|trans }}
+            </h2>
+            <p class="mt-1 text-xs text-gray-500">
+                {{ 'admin.statistics.table.departments.description'|trans({ '%threshold%': snapshot.anonymityThreshold }) }}
+            </p>
+        </div>
+        {% if snapshot.departmentBreakdown is empty %}
+            <div class="px-6 py-8 text-center text-sm text-gray-500">
+                {{ 'admin.statistics.table.departments.empty'|trans }}
+            </div>
+        {% else %}
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        <th class="px-6 py-3">{{ 'admin.statistics.table.departments.col.name'|trans }}</th>
+                        <th class="px-6 py-3 text-right">{{ 'admin.statistics.table.departments.col.headcount'|trans }}</th>
+                        <th class="px-6 py-3 text-right">{{ 'admin.statistics.table.departments.col.granted'|trans }}</th>
+                        <th class="px-6 py-3 text-right">{{ 'admin.statistics.table.departments.col.used'|trans }}</th>
+                        <th class="px-6 py-3 text-right">{{ 'admin.statistics.table.departments.col.utilization'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
+                    {% for entry in snapshot.departmentBreakdown %}
+                        <tr data-testid="department-row-{{ loop.index }}" class="{{ entry.hidden ? 'bg-gray-50' : '' }}">
+                            <td class="px-6 py-3 font-medium text-gray-900">{{ entry.name }}</td>
+                            <td class="px-6 py-3 text-right">{{ entry.employeeCount }}</td>
+                            {% if entry.hidden %}
+                                <td class="px-6 py-3 text-right text-gray-400" colspan="3">
+                                    {{ 'admin.statistics.table.departments.hidden'|trans({ '%threshold%': snapshot.anonymityThreshold }) }}
+                                </td>
+                            {% else %}
+                                <td class="px-6 py-3 text-right">{{ entry.totalGrantedHours|number_format(1, ',', '.') }} h</td>
+                                <td class="px-6 py-3 text-right">{{ entry.totalUsedHours|number_format(1, ',', '.') }} h</td>
+                                <td class="px-6 py-3 text-right">{{ entry.utilizationPercent|number_format(1, ',', '.') }} %</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
