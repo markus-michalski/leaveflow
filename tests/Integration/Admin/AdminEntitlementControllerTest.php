@@ -8,6 +8,7 @@ use App\DataFixtures\AppFixtures;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
+use App\Domain\Entity\LeaveEntitlementAuditEntry;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
 use App\Domain\Enum\LeaveEntitlementType;
@@ -73,6 +74,7 @@ final class AdminEntitlementControllerTest extends WebTestCase
 
         $this->client->submit($form, [
             $formName.'[expiresAt]' => '30.09.2025',
+            $formName.'[reason]' => 'Krankheit Mitarbeiter, BAG-Verlängerung',
         ]);
 
         self::assertResponseRedirects('/admin/entitlements');
@@ -106,6 +108,7 @@ final class AdminEntitlementControllerTest extends WebTestCase
 
         $this->client->submit($form, [
             $formName.'[expiresAt]' => '',
+            $formName.'[reason]' => 'Frist aufgehoben — anerkannte BAG-Aufklärungspflicht-Ausnahme',
         ]);
 
         self::assertResponseRedirects('/admin/entitlements');
@@ -552,6 +555,7 @@ final class AdminEntitlementControllerTest extends WebTestCase
 
         $this->client->submit($form, [
             $formName.'[hoursGranted]' => '200.5',
+            $formName.'[reason]' => 'Korrektur Stundenkonto, Tippfehler bei Anlage',
         ]);
 
         self::assertResponseRedirects('/admin/entitlements?year=2027');
@@ -560,6 +564,149 @@ final class AdminEntitlementControllerTest extends WebTestCase
         /** @var LeaveEntitlement $reloaded */
         $reloaded = $this->em->find(LeaveEntitlement::class, $id);
         self::assertSame(200.5, $reloaded->getHoursGranted());
+    }
+
+    #[Test]
+    public function grantAdjustmentWritesAuditEntry(): void
+    {
+        $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/entitlements/'.$id.'/edit');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-edit-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[hoursGranted]' => '248',
+            $formName.'[reason]' => 'Überstunden-Übertrag aus Q4 2026',
+        ]);
+
+        self::assertResponseRedirects('/admin/entitlements?year=2027');
+
+        $this->em->clear();
+        $audits = $this->em->getRepository(LeaveEntitlementAuditEntry::class)->findBy([], ['id' => 'ASC']);
+        self::assertCount(1, $audits);
+        $audit = $audits[0];
+        self::assertSame(240.0, $audit->getOldHoursGranted());
+        self::assertSame(248.0, $audit->getNewHoursGranted());
+        self::assertSame('Überstunden-Übertrag aus Q4 2026', $audit->getReason());
+        self::assertNull($audit->getOldExpiresAt());
+        self::assertNull($audit->getNewExpiresAt());
+    }
+
+    #[Test]
+    public function expiryAdjustmentWritesAuditEntry(): void
+    {
+        $entitlement = $this->createEntitlement(
+            2024,
+            LeaveEntitlementType::Carryover,
+            40.0,
+            new \DateTimeImmutable('2025-03-31'),
+        );
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/entitlements/'.$id.'/expires');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-expiry-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[expiresAt]' => '30.06.2025',
+            $formName.'[reason]' => 'BAG-Verlängerung wegen Krankheit',
+        ]);
+
+        self::assertResponseRedirects('/admin/entitlements');
+
+        $this->em->clear();
+        $audits = $this->em->getRepository(LeaveEntitlementAuditEntry::class)->findBy([], ['id' => 'ASC']);
+        self::assertCount(1, $audits);
+        $audit = $audits[0];
+        self::assertSame('2025-03-31', $audit->getOldExpiresAt()?->format('Y-m-d'));
+        self::assertSame('2025-06-30', $audit->getNewExpiresAt()?->format('Y-m-d'));
+        self::assertSame('BAG-Verlängerung wegen Krankheit', $audit->getReason());
+    }
+
+    #[Test]
+    public function editFormRejectsMissingReason(): void
+    {
+        $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/entitlements/'.$id.'/edit');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-edit-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[hoursGranted]' => '300',
+            $formName.'[reason]' => '',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        $this->em->clear();
+        /** @var LeaveEntitlement $reloaded */
+        $reloaded = $this->em->find(LeaveEntitlement::class, $id);
+        self::assertSame(240.0, $reloaded->getHoursGranted());
+        self::assertCount(0, $this->em->getRepository(LeaveEntitlementAuditEntry::class)->findAll());
+    }
+
+    #[Test]
+    public function noOpEditDoesNotWriteAuditEntry(): void
+    {
+        // Admin opens the edit form, types the same value, and submits.
+        // No mutation, no audit row — even though `reason` is filled in.
+        $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/entitlements/'.$id.'/edit');
+        $form = $crawler->filter('form[data-testid="admin-entitlement-edit-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[hoursGranted]' => '240',
+            $formName.'[reason]' => 'redundant edit, ignored by controller',
+        ]);
+
+        self::assertResponseRedirects('/admin/entitlements?year=2027');
+
+        $this->em->clear();
+        self::assertCount(0, $this->em->getRepository(LeaveEntitlementAuditEntry::class)->findAll());
+    }
+
+    #[Test]
+    public function editPageRendersAuditHistoryPanel(): void
+    {
+        $entitlement = $this->createEntitlement(2027, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+        $id = $entitlement->getId();
+
+        $this->loginAs('admin@leaveflow.test');
+
+        // First visit: empty-state copy.
+        $this->client->request('GET', '/admin/entitlements/'.$id.'/edit');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-testid="entitlement-audit-empty"]');
+
+        // Make a change so the panel populates.
+        $crawler = $this->client->getCrawler();
+        $form = $crawler->filter('form[data-testid="admin-entitlement-edit-form"]')->form();
+        $formName = $form->getName();
+        $this->client->submit($form, [
+            $formName.'[hoursGranted]' => '260',
+            $formName.'[reason]' => 'Aufstockung Sonderurlaub',
+        ]);
+
+        $this->client->request('GET', '/admin/entitlements/'.$id.'/edit');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'Aufstockung Sonderurlaub');
+        self::assertSelectorTextContains('body', '240,00 h → 260,00 h');
     }
 
     #[Test]
@@ -577,6 +724,7 @@ final class AdminEntitlementControllerTest extends WebTestCase
 
         $this->client->submit($form, [
             $formName.'[hoursGranted]' => '100',
+            $formName.'[reason]' => 'Test downgrade should be rejected by domain',
         ]);
 
         self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);

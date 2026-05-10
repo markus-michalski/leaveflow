@@ -6,11 +6,14 @@ namespace App\Presentation\Form;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -19,7 +22,10 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * inline (issue #23): a carryover expiry that pre-dates the entitlement
  * year would gate leave before it even applies.
  *
- * @extends AbstractType<array{expiresAt: ?\DateTimeInterface}>
+ * Phase 9: a non-empty `reason` is required so the audit trail captures
+ * the why behind every override.
+ *
+ * @extends AbstractType<array{expiresAt: ?\DateTimeInterface, reason: string}>
  */
 final class LeaveEntitlementExpiresAtFormType extends AbstractType
 {
@@ -44,6 +50,16 @@ final class LeaveEntitlementExpiresAtFormType extends AbstractType
                 'mapped' => false,
                 // Admin may clear the expiry (e.g. illness / parental leave extension).
                 'required' => false,
+            ])
+            ->add('reason', TextareaType::class, [
+                'label' => 'admin.entitlements.field.reason',
+                'help' => 'admin.entitlements.field.reason_help',
+                'mapped' => false,
+                'constraints' => [
+                    new NotBlank(),
+                    new Length(min: 3, max: 1000),
+                ],
+                'attr' => ['rows' => 3],
             ])
             ->addEventListener(
                 FormEvents::POST_SUBMIT,

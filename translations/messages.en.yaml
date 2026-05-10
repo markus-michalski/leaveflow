@@ -465,6 +465,8 @@ admin:
             used: "Used"
             remaining: "Remaining"
             expires_at: "Expires on"
+            reason: "Reason"
+            reason_help: "Required for the audit trail. Document the underlying reason (e.g. illness, BAG extension, typo correction, overtime conversion)."
         type:
             regular: "Vacation"
             carryover: "Carryover"
@@ -475,6 +477,15 @@ admin:
             delete_blocked: "Cannot delete: %hoursUsed%h have already been booked. Cancel the related leave requests first, then delete."
             expiry_updated: "Expiry has been updated."
             duplicate: "This employee already has an entry for the same year and type."
+            no_change: "No changes were made."
+        audit:
+            title: "Change history"
+            empty: "No overrides recorded yet — the audit trail starts with the first edit."
+            hours_change: "Hours changed: %old% h → %new% h"
+            expiry_change: "Expiry changed: %old% → %new%"
+            reason_label: "Reason"
+            actor_system: "System"
+            no_date: "—"
         error:
             expires_before_burlg_floor: "Expiry must not be before %year%-03-31 — BUrlG §7 Abs. 3 guarantees a 3-month grace period the employer can only extend, not shorten."
             expiry_only_for_carryover: "Only carryover entries can have an expiry. Regular vacation applies for the whole leave year and is rolled into a separate carryover entry by the year-end transition."

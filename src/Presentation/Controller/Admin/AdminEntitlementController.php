@@ -7,8 +7,12 @@ namespace App\Presentation\Controller\Admin;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
+use App\Domain\Entity\LeaveEntitlementAuditEntry;
+use App\Domain\Entity\User;
 use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Repository\CompanyRepository;
+use App\Domain\Repository\EmployeeRepository;
+use App\Domain\Repository\LeaveEntitlementAuditEntryRepository;
 use App\Domain\Repository\LeaveEntitlementRepository;
 use App\Presentation\Form\LeaveEntitlementExpiresAtFormType;
 use App\Presentation\Form\LeaveEntitlementFormType;
@@ -16,6 +20,7 @@ use App\Presentation\Form\LeaveEntitlementGrantedHoursFormType;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,8 +35,11 @@ final class AdminEntitlementController extends AbstractController
     public function __construct(
         private readonly LeaveEntitlementRepository $repository,
         private readonly CompanyRepository $companyRepository,
+        private readonly EmployeeRepository $employeeRepository,
+        private readonly LeaveEntitlementAuditEntryRepository $auditRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -138,9 +146,31 @@ final class AdminEntitlementController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var \DateTimeImmutable|null $expiresAt */
             $expiresAt = $form->get('expiresAt')->getData();
+            $reason = trim((string) $form->get('reason')->getData());
+            $oldExpiry = $entry->getExpiresAt();
+
+            // Same-day no-op: skip mutation and audit. format(Y-m-d) keeps
+            // the comparison time-zone-agnostic and tolerant of the form
+            // returning a midnight DateTimeImmutable while the entity may
+            // already hold one.
+            $oldKey = $oldExpiry?->format('Y-m-d');
+            $newKey = $expiresAt?->format('Y-m-d');
+            if ($oldKey === $newKey) {
+                $this->addFlash('success', $this->translator->trans('admin.entitlements.flash.no_change'));
+
+                return $this->redirectToRoute('app_admin_entitlement_index');
+            }
 
             try {
                 $entry->adjustExpiresAt($expiresAt);
+                $this->entityManager->persist(LeaveEntitlementAuditEntry::forExpiryAdjustment(
+                    entitlement: $entry,
+                    actor: $this->resolveAdminEmployee($company),
+                    oldExpiresAt: $oldExpiry,
+                    newExpiresAt: $expiresAt,
+                    occurredAt: $this->clock->now(),
+                    reason: $reason,
+                ));
                 $this->entityManager->flush();
             } catch (\InvalidArgumentException $e) {
                 // Defense in depth: form-level validation should have caught
@@ -150,6 +180,7 @@ final class AdminEntitlementController extends AbstractController
                 return $this->render('admin/entitlements/edit_expiry.html.twig', [
                     'form' => $form,
                     'entry' => $entry,
+                    'auditHistory' => $this->auditRepository->findByEntitlement($entry),
                 ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
             }
 
@@ -165,6 +196,7 @@ final class AdminEntitlementController extends AbstractController
         return $this->render('admin/entitlements/edit_expiry.html.twig', [
             'form' => $form,
             'entry' => $entry,
+            'auditHistory' => $this->auditRepository->findByEntitlement($entry),
         ], new Response('', $status));
     }
 
@@ -182,9 +214,29 @@ final class AdminEntitlementController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $newGrant = (float) $form->get('hoursGranted')->getData();
+            $reason = trim((string) $form->get('reason')->getData());
+            $oldGrant = $entry->getHoursGranted();
+
+            // No-op edit (admin opened the form, didn't change the value):
+            // skip both the domain mutation and the audit write — the
+            // audit factory enforces "must record an actual change" anyway,
+            // catching it here keeps the user-facing flash honest.
+            if (abs($oldGrant - $newGrant) < 0.0001) {
+                $this->addFlash('success', $this->translator->trans('admin.entitlements.flash.no_change'));
+
+                return $this->redirectToRoute('app_admin_entitlement_index', ['year' => $entry->getYear()]);
+            }
 
             try {
                 $entry->adjustGrantedHours($newGrant);
+                $this->entityManager->persist(LeaveEntitlementAuditEntry::forHoursAdjustment(
+                    entitlement: $entry,
+                    actor: $this->resolveAdminEmployee($company),
+                    oldHoursGranted: $oldGrant,
+                    newHoursGranted: $newGrant,
+                    occurredAt: $this->clock->now(),
+                    reason: $reason,
+                ));
                 $this->entityManager->flush();
             } catch (\InvalidArgumentException|\DomainException $e) {
                 $form->get('hoursGranted')->addError(new FormError($e->getMessage()));
@@ -192,6 +244,7 @@ final class AdminEntitlementController extends AbstractController
                 return $this->render('admin/entitlements/edit.html.twig', [
                     'form' => $form,
                     'entry' => $entry,
+                    'auditHistory' => $this->auditRepository->findByEntitlement($entry),
                 ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
             }
 
@@ -207,6 +260,7 @@ final class AdminEntitlementController extends AbstractController
         return $this->render('admin/entitlements/edit.html.twig', [
             'form' => $form,
             'entry' => $entry,
+            'auditHistory' => $this->auditRepository->findByEntitlement($entry),
         ], new Response('', $status));
     }
 
@@ -252,5 +306,25 @@ final class AdminEntitlementController extends AbstractController
         }
 
         return $company;
+    }
+
+    /**
+     * Maps the logged-in admin User to its Employee for the audit-trail
+     * actor. Returns null for IT-only admin accounts that don't have an
+     * HR record — the audit entry's actor is nullable, and the history
+     * panel falls back to a generic "Administrator" label in that case.
+     */
+    private function resolveAdminEmployee(Company $company): ?Employee
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return null;
+        }
+        $employee = $this->employeeRepository->findOneBy(['user' => $user]);
+        if (!$employee instanceof Employee || $employee->getCompany() !== $company) {
+            return null;
+        }
+
+        return $employee;
     }
 }

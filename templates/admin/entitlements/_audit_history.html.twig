@@ -1,0 +1,50 @@
+{# Audit-History-Panel für Entitlement-Overrides (#45). #}
+{# Erwartet: auditHistory (list<LeaveEntitlementAuditEntry>, neueste zuerst). #}
+<section class="mt-6 rounded-xl bg-white p-6 shadow-sm" data-testid="entitlement-audit-history">
+    <h2 class="mb-4 text-base font-semibold text-gray-900">
+        {{ 'admin.entitlements.audit.title'|trans }}
+    </h2>
+
+    {% if auditHistory is empty %}
+        <p class="text-sm text-gray-500" data-testid="entitlement-audit-empty">
+            {{ 'admin.entitlements.audit.empty'|trans }}
+        </p>
+    {% else %}
+        <ol class="space-y-4">
+            {% for entry in auditHistory %}
+                <li class="rounded-md border border-gray-200 p-4"
+                    data-testid="entitlement-audit-entry-{{ entry.id }}">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900">
+                                {% if entry.changeType.value == 'hours_granted_adjusted' %}
+                                    {{ 'admin.entitlements.audit.hours_change'|trans({
+                                        '%old%': entry.oldHoursGranted|number_format(2, ',', '.'),
+                                        '%new%': entry.newHoursGranted|number_format(2, ',', '.'),
+                                    }) }}
+                                {% else %}
+                                    {{ 'admin.entitlements.audit.expiry_change'|trans({
+                                        '%old%': entry.oldExpiresAt ? entry.oldExpiresAt|date('d.m.Y') : ('admin.entitlements.audit.no_date'|trans),
+                                        '%new%': entry.newExpiresAt ? entry.newExpiresAt|date('d.m.Y') : ('admin.entitlements.audit.no_date'|trans),
+                                    }) }}
+                                {% endif %}
+                            </p>
+                            <p class="mt-1 text-xs text-gray-500">
+                                {{ entry.occurredAt|date('d.m.Y H:i') }} ·
+                                {% if entry.actor %}
+                                    {{ entry.actor.fullName }}
+                                {% else %}
+                                    {{ 'admin.entitlements.audit.actor_system'|trans }}
+                                {% endif %}
+                            </p>
+                            <p class="mt-2 text-sm text-gray-700">
+                                <span class="font-medium">{{ 'admin.entitlements.audit.reason_label'|trans }}:</span>
+                                {{ entry.reason }}
+                            </p>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ol>
+    {% endif %}
+</section>
