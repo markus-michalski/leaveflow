@@ -509,12 +509,13 @@ admin:
         description: "Anonymized leave-utilization, illness rate, and pending-request KPIs. Teams below the anonymity threshold are excluded from aggregates."
         range: "Range: %start% to %end%"
         section:
-            actions: "Actions"
+            actions: "Action items"
+            absences: "Currently away"
             kpis: "KPIs"
             charts: "Charts"
             department_table: "Department details"
         actions:
-            heading: "This week at a glance"
+            heading: "Action items"
             days_unit: "days"
             all_clear:
                 title: "All clear"
@@ -538,6 +539,21 @@ admin:
                     range: "Range"
                     requested_at: "Requested"
                     days_waiting: "Wait time"
+        absences:
+            heading: "Currently away"
+            none:
+                title: "Nobody away"
+                detail: "No leave or illness recorded for today."
+            count: "%count% employees are away today"
+            count_one: "1 employee is away today"
+            cta: "Team calendar"
+            more: "+ %count% more on the team calendar"
+            today: "today"
+            until: "until %date%"
+            col:
+                employee: "Employee"
+                type: "Type"
+                until: "Until"
         filter:
             year_label: "Year"
             apply: "Apply"

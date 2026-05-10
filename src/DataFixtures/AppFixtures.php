@@ -14,6 +14,7 @@ use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\Notification;
 use App\Domain\Entity\User;
+use App\Domain\Enum\ExclusionReason;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveEntitlementType;
@@ -260,6 +261,16 @@ final class AppFixtures extends Fixture
             $currentYear,
         );
 
+        // Phase 10: populate the "Aktuell abwesend" card with a realistic
+        // mix of approved leave + recorded illness covering the day the
+        // fixtures load. Multiple employees with different end dates so
+        // both the "endsToday" and the "until X" branches render.
+        $this->seedCurrentAbsenceDemoData(
+            $manager,
+            array_merge(['EMP-0002' => $erik], $extraEmployees),
+            $absenceTypesByName,
+        );
+
         // Phase 8: pre-populated inbox so a fresh `make fixtures` lands on a
         // realistic notification screen — every per-type Twig partial gets
         // exercised, and a mix of read/unread shows both visual states.
@@ -435,15 +446,27 @@ final class AppFixtures extends Fixture
     ): ?LeaveRequest {
         $schedule = $employee->getWorkSchedule();
         $days = [];
+        $workingDayCount = 0;
         for ($cursor = $start; $cursor <= $end; $cursor = $cursor->modify('+1 day')) {
             $weekday = Weekday::fromDateTime($cursor);
-            if (!$schedule->isWorkingDay($weekday)) {
+            if ($schedule->isWorkingDay($weekday)) {
+                $days[] = new LeaveDay($cursor, $hoursPerDay, LeaveDayStatus::Working);
+                ++$workingDayCount;
                 continue;
             }
-            $days[] = new LeaveDay($cursor, $hoursPerDay, LeaveDayStatus::Working);
+            // Cover the full date range so LeaveRequest::applyBreakdown is happy:
+            // Sa/So end up as Excluded(weekend), other off-days as NonWorkingDay
+            // (matches part-time schedules like Tom's Tue/Wed/Thu pattern).
+            $isWeekend = Weekday::Saturday === $weekday || Weekday::Sunday === $weekday;
+            $days[] = new LeaveDay(
+                $cursor,
+                0.0,
+                LeaveDayStatus::Excluded,
+                $isWeekend ? ExclusionReason::Weekend : ExclusionReason::NonWorkingDay,
+            );
         }
 
-        if ([] === $days) {
+        if (0 === $workingDayCount) {
             return null;
         }
 
@@ -536,6 +559,77 @@ final class AppFixtures extends Fixture
         );
         if (null !== $overdue) {
             $manager->persist($overdue);
+        }
+    }
+
+    /**
+     * Seeds the "Aktuell abwesend" card on the dashboard. Five overlapping
+     * absences spread around `now` so admins immediately see what the
+     * widget looks like with mixed states: one ending today, one in the
+     * middle of a longer leave, one fresh sick recording.
+     *
+     * Each absence picks the next available Mon-anchored week so the
+     * range never crosses a weekend in a way buildDemoRequest can't
+     * cover (the helper handles weekends as Excluded days now, but
+     * Mon-Fri ranges keep the breakdown small and the demo data
+     * predictable across DST / year boundaries).
+     *
+     * @param array<string, Employee>     $employees keyed by employeeNumber
+     * @param array<string, AbsenceType>  $absenceTypesByName
+     */
+    private function seedCurrentAbsenceDemoData(
+        ObjectManager $manager,
+        array $employees,
+        array $absenceTypesByName,
+    ): void {
+        $now = (new \DateTimeImmutable())->setTime(0, 0);
+        $urlaub = $absenceTypesByName['Urlaub'];
+        $krankheit = $absenceTypesByName['Krankheit'];
+
+        // Walk to the Monday of the current week so the seven-day spans
+        // line up with weekends predictably regardless of which day the
+        // fixtures load on.
+        $monday = $now;
+        while ('1' !== $monday->format('N')) {
+            $monday = $monday->modify('-1 day');
+        }
+
+        // Anchor every range to $monday with enough padding either side
+        // that "today" stays inside the range no matter which weekday
+        // the fixtures load on. Without this, weekend loads silently
+        // drop the demo entries from the dashboard's "aktiv heute" view.
+        $plans = [
+            // Erik — long approved vacation, last week through next week.
+            ['EMP-0002', $urlaub, $monday->modify('-14 days'), $monday->modify('+11 days'), LeaveRequestStatus::Approved],
+            // Pia — approved vacation, this Monday through next Friday.
+            ['EMP-0013', $urlaub, $monday, $monday->modify('+11 days'), LeaveRequestStatus::Approved],
+            // Tom — recorded illness across last + this week (Tom only works Tue-Thu, so the wide range still produces working days).
+            ['EMP-0014', $krankheit, $monday->modify('-7 days'), $monday->modify('+6 days'), LeaveRequestStatus::Recorded],
+            // Lukas — recorded illness this week, including the weekend.
+            ['EMP-0010', $krankheit, $monday, $monday->modify('+6 days'), LeaveRequestStatus::Recorded],
+            // David — approved vacation that ends today (drives the endsToday=true branch). Range starts the Saturday of the previous week.
+            ['EMP-0012', $urlaub, $monday->modify('-2 days'), $now, LeaveRequestStatus::Approved],
+        ];
+
+        foreach ($plans as [$empKey, $type, $start, $end, $status]) {
+            if (!isset($employees[$empKey])) {
+                continue;
+            }
+            $employee = $employees[$empKey];
+            $schedule = $employee->getWorkSchedule();
+            $hoursPerDay = $schedule->weeklyHours() / \count($schedule->workingDays());
+            $request = $this->buildDemoRequest(
+                $employee,
+                $type,
+                $start,
+                $end,
+                $hoursPerDay,
+                $status,
+                requestedAt: $start->modify('-2 days')->setTime(9, 0),
+            );
+            if (null !== $request) {
+                $manager->persist($request);
+            }
         }
     }
 

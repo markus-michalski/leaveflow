@@ -32,6 +32,7 @@ final readonly class StatisticsService
     public const int DEFAULT_ANONYMITY_THRESHOLD = 3;
     public const int DEFAULT_EXPIRY_HORIZON_DAYS = 90;
     public const int DEFAULT_OVERDUE_THRESHOLD_DAYS = 5;
+    public const int DEFAULT_ABSENCES_LIMIT = 10;
 
     public function __construct(
         private UtilizationCalculator $utilizationCalculator,
@@ -45,6 +46,7 @@ final readonly class StatisticsService
         private int $anonymityThreshold = self::DEFAULT_ANONYMITY_THRESHOLD,
         private int $expiryHorizonDays = self::DEFAULT_EXPIRY_HORIZON_DAYS,
         private int $overdueThresholdDays = self::DEFAULT_OVERDUE_THRESHOLD_DAYS,
+        private int $absencesLimit = self::DEFAULT_ABSENCES_LIMIT,
     ) {
     }
 
@@ -112,6 +114,8 @@ final readonly class StatisticsService
 
         $expiringCarryovers = $this->buildExpiringCarryovers($company, $now);
         $overduePending = $this->buildOverduePending($company, $now);
+        $currentAbsences = $this->buildCurrentAbsences($company, $now);
+        $currentAbsencesTotal = $this->requestRepository->countActiveAbsencesOn($company, $now);
 
         return new DashboardSnapshot(
             year: $year,
@@ -130,7 +134,46 @@ final readonly class StatisticsService
             overduePending: $overduePending,
             expiryHorizonDays: $this->expiryHorizonDays,
             overdueThresholdDays: $this->overdueThresholdDays,
+            currentAbsences: $currentAbsences,
+            currentAbsencesTotal: $currentAbsencesTotal,
+            currentAbsencesLimit: $this->absencesLimit,
         );
+    }
+
+    /**
+     * @return list<CurrentAbsenceEntry>
+     */
+    private function buildCurrentAbsences(Company $company, \DateTimeImmutable $today): array
+    {
+        $requests = $this->requestRepository->findActiveAbsencesOn(
+            $company,
+            $today,
+            $this->absencesLimit,
+        );
+
+        $todayMidnight = $today->setTime(0, 0);
+        $entries = [];
+        foreach ($requests as $request) {
+            $requestId = $request->getId();
+            if (null === $requestId) {
+                continue;
+            }
+            $endDate = $request->getEndDate()->setTime(0, 0);
+
+            $entries[] = new CurrentAbsenceEntry(
+                requestId: $requestId,
+                employeeName: $request->getEmployee()->getFullName(),
+                absenceTypeName: $request->getAbsenceType()->getName(),
+                absenceTypeColor: $request->getAbsenceType()->getColor(),
+                endDate: $endDate,
+                // String compare avoids both timezone wobbles and the
+                // CS-Fixer strict_comparison rule (=== on DateTimeImmutable
+                // would be identity-not-value, which is wrong here).
+                endsToday: $endDate->format('Y-m-d') === $todayMidnight->format('Y-m-d'),
+            );
+        }
+
+        return $entries;
     }
 
     /**

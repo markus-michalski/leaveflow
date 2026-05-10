@@ -512,12 +512,13 @@ admin:
         description: "Anonymisierte Kennzahlen zu Auslastung, Krankheit und offenen Anträgen. Teams unterhalb des Anonymitäts-Schwellenwerts werden in den Aggregaten nicht ausgewiesen."
         range: "Zeitraum: %start% bis %end%"
         section:
-            actions: "Aktionen"
+            actions: "Handlungsbedarf"
+            absences: "Aktuell abwesend"
             kpis: "Kennzahlen"
             charts: "Diagramme"
             department_table: "Teams im Detail"
         actions:
-            heading: "Diese Woche im Blick"
+            heading: "Handlungsbedarf"
             days_unit: "Tage"
             all_clear:
                 title: "Alles im grünen Bereich"
@@ -541,6 +542,21 @@ admin:
                     range: "Zeitraum"
                     requested_at: "Eingereicht"
                     days_waiting: "Liegezeit"
+        absences:
+            heading: "Aktuell abwesend"
+            none:
+                title: "Niemand abwesend"
+                detail: "Heute ist niemand laut System im Urlaub oder krank gemeldet."
+            count: "%count% Mitarbeitende sind heute abwesend"
+            count_one: "1 Mitarbeitende:r ist heute abwesend"
+            cta: "Zum Team-Kalender"
+            more: "+ %count% weitere im Team-Kalender"
+            today: "heute"
+            until: "bis %date%"
+            col:
+                employee: "Mitarbeiter:in"
+                type: "Art"
+                until: "Bis"
         filter:
             year_label: "Jahr"
             apply: "Anwenden"

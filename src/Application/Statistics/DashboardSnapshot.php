@@ -26,6 +26,7 @@ final readonly class DashboardSnapshot
      * @param list<int>                      $availableYears      newest-first list for the year picker
      * @param list<ExpiringCarryoverEntry>   $expiringCarryovers  ordered ascending by daysUntilExpiry — the most urgent first
      * @param list<OverduePendingEntry>      $overduePending      ordered descending by daysWaiting — the worst offenders first
+     * @param list<CurrentAbsenceEntry>      $currentAbsences     up to currentAbsencesLimit entries, ordered by employee name
      */
     public function __construct(
         public int $year,
@@ -44,11 +45,24 @@ final readonly class DashboardSnapshot
         public array $overduePending,
         public int $expiryHorizonDays,
         public int $overdueThresholdDays,
+        public array $currentAbsences,
+        public int $currentAbsencesTotal,
+        public int $currentAbsencesLimit,
     ) {
     }
 
     public function hasActions(): bool
     {
         return [] !== $this->expiringCarryovers || [] !== $this->overduePending;
+    }
+
+    public function hasMoreAbsencesThanShown(): bool
+    {
+        return $this->currentAbsencesTotal > \count($this->currentAbsences);
+    }
+
+    public function additionalAbsencesCount(): int
+    {
+        return max(0, $this->currentAbsencesTotal - \count($this->currentAbsences));
     }
 }
