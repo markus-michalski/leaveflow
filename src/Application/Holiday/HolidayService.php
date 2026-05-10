@@ -7,6 +7,7 @@ namespace App\Application\Holiday;
 use App\Domain\Calculator\HolidayCalculator;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\CompanyHoliday;
+use App\Domain\Entity\Employee;
 use App\Domain\Entity\HolidayOverride;
 use App\Domain\Enum\FederalState;
 use App\Domain\Enum\HolidayOverrideType;
@@ -19,8 +20,17 @@ use App\Domain\ValueObject\HolidayScope;
  * Resolves the effective holiday calendar for a company.
  *
  * Combines the calculator's federal-state baseline with company-specific
- * overrides (added/removed holidays tied to a state) and company-wide
- * non-working days. Callers receive a single, merged, date-sorted list.
+ * overrides (added/removed holidays tied to a state, optionally narrowed
+ * to a specific Location since Phase 9) and company-wide non-working
+ * days. Callers receive a single, merged, date-sorted list.
+ *
+ * Two entry points by intent:
+ * - {@see getHolidaysForCompany} — admin/state overview, ignores
+ *   location-specific overrides so the displayed calendar reflects the
+ *   default for that state.
+ * - {@see getHolidaysForEmployee} — runtime calculations (leave
+ *   requests, illness sweeps), applies the employee's location-specific
+ *   overrides too.
  */
 final readonly class HolidayService
 {
@@ -32,39 +42,43 @@ final readonly class HolidayService
     }
 
     /**
+     * State-wide view for the admin overview. Picks up only state-wide
+     * overrides (location IS NULL); per-location overrides are visible
+     * via the override management UI.
+     *
      * @return list<Holiday>
      */
     public function getHolidaysForCompany(Company $company, FederalState $state, int $year): array
     {
-        $base = $this->calculator->calculate($year, $state);
         $overrides = $this->overrideRepository->findByCompanyYearAndState($company, $year, $state);
-        $companyHolidays = $this->companyHolidayRepository->findByCompanyAndYear($company, $year);
 
-        $removedDates = [];
-        $added = [];
-        foreach ($overrides as $override) {
-            $iso = $override->getDate()->format('Y-m-d');
-            if (HolidayOverrideType::Removed === $override->getType()) {
-                $removedDates[$iso] = true;
-                continue;
-            }
-            $added[] = $this->toHolidayFromOverride($override);
-        }
-
-        $filtered = array_values(array_filter(
-            $base,
-            static fn (Holiday $h): bool => !isset($removedDates[$h->date->format('Y-m-d')])
-        ));
-
-        $companyEntries = array_map(
-            fn (CompanyHoliday $ch): Holiday => $this->toHolidayFromCompanyHoliday($ch),
-            $companyHolidays
+        return $this->merge(
+            base: $this->calculator->calculate($year, $state),
+            overrides: $overrides,
+            companyHolidays: $this->companyHolidayRepository->findByCompanyAndYear($company, $year),
         );
+    }
 
-        $merged = array_merge($filtered, $added, $companyEntries);
-        usort($merged, static fn (Holiday $a, Holiday $b): int => $a->date <=> $b->date);
+    /**
+     * Employee-scoped view used by leave calculation. State derives from
+     * the employee's work-location FederalState; overrides include both
+     * state-wide entries and the location-specific ones for this exact
+     * Location (the "Augsburger Friedensfest only in Augsburg" case).
+     *
+     * @return list<Holiday>
+     */
+    public function getHolidaysForEmployee(Employee $employee, int $year): array
+    {
+        $location = $employee->getLocation();
+        $state = FederalState::from($location->getFederalState());
 
-        return $merged;
+        $overrides = $this->overrideRepository->findByEmployeeAndYear($employee, $year);
+
+        return $this->merge(
+            base: $this->calculator->calculate($year, $state),
+            overrides: $overrides,
+            companyHolidays: $this->companyHolidayRepository->findByCompanyAndYear($employee->getCompany(), $year),
+        );
     }
 
     public function isHoliday(Company $company, FederalState $state, \DateTimeImmutable $date): bool
@@ -79,13 +93,39 @@ final readonly class HolidayService
         return false;
     }
 
-    private function toHolidayFromOverride(HolidayOverride $override): Holiday
+    /**
+     * @param list<Holiday>          $base
+     * @param list<HolidayOverride>  $overrides
+     * @param list<CompanyHoliday>   $companyHolidays
+     *
+     * @return list<Holiday>
+     */
+    private function merge(array $base, array $overrides, array $companyHolidays): array
     {
-        return new Holiday($override->getDate(), $override->getName(), HolidayScope::Regional);
-    }
+        $removedDates = [];
+        $added = [];
+        foreach ($overrides as $override) {
+            $iso = $override->getDate()->format('Y-m-d');
+            if (HolidayOverrideType::Removed === $override->getType()) {
+                $removedDates[$iso] = true;
+                continue;
+            }
+            $added[] = new Holiday($override->getDate(), $override->getName(), HolidayScope::Regional);
+        }
 
-    private function toHolidayFromCompanyHoliday(CompanyHoliday $holiday): Holiday
-    {
-        return new Holiday($holiday->getDate(), $holiday->getName(), HolidayScope::Company);
+        $filtered = array_values(array_filter(
+            $base,
+            static fn (Holiday $h): bool => !isset($removedDates[$h->date->format('Y-m-d')])
+        ));
+
+        $companyEntries = array_map(
+            static fn (CompanyHoliday $ch): Holiday => new Holiday($ch->getDate(), $ch->getName(), HolidayScope::Company),
+            $companyHolidays
+        );
+
+        $merged = array_merge($filtered, $added, $companyEntries);
+        usort($merged, static fn (Holiday $a, Holiday $b): int => $a->date <=> $b->date);
+
+        return $merged;
     }
 }

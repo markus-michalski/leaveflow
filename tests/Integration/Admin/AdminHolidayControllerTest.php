@@ -8,6 +8,7 @@ use App\DataFixtures\AppFixtures;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\CompanyHoliday;
 use App\Domain\Entity\HolidayOverride;
+use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
 use App\Domain\Enum\FederalState;
 use App\Domain\Enum\HolidayOverrideType;
@@ -172,6 +173,105 @@ final class AdminHolidayControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function adminCanCreateLocationScopedOverride(): void
+    {
+        $augsburg = $this->em->getRepository(Location::class)->findOneBy(['name' => 'Augsburg']);
+        \assert($augsburg instanceof Location);
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/holidays/overrides/new');
+        $form = $crawler->filter('form[data-testid="override-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[federalState]' => 'DE-BY',
+            $formName.'[date]' => '08.08.2026',
+            $formName.'[name]' => 'Augsburger Friedensfest',
+            $formName.'[type]' => 'added',
+            $formName.'[location]' => (string) $augsburg->getId(),
+        ]);
+
+        self::assertResponseRedirects('/admin/holidays/overrides');
+
+        $found = $this->em->getRepository(HolidayOverride::class)
+            ->findOneBy(['name' => 'Augsburger Friedensfest']);
+        self::assertInstanceOf(HolidayOverride::class, $found);
+        self::assertNotNull($found->getLocation());
+        self::assertSame($augsburg->getId(), $found->getLocation()->getId());
+    }
+
+    #[Test]
+    public function stateWideAndLocationScopedOverridesCoexistOnSameDate(): void
+    {
+        // The state-wide entry stays for München / non-Augsburg offices,
+        // the location-scoped entry adds Augsburger Friedensfest only for
+        // employees based in Augsburg. The unique index allows both.
+        $augsburg = $this->em->getRepository(Location::class)->findOneBy(['name' => 'Augsburg']);
+        \assert($augsburg instanceof Location);
+
+        $stateWide = new HolidayOverride(
+            $this->company,
+            FederalState::Bayern,
+            new \DateTimeImmutable('2026-08-08'),
+            'State-wide adjustment',
+            HolidayOverrideType::Removed,
+        );
+        $this->em->persist($stateWide);
+
+        $locationScoped = new HolidayOverride(
+            $this->company,
+            FederalState::Bayern,
+            new \DateTimeImmutable('2026-08-08'),
+            'Augsburger Friedensfest',
+            HolidayOverrideType::Added,
+            $augsburg,
+        );
+        $this->em->persist($locationScoped);
+        $this->em->flush();
+
+        $rows = $this->em->getRepository(HolidayOverride::class)->findBy([
+            'company' => $this->company,
+            'date' => new \DateTimeImmutable('2026-08-08'),
+        ]);
+
+        self::assertCount(2, $rows);
+    }
+
+    #[Test]
+    public function duplicateStateWideOverrideStillRejectedOnApplicationLevel(): void
+    {
+        // MySQL's unique index treats NULL location_id values as distinct
+        // — without the application guard, the controller would silently
+        // accept a second state-wide override on the same date.
+        $existing = new HolidayOverride(
+            $this->company,
+            FederalState::Bayern,
+            new \DateTimeImmutable('2026-09-01'),
+            'First state-wide',
+            HolidayOverrideType::Added,
+        );
+        $this->em->persist($existing);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $crawler = $this->client->request('GET', '/admin/holidays/overrides/new');
+        $form = $crawler->filter('form[data-testid="override-form"]')->form();
+        $formName = $form->getName();
+
+        $this->client->submit($form, [
+            $formName.'[federalState]' => 'DE-BY',
+            $formName.'[date]' => '01.09.2026',
+            $formName.'[name]' => 'Second state-wide',
+            $formName.'[type]' => 'added',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+        self::assertCount(1, $this->em->getRepository(HolidayOverride::class)->findBy([
+            'date' => new \DateTimeImmutable('2026-09-01'),
+        ]));
+    }
+
+    #[Test]
     public function calendarIncludesCompanyHoliday(): void
     {
         $this->em->persist(new CompanyHoliday(
@@ -193,6 +293,9 @@ final class AdminHolidayControllerTest extends WebTestCase
     {
         $this->company = new Company('Acme GmbH', 36);
         $this->em->persist($this->company);
+
+        $augsburg = new Location($this->company, 'Augsburg', 'DE', FederalState::Bayern->value, 'Augsburg');
+        $this->em->persist($augsburg);
 
         $hasher = self::getContainer()->get(UserPasswordHasherInterface::class);
 

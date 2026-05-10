@@ -372,6 +372,10 @@ admin:
             date: Date
             name: Label
             type: Kind
+            location: Location
+            location_help: "Optional. Without a selection the adjustment applies to every location in the state. With a selection it applies only to employees based at that location (e.g. Augsburg Peace Festival only for the Augsburg office)."
+            location_placeholder: "— All locations in the state —"
+            location_all: "All locations"
             empty: No adjustments yet.
             save: Save
             flash:
