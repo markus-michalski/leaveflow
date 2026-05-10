@@ -13,7 +13,6 @@ use App\Domain\Calculator\LeaveCalculator;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveRequest;
-use App\Domain\Enum\FederalState;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveRequestStatus;
@@ -236,15 +235,15 @@ final readonly class LeaveRequestService
         \DateTimeImmutable $startDate,
         \DateTimeImmutable $endDate,
     ): array {
-        $state = FederalState::from($employee->getLocation()->getFederalState());
-        $company = $employee->getCompany();
-
         $holidays = [];
         $startYear = (int) $startDate->format('Y');
         $endYear = (int) $endDate->format('Y');
 
         for ($year = $startYear; $year <= $endYear; ++$year) {
-            foreach ($this->holidayService->getHolidaysForCompany($company, $state, $year) as $holiday) {
+            // Employee-scoped path picks up location-specific overrides
+            // (Phase 9 #47) — same office, same state, but two locations
+            // can resolve to different holiday lists.
+            foreach ($this->holidayService->getHolidaysForEmployee($employee, $year) as $holiday) {
                 $holidays[] = $holiday;
             }
         }

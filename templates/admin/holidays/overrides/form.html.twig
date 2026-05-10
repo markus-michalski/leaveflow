@@ -22,6 +22,11 @@
             {{ form_row(form.date, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
             {{ form_row(form.name, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
             {{ form_row(form.type, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+            {{ form_row(form.location, {
+                label_attr: { class: 'block text-sm font-medium text-gray-700' },
+                help_attr: { class: 'mt-1 text-xs text-gray-500' },
+                attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' }
+            }) }}
 
             <div class="flex items-center justify-end gap-3 pt-2">
                 <a href="{{ path('app_admin_holiday_override_index') }}"

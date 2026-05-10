@@ -27,6 +27,7 @@
                 <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <th class="px-6 py-3">{{ 'admin.holidays.override.date'|trans }}</th>
                     <th class="px-6 py-3">{{ 'admin.holidays.override.federal_state'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.holidays.override.location'|trans }}</th>
                     <th class="px-6 py-3">{{ 'admin.holidays.override.name'|trans }}</th>
                     <th class="px-6 py-3">{{ 'admin.holidays.override.type'|trans }}</th>
                     <th class="px-6 py-3 text-right">{{ 'admin.holidays.actions'|trans }}</th>
@@ -37,6 +38,13 @@
                     <tr data-testid="override-row-{{ override.id }}">
                         <td class="px-6 py-3 font-medium text-gray-900">{{ override.date|date('d.m.Y') }}</td>
                         <td class="px-6 py-3"><code class="rounded bg-gray-100 px-1 py-0.5 text-xs">{{ override.federalState.value }}</code> {{ override.federalState.label|trans }}</td>
+                        <td class="px-6 py-3">
+                            {% if override.location %}
+                                {{ override.location.name }}
+                            {% else %}
+                                <span class="text-xs text-gray-400">{{ 'admin.holidays.override.location_all'|trans }}</span>
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-3">{{ override.name }}</td>
                         <td class="px-6 py-3">
                             {% if override.type.value == 'added' %}
@@ -63,7 +71,7 @@
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="5" class="px-6 py-6 text-center text-gray-500">{{ 'admin.holidays.override.empty'|trans }}</td>
+                        <td colspan="6" class="px-6 py-6 text-center text-gray-500">{{ 'admin.holidays.override.empty'|trans }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

@@ -372,6 +372,10 @@ admin:
             date: Datum
             name: Bezeichnung
             type: Art
+            location: Standort
+            location_help: "Optional. Ohne Auswahl gilt die Anpassung für alle Standorte des Bundeslandes. Mit Auswahl nur für Mitarbeiter dieses Standorts (z.B. Augsburger Friedensfest nur für den Augsburger Standort)."
+            location_placeholder: "— Alle Standorte des Bundeslandes —"
+            location_all: "Alle Standorte"
             empty: Noch keine Anpassungen angelegt.
             save: Speichern
             flash:

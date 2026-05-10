@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Presentation\Form;
 
+use App\Domain\Entity\Company;
+use App\Domain\Entity\Location;
 use App\Domain\Enum\FederalState;
 use App\Domain\Enum\HolidayOverrideType as OverrideTypeEnum;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -17,12 +20,15 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotNull;
 
 /**
- * @extends AbstractType<array{federalState: FederalState, date: \DateTimeInterface, name: string, type: OverrideTypeEnum}>
+ * @extends AbstractType<array{federalState: FederalState, date: \DateTimeInterface, name: string, type: OverrideTypeEnum, location: ?Location}>
  */
 final class HolidayOverrideType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var Company $company */
+        $company = $options['company'];
+
         $builder
             ->add('federalState', EnumType::class, [
                 'label' => 'admin.holidays.override.federal_state',
@@ -52,11 +58,27 @@ final class HolidayOverrideType extends AbstractType
                 'choice_label' => static fn (OverrideTypeEnum $t): string => $t->label(),
                 'mapped' => false,
                 'constraints' => [new NotNull()],
+            ])
+            ->add('location', EntityType::class, [
+                'label' => 'admin.holidays.override.location',
+                'help' => 'admin.holidays.override.location_help',
+                'class' => Location::class,
+                'choice_label' => 'name',
+                'placeholder' => 'admin.holidays.override.location_placeholder',
+                'required' => false,
+                'mapped' => false,
+                'query_builder' => static fn ($repo) => $repo->createQueryBuilder('l')
+                    ->andWhere('l.company = :company')
+                    ->setParameter('company', $company)
+                    ->orderBy('l.name', 'ASC'),
             ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => null]);
+        $resolver
+            ->setRequired('company')
+            ->setAllowedTypes('company', Company::class)
+            ->setDefaults(['data_class' => null]);
     }
 }

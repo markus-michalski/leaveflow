@@ -8,13 +8,16 @@ use App\Application\Holiday\HolidayService;
 use App\Domain\Calculator\HolidayCalculator;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\CompanyHoliday;
+use App\Domain\Entity\Employee;
 use App\Domain\Entity\HolidayOverride;
+use App\Domain\Entity\Location;
 use App\Domain\Enum\FederalState;
 use App\Domain\Enum\HolidayOverrideType;
 use App\Domain\Repository\CompanyHolidayRepository;
 use App\Domain\Repository\HolidayOverrideRepository;
 use App\Domain\ValueObject\Holiday;
 use App\Domain\ValueObject\HolidayScope;
+use App\Domain\ValueObject\WorkSchedule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -150,6 +153,57 @@ final class HolidayServiceTest extends TestCase
 
         self::assertTrue($this->service->isHoliday($this->company, FederalState::Bayern, new \DateTimeImmutable('2025-01-01')));
         self::assertFalse($this->service->isHoliday($this->company, FederalState::Bayern, new \DateTimeImmutable('2025-01-02')));
+    }
+
+    #[Test]
+    public function getHolidaysForEmployeeMixesStateBaselineWithLocationOverride(): void
+    {
+        $augsburg = new Location($this->company, 'Augsburg', 'DE', FederalState::Bayern->value, 'Augsburg');
+        $employee = new Employee(
+            $this->company,
+            'Anna Augsburg',
+            'EMP-AUG',
+            $augsburg,
+            WorkSchedule::standardFullTime(),
+            new \DateTimeImmutable('2024-01-01'),
+        );
+
+        $augsburgFriedensfest = new HolidayOverride(
+            $this->company,
+            FederalState::Bayern,
+            new \DateTimeImmutable('2025-08-08'),
+            'Augsburger Friedensfest',
+            HolidayOverrideType::Added,
+            $augsburg,
+        );
+
+        $this->overrideRepo->method('findByEmployeeAndYear')->willReturn([$augsburgFriedensfest]);
+        $this->companyHolidayRepo->method('findByCompanyAndYear')->willReturn([]);
+
+        $holidays = $this->service->getHolidaysForEmployee($employee, 2025);
+        $dates = array_map(static fn (Holiday $h): string => $h->date->format('Y-m-d'), $holidays);
+
+        self::assertContains('2025-08-08', $dates);
+        // Bayern baseline still in: Mariä Himmelfahrt the week after.
+        self::assertContains('2025-08-15', $dates);
+    }
+
+    #[Test]
+    public function getHolidaysForCompanyIgnoresLocationSpecificOverrides(): void
+    {
+        // The state-wide overview should reflect the default for the
+        // state — location-specific overrides are filtered upstream by
+        // the repository's findByCompanyYearAndState. Stub it as if the
+        // repo had already filtered them out.
+        $this->overrideRepo->method('findByCompanyYearAndState')->willReturn([]);
+        $this->companyHolidayRepo->method('findByCompanyAndYear')->willReturn([]);
+
+        $holidays = $this->service->getHolidaysForCompany($this->company, FederalState::Bayern, 2025);
+        $dates = array_map(static fn (Holiday $h): string => $h->date->format('Y-m-d'), $holidays);
+
+        // Augsburger Friedensfest is NOT in the calculator baseline and
+        // not added via state-wide override → must not appear.
+        self::assertNotContains('2025-08-08', $dates);
     }
 
     /**

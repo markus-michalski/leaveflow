@@ -6,6 +6,7 @@ namespace App\Presentation\Controller\Admin;
 
 use App\Domain\Entity\Company;
 use App\Domain\Entity\HolidayOverride;
+use App\Domain\Entity\Location;
 use App\Domain\Enum\FederalState;
 use App\Domain\Enum\HolidayOverrideType as OverrideTypeEnum;
 use App\Domain\Repository\CompanyRepository;
@@ -46,7 +47,7 @@ final class AdminHolidayOverrideController extends AbstractController
     public function new(Request $request): Response
     {
         $company = $this->requireCompany();
-        $form = $this->createForm(HolidayOverrideType::class);
+        $form = $this->createForm(HolidayOverrideType::class, null, ['company' => $company]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -58,8 +59,24 @@ final class AdminHolidayOverrideController extends AbstractController
             $name = $form->get('name')->getData();
             /** @var OverrideTypeEnum $type */
             $type = $form->get('type')->getData();
+            $location = $form->get('location')->getData();
+            \assert(null === $location || $location instanceof Location);
 
-            $override = new HolidayOverride($company, $state, $date, $name, $type);
+            // App-side guard: MySQL's unique index treats NULL location_id
+            // values as distinct, so the DB constraint can't catch a
+            // duplicate state-wide override on its own.
+            if (null !== $this->repository->findOneByConflict($company, $state, $location, $date)) {
+                $form->addError(new \Symfony\Component\Form\FormError(
+                    $this->translator->trans('admin.holidays.override.flash.duplicate')
+                ));
+
+                return $this->render('admin/holidays/overrides/form.html.twig', [
+                    'form' => $form,
+                    'is_new' => true,
+                ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
+            }
+
+            $override = new HolidayOverride($company, $state, $date, $name, $type, $location);
 
             try {
                 $this->entityManager->persist($override);
@@ -89,11 +106,17 @@ final class AdminHolidayOverrideController extends AbstractController
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(Request $request, HolidayOverride $override): Response
     {
-        $form = $this->createForm(HolidayOverrideType::class);
+        $company = $this->requireCompany();
+        if ($override->getCompany() !== $company) {
+            throw $this->createNotFoundException();
+        }
+
+        $form = $this->createForm(HolidayOverrideType::class, null, ['company' => $company]);
         $form->get('federalState')->setData($override->getFederalState());
         $form->get('date')->setData($override->getDate());
         $form->get('name')->setData($override->getName());
         $form->get('type')->setData($override->getType());
+        $form->get('location')->setData($override->getLocation());
 
         $form->handleRequest($request);
 
@@ -106,8 +129,23 @@ final class AdminHolidayOverrideController extends AbstractController
             $name = $form->get('name')->getData();
             /** @var OverrideTypeEnum $type */
             $type = $form->get('type')->getData();
+            $location = $form->get('location')->getData();
+            \assert(null === $location || $location instanceof Location);
 
-            $override->update($state, $date, $name, $type);
+            $conflict = $this->repository->findOneByConflict($company, $state, $location, $date);
+            if (null !== $conflict && $conflict !== $override) {
+                $form->addError(new \Symfony\Component\Form\FormError(
+                    $this->translator->trans('admin.holidays.override.flash.duplicate')
+                ));
+
+                return $this->render('admin/holidays/overrides/form.html.twig', [
+                    'form' => $form,
+                    'is_new' => false,
+                    'override' => $override,
+                ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
+            }
+
+            $override->update($state, $date, $name, $type, $location);
 
             try {
                 $this->entityManager->flush();

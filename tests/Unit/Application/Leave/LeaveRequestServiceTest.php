@@ -24,7 +24,6 @@ use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
 use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\Location;
-use App\Domain\Enum\FederalState;
 use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Enum\LeaveRequestStatus;
@@ -113,7 +112,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function previewFullWorkWeekWithoutHolidaysReturnsFortyHours(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
 
         $service = $this->buildService();
@@ -134,7 +133,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function previewRangeCoveringChristiHimmelfahrtExcludesTheHoliday(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
 
         $service = $this->buildService();
@@ -158,10 +157,9 @@ final class LeaveRequestServiceTest extends TestCase
     {
         $this->overrideRepository
             ->expects(self::exactly(2))
-            ->method('findByCompanyYearAndState')
-            ->willReturnCallback(function (Company $c, int $year, FederalState $state): array {
-                self::assertSame($this->acme, $c);
-                self::assertSame(FederalState::Berlin, $state);
+            ->method('findByEmployeeAndYear')
+            ->willReturnCallback(function (Employee $employee, int $year): array {
+                self::assertSame($this->acme, $employee->getCompany());
                 self::assertContains($year, [2025, 2026]);
 
                 return [];
@@ -193,7 +191,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function createPersistsPendingRequestWithBreakdownSnapshot(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
         $this->stubAmpleBalance();
 
@@ -221,7 +219,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function createStampsRequestedAtFromClock(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
         $this->stubAmpleBalance();
 
@@ -250,7 +248,7 @@ final class LeaveRequestServiceTest extends TestCase
             color: '#000000',
         );
 
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
         $this->stubAmpleBalance();
 
@@ -277,7 +275,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function createRejectsWhenBalanceIsInsufficient(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
 
         // Only 24h remaining for 2025, request asks for 40h (5 working days * 8h).
@@ -310,7 +308,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function createCountsExistingPendingRequestsAgainstBalance(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
 
         // 200h granted, 160h already pending from other requests, new request wants 40h:
@@ -337,7 +335,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function createAllowsRequestWhenBalanceExactlyCovers(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
 
         // 40h granted, no pending. Request asks 40h. Allowed.
@@ -365,7 +363,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function createSkipsBalanceCheckForNonDeductingAbsenceType(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
 
         // No entitlement at all, but Krankheit doesn't deduct — must pass.
@@ -395,7 +393,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function createChecksBalanceSeparatelyForEachYearInRange(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
 
         // Range 29.12.2025 .. 02.01.2026. Thu 01.01.2026 = Neujahr = excluded.
@@ -505,7 +503,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function previewPropagatesBlackoutPeriodViolation(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
         $this->stubOverlappingBlackout();
 
@@ -524,7 +522,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function createDoesNotPersistWhenBlackoutCheckerThrows(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
         $this->stubOverlappingBlackout();
 
@@ -547,7 +545,7 @@ final class LeaveRequestServiceTest extends TestCase
     #[Test]
     public function createRejectsYearWithoutAnyEntitlementForDeductingType(): void
     {
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
 
         // No entitlement row at all for the target year.
@@ -576,7 +574,7 @@ final class LeaveRequestServiceTest extends TestCase
     public function createAllowsYearWithoutEntitlementForNonDeductingType(): void
     {
         // Krankheit: no entitlement needed, should pass.
-        $this->overrideRepository->method('findByCompanyYearAndState')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
 
         $this->entitlementRepository->expects(self::never())->method('findByEmployeeAndYear');
