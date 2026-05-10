@@ -468,6 +468,8 @@ admin:
             used: "Verbraucht"
             remaining: "Verfügbar"
             expires_at: "Ablauffrist"
+            reason: "Begründung"
+            reason_help: "Pflichtfeld für die Audit-Spur. Trag den fachlichen Anlass ein (z. B. Krankheit, BAG-Verlängerung, Tippfehler-Korrektur, Aufstockung Überstunden)."
         type:
             regular: "Urlaub"
             carryover: "Resturlaub"
@@ -478,6 +480,15 @@ admin:
             delete_blocked: "Löschen nicht möglich: %hoursUsed%h sind bereits gebucht. Erst die zugehörigen Urlaubsanträge stornieren, dann löschen."
             expiry_updated: "Ablauffrist wurde aktualisiert."
             duplicate: "Für diesen Mitarbeiter existiert bereits ein Eintrag mit diesem Jahr und dieser Art."
+            no_change: "Es wurde nichts geändert."
+        audit:
+            title: "Änderungs-Historie"
+            empty: "Bisher keine Änderungen — die Audit-Spur startet beim ersten Override."
+            hours_change: "Stunden geändert: %old% h → %new% h"
+            expiry_change: "Ablauffrist geändert: %old% → %new%"
+            reason_label: "Begründung"
+            actor_system: "System"
+            no_date: "—"
         error:
             expires_before_burlg_floor: "Die Ablauffrist darf nicht vor dem 31.03.%year% liegen — BUrlG §7 Abs. 3 garantiert eine 3-monatige Gnadenfrist, die du nur verlängern, nicht verkürzen darfst."
             expiry_only_for_carryover: "Nur Resturlaub-Einträge dürfen eine Ablauffrist haben. Regulärer Urlaub gilt für das gesamte Urlaubsjahr und wird per Jahresübergang automatisch in einen Resturlaub-Eintrag überführt."
