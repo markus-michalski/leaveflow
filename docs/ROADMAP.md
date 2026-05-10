@@ -347,15 +347,17 @@ LeaveFlow is now usable by a real team. Everything after is enhancement.
 
 ---
 
-### Phase 9 — Admin Power Features
+### Phase 9 — Admin Power Features ✅ (v0.10.0)
 
-- **Admin type change with automatic recalculation** — e.g. employee fell sick during vacation, admin changes 3 of 5 days from Urlaub to Krankheit, entitlement rebalances automatically. Audit trail mandatory reason field.
-- Manual entitlement overrides (with audit)
-- **6-week illness alert** — rolling count of consecutive illness days, email to manager OR configurable address (e.g. office management)
-- **CSV import** — employees + existing leave balances, downloadable template with mandatory fields and example rows, validation + error report before commit
-- **Location-scoped `HolidayOverride`** — optional `location_id` column; resolves municipality-level holidays (Augsburger Friedensfest, Fronleichnam in Eichsfeld/Bautzen, protestant-minority BY Gemeinden for Mariä Himmelfahrt). See Phase 3 "Known limitation" section. Requires API shift from `getHolidaysForCompany(State)` to `getHolidaysForEmployee(Employee)` — Employee's Location drives state + local rules.
-- Manual per-day `WorkSchedule` distribution UI (VO already supports it, just no form widget yet)
-- Admin-User-List: filter + search (issue #3), pagination (issue #4)
+- ✅ **Admin type change with automatic recalculation** — admin reclassifies an approved request's absence type, entitlement booking rebalances under the new type, audit entry + employee notification. Mandatory reason.
+- ✅ **Manual entitlement overrides (with audit)** — Admins können `hoursGranted` und Carryover-`expiresAt` ändern. Pflicht-`reason` schreibt einen `LeaveEntitlementAuditEntry` (alt/neu/Aktor/Datum). History-Panel direkt unter dem Edit-Form. (#45 / PR #46)
+- ✅ **6-week illness alert** — täglicher Sweep um 06:00 erkennt 42 konsekutive Kalendertage Krankheit (§3 EntgFG), dispatcht `IllnessSixWeekAlert`-Notification an Department-Lead mit Admin-Fallback. AbsenceType bekommt `isIllnessTracking`-Flag. Idempotenz via `illness_alerts`-Tabelle. Job über `/admin/scheduled-jobs` toggelbar. (#41 / PR #42)
+- ✅ **CSV import** — Two-step Upload-Preview-Commit-Flow für Mitarbeiter mit downloadbarer Vorlage. Per-Row-Validation, Re-Validate vor Commit (race-tolerant), Pflicht-Spalten + Optional-Fields. Akzeptiert ISO und deutsche Datumsformate plus Komma-Dezimal. (PR #40)
+- ✅ **Location-scoped `HolidayOverride`** — optional `location_id` auf `HolidayOverride`. Neuer Service-Einstieg `HolidayService::getHolidaysForEmployee(Employee, year)` löst die Phase-3-Limitierungen rund um Augsburger Friedensfest, Fronleichnam in Eichsfeld/Bautzen, Mariä Himmelfahrt in protestantischen BY-Gemeinden. (#47 / PR #48)
+- ✅ **Manual per-day WorkSchedule distribution UI** — Admin-Form bekommt Modus-Switch (Auto / Manuell). Manuell-Modus zeigt 7 Stunden-Inputs (Mo-So) mit Live-Sum-Indikator. Edit erkennt aus dem gespeicherten Schedule, ob ein Mitarbeiter ungleichmäßig verteilt ist. (#43 / PR #44)
+- ✅ **Admin-User-List: filter + search + pagination** — Status-Filter, Email/Name-Suche, paginierte Liste. (#3, #4)
+
+**Exit:** v0.10.0 (2026-05-10)
 
 ---
 
