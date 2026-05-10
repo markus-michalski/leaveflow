@@ -248,6 +248,18 @@ final class AppFixtures extends Fixture
             $currentYear,
         );
 
+        // Phase 10: populate the action-briefing buckets so admins land
+        // on a realistic dashboard, not a "Alles im grünen Bereich"
+        // banner. Two carryovers expiring within the 90-day horizon
+        // (one red < 30d, one yellow ≥ 60d) plus a pending request
+        // sitting > 14 days in the queue (red).
+        $this->seedActionDemoData(
+            $manager,
+            $extraEmployees,
+            $absenceTypesByName,
+            $currentYear,
+        );
+
         // Phase 8: pre-populated inbox so a fresh `make fixtures` lands on a
         // realistic notification screen — every per-type Twig partial gets
         // exercised, and a mix of read/unread shows both visual states.
@@ -395,6 +407,7 @@ final class AppFixtures extends Fixture
             $pendingEnd,
             $sarahHoursPerDay,
             LeaveRequestStatus::Pending,
+            requestedAt: (new \DateTimeImmutable())->modify('-2 days')->setTime(9, 30),
         );
         if (null !== $pending) {
             $manager->persist($pending);
@@ -406,6 +419,10 @@ final class AppFixtures extends Fixture
      * employee's schedule between $start and $end (inclusive). Returns
      * null if the range contains no working days. Status is forced via
      * reflection to skip the workflow — fixtures only.
+     *
+     * `requestedAt` defaults to start@09:00; override when a Pending
+     * demo needs to land in the dashboard's overdue bucket (must be
+     * older than the threshold-days window).
      */
     private function buildDemoRequest(
         Employee $employee,
@@ -414,6 +431,7 @@ final class AppFixtures extends Fixture
         \DateTimeImmutable $end,
         float $hoursPerDay,
         LeaveRequestStatus $status,
+        ?\DateTimeImmutable $requestedAt = null,
     ): ?LeaveRequest {
         $schedule = $employee->getWorkSchedule();
         $days = [];
@@ -435,12 +453,90 @@ final class AppFixtures extends Fixture
             $start,
             $end,
             LeaveDayType::FullDay,
-            $start->setTime(9, 0),
+            $requestedAt ?? $start->setTime(9, 0),
         );
         $request->applyBreakdown(new LeaveBreakdown($days));
         $request->setStatus($status);
 
         return $request;
+    }
+
+    /**
+     * Seeds the action-briefing buckets on the statistics dashboard.
+     *
+     * Two carryovers chosen so admins see both tone variants right after
+     * fixtures load: David's expires in 25 days (red, urgent) and Lukas's
+     * in 66 days (yellow, on the radar). Both are admin-extended carryover
+     * (BUrlG §7 Abs. 3 floor would have been year-03-31; the extension
+     * pattern is realistic — illness-cause or BAG-recognized notification
+     * gap). The expiry dates clamp upward against a "always in the
+     * future"-floor so loads early in the year (before April) don't run
+     * into the BUrlG floor exception.
+     *
+     * Pending request: Pia's late-May vacation request, requestedAt set
+     * to 15 days ago — past the 5-day overdue threshold, far enough to
+     * trigger the red tone (>14 days waiting). Demonstrates that the
+     * dashboard can also surface admin-level intervention when the
+     * manager hasn't acted.
+     *
+     * @param array<string, Employee>     $employees keyed by employeeNumber
+     * @param array<string, AbsenceType>  $absenceTypesByName
+     */
+    private function seedActionDemoData(
+        ObjectManager $manager,
+        array $employees,
+        array $absenceTypesByName,
+        int $currentYear,
+    ): void {
+        $now = new \DateTimeImmutable();
+        // Smallest legal expiry for a Year=$currentYear carryover is the
+        // BUrlG floor (year-03-31). For a fixture that runs deterministically
+        // any time of year, clamp upward.
+        $burlgSafeFloor = (new \DateTimeImmutable())->setDate($currentYear, 4, 1)->setTime(0, 0);
+
+        $expires25 = max($now->modify('+25 days')->setTime(0, 0), $burlgSafeFloor);
+        $expires66 = max($now->modify('+66 days')->setTime(0, 0), $burlgSafeFloor->modify('+30 days'));
+
+        $manager->persist(new LeaveEntitlement(
+            $employees['EMP-0012'], // David — part-time, 32h/week
+            $currentYear,
+            LeaveEntitlementType::Carryover,
+            16.0,
+            $expires25,
+        ));
+        $manager->persist(new LeaveEntitlement(
+            $employees['EMP-0010'], // Lukas — full-time
+            $currentYear,
+            LeaveEntitlementType::Carryover,
+            24.0,
+            $expires66,
+        ));
+
+        // Overdue pending request from Pia. requestedAt is 15 days ago so
+        // the dashboard's red-tone branch (> 14 days waiting) renders.
+        // Range pinned to Mon-Fri so the LeaveBreakdown coverage check
+        // doesn't trip on weekends inside the requested span.
+        $pia = $employees['EMP-0013'];
+        $piaHoursPerDay = $pia->getWorkSchedule()->weeklyHours()
+            / \count($pia->getWorkSchedule()->workingDays());
+        $cursor = $now->modify('+45 days');
+        while ('1' !== $cursor->format('N')) {
+            $cursor = $cursor->modify('+1 day');
+        }
+        $overdueStart = $cursor->setTime(0, 0);
+        $overdueEnd = $overdueStart->modify('+4 days');
+        $overdue = $this->buildDemoRequest(
+            $pia,
+            $absenceTypesByName['Urlaub'],
+            $overdueStart,
+            $overdueEnd,
+            $piaHoursPerDay,
+            LeaveRequestStatus::Pending,
+            requestedAt: $now->modify('-15 days')->setTime(9, 0),
+        );
+        if (null !== $overdue) {
+            $manager->persist($overdue);
+        }
     }
 
     /**
