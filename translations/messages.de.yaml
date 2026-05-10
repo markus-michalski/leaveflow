@@ -520,21 +520,21 @@ admin:
             apply: "Anwenden"
         kpi:
             utilization:
-                label: "Genutzter Urlaub"
-                sublabel: "Alle Mitarbeitenden im gewählten Jahr"
-                detail: "%used% h von %granted% h gewährt (Urlaub + Resturlaub, abgelaufene Carryover-Hours ausgenommen)"
+                label: "Urlaubs-Auslastung"
+                sublabel: "Genutzte Stunden über alle Mitarbeitenden"
+                detail: "%used% h genutzt von %granted% h gewährt (Jahres-Urlaub + übertragener Resturlaub aus Vorjahr; abgelaufene Carryover ausgenommen). Faustregel: Ende Q3 sollte der Wert bei ~75% liegen, sonst droht Q4-Stau oder Verfall."
             illness:
                 label: "Krankenquote"
-                sublabel: "Krankheits-Stunden im Verhältnis zur Soll-Arbeitszeit"
-                detail: "%illness% h Krankheit / %scheduled% h Soll-Arbeitszeit (Vertragsstunden, ohne Feiertagsabzug)"
+                sublabel: "Krankheits-Stunden vs. Soll-Arbeitszeit"
+                detail: "%illness% h Krankheit / %scheduled% h Vertragsstunden im Zeitraum. Branchenschnitt liegt bei 4-5%; Werte deutlich darüber sind ein Hinweis auf strukturelle Belastung im Team."
             pending:
                 label: "Offene Anträge"
-                sublabel: "Wartet auf Bearbeitung"
-                detail: "Pending-Anträge + offene Storno-Bestätigungen"
+                sublabel: "Warten auf Manager-Entscheidung"
+                detail: "Pending-Anträge plus offene Storno-Bestätigungen. Liegezeit > 5 Tage = Eskalations-Mail wird ausgelöst (Konfiguration in den Firmen-Einstellungen)."
             avg_remaining:
-                label: "Ø Resturlaub"
-                sublabel: "Pro aktiver Mitarbeiter:in"
-                detail: "Berechnet aus dem nicht genutzten Urlaub (Regular + nicht abgelaufener Carryover) geteilt durch %count% aktive Mitarbeitende im Zeitraum"
+                label: "Ø verfügbarer Urlaub"
+                sublabel: "Pro aktiver Mitarbeiter:in noch offen"
+                detail: "Nicht genutzter Urlaub (Jahres-Anspruch + nicht abgelaufener Resturlaub) geteilt durch %count% aktive Mitarbeitende. Genutzt für Bilanz-Rückstellung (HGB §249) und Verfallsrisiko-Frühwarnung — hohe Werte ab Q3 brauchen Personalplanung oder Auszahlungs-Entscheidung."
         chart:
             hours_unit: "Stunden"
             monthly:

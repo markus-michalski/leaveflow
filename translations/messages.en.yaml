@@ -518,20 +518,20 @@ admin:
         kpi:
             utilization:
                 label: "Leave utilization"
-                sublabel: "All employees in the selected year"
-                detail: "%used% h used of %granted% h granted (regular + carryover combined, expired carryover excluded)"
+                sublabel: "Hours used across all employees"
+                detail: "%used% h used of %granted% h granted (yearly entitlement + carryover from previous year; expired carryover excluded). Rule of thumb: by end of Q3 this should be ~75%, otherwise expect a Q4 backlog or BUrlG forfeiture."
             illness:
                 label: "Illness rate"
-                sublabel: "Illness hours over scheduled work hours"
-                detail: "%illness% h illness / %scheduled% h scheduled (contract hours, holidays not subtracted)"
+                sublabel: "Illness hours vs. scheduled work hours"
+                detail: "%illness% h illness / %scheduled% h contract hours. Industry average is 4-5%; values significantly above signal structural strain in the team."
             pending:
                 label: "Open requests"
-                sublabel: "Awaiting action"
-                detail: "Pending requests plus open cancellation decisions"
+                sublabel: "Awaiting manager decision"
+                detail: "Pending requests plus open cancellation decisions. Wait time > 5 days triggers an escalation email (configurable per company)."
             avg_remaining:
-                label: "Avg. remaining"
-                sublabel: "Per active employee"
-                detail: "Unused leave (regular + non-expired carryover) divided by %count% active employees in range"
+                label: "Avg. unused leave"
+                sublabel: "Per active employee, still open"
+                detail: "Unused leave (yearly entitlement + non-expired carryover) divided by %count% active employees. Used for balance-sheet provisions (HGB §249) and forfeiture risk early warning — high values from Q3 onwards need staffing decisions or payouts."
         chart:
             hours_unit: "Hours"
             monthly:
