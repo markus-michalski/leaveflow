@@ -24,6 +24,8 @@ final readonly class DashboardSnapshot
      * @param list<float>                    $monthlyDistribution 12 entries, Jan..Dec (0-indexed) for direct JSON serialization to Chart.js
      * @param list<DepartmentBreakdownEntry> $departmentBreakdown ordered by department name, "Ohne Abteilung" last
      * @param list<int>                      $availableYears      newest-first list for the year picker
+     * @param list<ExpiringCarryoverEntry>   $expiringCarryovers  ordered ascending by daysUntilExpiry — the most urgent first
+     * @param list<OverduePendingEntry>      $overduePending      ordered descending by daysWaiting — the worst offenders first
      */
     public function __construct(
         public int $year,
@@ -38,6 +40,15 @@ final readonly class DashboardSnapshot
         public array $departmentBreakdown,
         public int $anonymityThreshold,
         public array $availableYears,
+        public array $expiringCarryovers,
+        public array $overduePending,
+        public int $expiryHorizonDays,
+        public int $overdueThresholdDays,
     ) {
+    }
+
+    public function hasActions(): bool
+    {
+        return [] !== $this->expiringCarryovers || [] !== $this->overduePending;
     }
 }

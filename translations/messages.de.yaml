@@ -512,9 +512,35 @@ admin:
         description: "Anonymisierte Kennzahlen zu Auslastung, Krankheit und offenen Anträgen. Teams unterhalb des Anonymitäts-Schwellenwerts werden in den Aggregaten nicht ausgewiesen."
         range: "Zeitraum: %start% bis %end%"
         section:
+            actions: "Aktionen"
             kpis: "Kennzahlen"
             charts: "Diagramme"
             department_table: "Teams im Detail"
+        actions:
+            heading: "Diese Woche im Blick"
+            days_unit: "Tage"
+            all_clear:
+                title: "Alles im grünen Bereich"
+                detail: "Keine Carryover laufen in den nächsten %horizon% Tagen ab und kein Antrag liegt länger als %threshold% Tage."
+            expiring:
+                title: "Verfalls-Risiko: %count% Mitarbeitende"
+                detail: "Carryover-Stunden, die in den nächsten %horizon% Tagen ablaufen. Mit den Mitarbeitenden klären (Urlaub einplanen oder Auszahlung), sonst Verfall nach BUrlG §7 Abs. 3."
+                cta: "Zu den Urlaubskonten"
+                col:
+                    employee: "Mitarbeiter:in"
+                    hours: "Stunden offen"
+                    expires_at: "Verfällt am"
+                    days_left: "Verbleibend"
+            overdue:
+                title: "Liegende Anträge: %count%"
+                detail: "Pending-Anträge, die seit mehr als %threshold% Tagen warten. Manager-Eskalation läuft automatisch — als Admin kannst du selbst übernehmen, falls der Manager nicht erreichbar ist."
+                cta: "Zur Antrags-Übersicht"
+                col:
+                    employee: "Mitarbeiter:in"
+                    type: "Art"
+                    range: "Zeitraum"
+                    requested_at: "Eingereicht"
+                    days_waiting: "Liegezeit"
         filter:
             year_label: "Jahr"
             apply: "Anwenden"

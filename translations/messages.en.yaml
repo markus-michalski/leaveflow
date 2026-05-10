@@ -509,9 +509,35 @@ admin:
         description: "Anonymized leave-utilization, illness rate, and pending-request KPIs. Teams below the anonymity threshold are excluded from aggregates."
         range: "Range: %start% to %end%"
         section:
+            actions: "Actions"
             kpis: "KPIs"
             charts: "Charts"
             department_table: "Department details"
+        actions:
+            heading: "This week at a glance"
+            days_unit: "days"
+            all_clear:
+                title: "All clear"
+                detail: "No carryover expires within the next %horizon% days and no request has been waiting longer than %threshold% days."
+            expiring:
+                title: "Expiry risk: %count% employee(s)"
+                detail: "Carryover hours due within the next %horizon% days. Talk to the employees (schedule leave or pay out), otherwise BUrlG §7 (3) forfeiture applies."
+                cta: "Open entitlements"
+                col:
+                    employee: "Employee"
+                    hours: "Hours open"
+                    expires_at: "Expires"
+                    days_left: "Days left"
+            overdue:
+                title: "Overdue requests: %count%"
+                detail: "Pending requests waiting longer than %threshold% days. Manager escalation runs automatically — as admin you can step in if the manager is unavailable."
+                cta: "Open requests"
+                col:
+                    employee: "Employee"
+                    type: "Type"
+                    range: "Range"
+                    requested_at: "Requested"
+                    days_waiting: "Wait time"
         filter:
             year_label: "Year"
             apply: "Apply"

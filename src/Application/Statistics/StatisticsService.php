@@ -30,6 +30,8 @@ use Symfony\Component\Clock\ClockInterface;
 final readonly class StatisticsService
 {
     public const int DEFAULT_ANONYMITY_THRESHOLD = 3;
+    public const int DEFAULT_EXPIRY_HORIZON_DAYS = 90;
+    public const int DEFAULT_OVERDUE_THRESHOLD_DAYS = 5;
 
     public function __construct(
         private UtilizationCalculator $utilizationCalculator,
@@ -41,6 +43,8 @@ final readonly class StatisticsService
         private DepartmentRepository $departmentRepository,
         private ClockInterface $clock,
         private int $anonymityThreshold = self::DEFAULT_ANONYMITY_THRESHOLD,
+        private int $expiryHorizonDays = self::DEFAULT_EXPIRY_HORIZON_DAYS,
+        private int $overdueThresholdDays = self::DEFAULT_OVERDUE_THRESHOLD_DAYS,
     ) {
     }
 
@@ -106,6 +110,9 @@ final readonly class StatisticsService
             rsort($availableYears);
         }
 
+        $expiringCarryovers = $this->buildExpiringCarryovers($company, $now);
+        $overduePending = $this->buildOverduePending($company, $now);
+
         return new DashboardSnapshot(
             year: $year,
             rangeStart: $rangeStart,
@@ -119,7 +126,96 @@ final readonly class StatisticsService
             departmentBreakdown: $departmentBreakdown,
             anonymityThreshold: $this->anonymityThreshold,
             availableYears: $availableYears,
+            expiringCarryovers: $expiringCarryovers,
+            overduePending: $overduePending,
+            expiryHorizonDays: $this->expiryHorizonDays,
+            overdueThresholdDays: $this->overdueThresholdDays,
         );
+    }
+
+    /**
+     * @return list<ExpiringCarryoverEntry>
+     */
+    private function buildExpiringCarryovers(Company $company, \DateTimeImmutable $today): array
+    {
+        $carryovers = $this->entitlementRepository->findCarryoversExpiringWithin(
+            $company,
+            $today,
+            $this->expiryHorizonDays,
+        );
+
+        $entries = [];
+        foreach ($carryovers as $entitlement) {
+            $expiresAt = $entitlement->getExpiresAt();
+            if (null === $expiresAt) {
+                continue;
+            }
+            $entitlementId = $entitlement->getId();
+            if (null === $entitlementId) {
+                continue;
+            }
+
+            $entries[] = new ExpiringCarryoverEntry(
+                entitlementId: $entitlementId,
+                employeeName: $entitlement->getEmployee()->getFullName(),
+                employeeNumber: $entitlement->getEmployee()->getEmployeeNumber(),
+                hoursRemaining: $entitlement->getHoursRemaining(),
+                expiresAt: $expiresAt,
+                daysUntilExpiry: $this->daysBetween($today, $expiresAt),
+            );
+        }
+
+        return $entries;
+    }
+
+    /**
+     * Calendar-day difference, timezone-independent. Both inputs are
+     * reduced to their YYYY-MM-DD components and re-instantiated in UTC
+     * before diffing — `\DateTime::diff` would otherwise off-by-one when
+     * one operand is UTC (typical of MockClock and some prod cron paths)
+     * and the other is the app's default timezone (typical of Doctrine
+     * date_immutable hydration). Sign is preserved via `%r%a`.
+     */
+    private function daysBetween(\DateTimeImmutable $a, \DateTimeImmutable $b): int
+    {
+        $utc = new \DateTimeZone('UTC');
+        $aUtc = new \DateTimeImmutable($a->format('Y-m-d'), $utc);
+        $bUtc = new \DateTimeImmutable($b->format('Y-m-d'), $utc);
+
+        return (int) $aUtc->diff($bUtc)->format('%r%a');
+    }
+
+    /**
+     * @return list<OverduePendingEntry>
+     */
+    private function buildOverduePending(Company $company, \DateTimeImmutable $now): array
+    {
+        $requests = $this->requestRepository->findOverduePendingInCompany(
+            $company,
+            $now,
+            $this->overdueThresholdDays,
+        );
+
+        $entries = [];
+        foreach ($requests as $request) {
+            $requestId = $request->getId();
+            if (null === $requestId) {
+                continue;
+            }
+            $daysWaiting = $this->daysBetween($request->getRequestedAt(), $now);
+
+            $entries[] = new OverduePendingEntry(
+                requestId: $requestId,
+                employeeName: $request->getEmployee()->getFullName(),
+                absenceTypeName: $request->getAbsenceType()->getName(),
+                startDate: $request->getStartDate(),
+                endDate: $request->getEndDate(),
+                requestedAt: $request->getRequestedAt(),
+                daysWaiting: $daysWaiting,
+            );
+        }
+
+        return $entries;
     }
 
     /**

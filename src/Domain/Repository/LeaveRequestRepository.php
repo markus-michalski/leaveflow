@@ -199,6 +199,37 @@ class LeaveRequestRepository extends ServiceEntityRepository
     }
 
     /**
+     * Pending requests in a company that have been sitting longer than
+     * the given day threshold, oldest first. Drives the "liegende
+     * Anträge"-action on the admin statistics dashboard. Independent of
+     * {@see findPendingNeedingEscalation} — that one respects the
+     * per-company escalation_days setting and idempotency stamp; this one
+     * is a flat overview using the same threshold the dashboard explains
+     * in its detail line.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findOverduePendingInCompany(
+        Company $company,
+        \DateTimeImmutable $now,
+        int $daysThreshold,
+    ): array {
+        $cutoff = $now->modify(\sprintf('-%d days', $daysThreshold));
+
+        return $this->createQueryBuilder('r')
+            ->innerJoin('r.employee', 'e')
+            ->where('r.status = :pending')
+            ->andWhere('e.company = :company')
+            ->andWhere('r.requestedAt <= :cutoff')
+            ->setParameter('pending', LeaveRequestStatus::Pending->value)
+            ->setParameter('company', $company)
+            ->setParameter('cutoff', $cutoff)
+            ->orderBy('r.requestedAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Count of pending and cancel-requested company-wide. Drives the
      * "open requests" KPI on the admin statistics dashboard.
      */

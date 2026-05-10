@@ -7,11 +7,14 @@ namespace App\Tests\Integration\Repository;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
+use App\Domain\Entity\LeaveEntitlement;
 use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\Location;
 use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
+use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Enum\LeaveRequestStatus;
+use App\Domain\Repository\LeaveEntitlementRepository;
 use App\Domain\Repository\LeaveRequestDayRepository;
 use App\Domain\Repository\LeaveRequestRepository;
 use App\Domain\ValueObject\LeaveBreakdown;
@@ -30,11 +33,13 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
  */
 #[CoversClass(LeaveRequestDayRepository::class)]
 #[CoversClass(LeaveRequestRepository::class)]
+#[CoversClass(LeaveEntitlementRepository::class)]
 final class StatisticsAggregateQueriesTest extends KernelTestCase
 {
     private EntityManagerInterface $em;
     private LeaveRequestDayRepository $dayRepo;
     private LeaveRequestRepository $requestRepo;
+    private LeaveEntitlementRepository $entitlementRepo;
     private Company $acme;
     private Company $other;
     private Employee $alice;
@@ -49,6 +54,7 @@ final class StatisticsAggregateQueriesTest extends KernelTestCase
         $this->em = self::getContainer()->get(EntityManagerInterface::class);
         $this->dayRepo = self::getContainer()->get(LeaveRequestDayRepository::class);
         $this->requestRepo = self::getContainer()->get(LeaveRequestRepository::class);
+        $this->entitlementRepo = self::getContainer()->get(LeaveEntitlementRepository::class);
         $this->seed();
     }
 
@@ -154,6 +160,112 @@ final class StatisticsAggregateQueriesTest extends KernelTestCase
         $this->persistRequest($this->otherEmployee, $this->illness, '2026-04-06', '2026-04-06', LeaveRequestStatus::Pending);
 
         self::assertSame(0, $this->requestRepo->countAwaitingDecisionInCompany($this->acme));
+    }
+
+    #[Test]
+    public function findOverduePendingInCompanyReturnsOnlyRequestsBeyondThreshold(): void
+    {
+        // Pending, requested 10 days ago — beyond threshold
+        $old = $this->persistRequest($this->alice, $this->vacation, '2026-06-15', '2026-06-19', LeaveRequestStatus::Pending);
+        (new \ReflectionProperty(LeaveRequest::class, 'requestedAt'))
+            ->setValue($old, new \DateTimeImmutable('2026-04-30 09:00:00'));
+        // Pending, requested today — fresh
+        $fresh = $this->persistRequest($this->bob, $this->vacation, '2026-06-22', '2026-06-26', LeaveRequestStatus::Pending);
+        (new \ReflectionProperty(LeaveRequest::class, 'requestedAt'))
+            ->setValue($fresh, new \DateTimeImmutable('2026-05-09 09:00:00'));
+        // Approved — must be excluded even when old
+        $approved = $this->persistRequest($this->alice, $this->vacation, '2026-07-06', '2026-07-10', LeaveRequestStatus::Approved);
+        (new \ReflectionProperty(LeaveRequest::class, 'requestedAt'))
+            ->setValue($approved, new \DateTimeImmutable('2026-04-01 09:00:00'));
+        $this->em->flush();
+
+        $now = new \DateTimeImmutable('2026-05-10 12:00:00');
+        $result = $this->requestRepo->findOverduePendingInCompany($this->acme, $now, 5);
+
+        self::assertCount(1, $result);
+        self::assertSame($old->getId(), $result[0]->getId());
+    }
+
+    #[Test]
+    public function findOverduePendingInCompanyExcludesOtherCompanies(): void
+    {
+        $other = $this->persistRequest($this->otherEmployee, $this->illness, '2026-06-15', '2026-06-15', LeaveRequestStatus::Pending);
+        (new \ReflectionProperty(LeaveRequest::class, 'requestedAt'))
+            ->setValue($other, new \DateTimeImmutable('2026-04-30 09:00:00'));
+        $this->em->flush();
+
+        $now = new \DateTimeImmutable('2026-05-10 12:00:00');
+        $result = $this->requestRepo->findOverduePendingInCompany($this->acme, $now, 5);
+
+        self::assertEmpty($result);
+    }
+
+    #[Test]
+    public function findCarryoversExpiringWithinReturnsOnlyMatchingCarryovers(): void
+    {
+        // Carryover within horizon — should be included
+        $within = new LeaveEntitlement(
+            $this->alice,
+            2026,
+            LeaveEntitlementType::Carryover,
+            16.0,
+            new \DateTimeImmutable('2026-08-01'),
+        );
+        // Carryover beyond horizon
+        $beyond = new LeaveEntitlement(
+            $this->bob,
+            2026,
+            LeaveEntitlementType::Carryover,
+            8.0,
+            new \DateTimeImmutable('2026-12-15'),
+        );
+        // Drained carryover within horizon — must be excluded because
+        // hoursRemaining = 0
+        $drained = new LeaveEntitlement(
+            $this->bob,
+            2025,
+            LeaveEntitlementType::Carryover,
+            8.0,
+            new \DateTimeImmutable('2026-07-30'),
+        );
+        $drained->consume(8.0);
+        // Regular entitlement — never carries an expiry
+        $regular = new LeaveEntitlement(
+            $this->alice,
+            2026,
+            LeaveEntitlementType::Regular,
+            240.0,
+        );
+
+        foreach ([$within, $beyond, $drained, $regular] as $ent) {
+            $this->em->persist($ent);
+        }
+        $this->em->flush();
+
+        $today = new \DateTimeImmutable('2026-05-10');
+        $result = $this->entitlementRepo->findCarryoversExpiringWithin($this->acme, $today, 90);
+
+        self::assertCount(1, $result);
+        self::assertSame($within->getId(), $result[0]->getId());
+    }
+
+    #[Test]
+    public function findCarryoversExpiringWithinScopesToCompany(): void
+    {
+        $other = new LeaveEntitlement(
+            $this->otherEmployee,
+            2026,
+            LeaveEntitlementType::Carryover,
+            16.0,
+            new \DateTimeImmutable('2026-08-01'),
+        );
+        $this->em->persist($other);
+        $this->em->flush();
+
+        $today = new \DateTimeImmutable('2026-05-10');
+        $result = $this->entitlementRepo->findCarryoversExpiringWithin($this->acme, $today, 90);
+
+        self::assertEmpty($result);
     }
 
     private function seed(): void

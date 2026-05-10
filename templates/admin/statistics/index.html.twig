@@ -73,6 +73,133 @@
         </div>
     </header>
 
+    {# Actions: what does the admin need to do this week? #}
+    {# Tailwind JIT scans for full class strings, so dynamic class composition
+       like `bg-{tone}-50` would silently miss the build. Pre-bake the variants
+       into a map and pick one — every literal here is visible to the scanner. #}
+    {% set toneVariants = {
+        red:    { border: 'border-red-200', bg: 'bg-red-50', heading: 'text-red-900', body: 'text-red-800', muted: 'text-red-700', mutedSoft: 'text-red-600', divide: 'divide-red-100', cta: 'border-red-300 text-red-800 hover:bg-red-100' },
+        orange: { border: 'border-orange-200', bg: 'bg-orange-50', heading: 'text-orange-900', body: 'text-orange-800', muted: 'text-orange-700', mutedSoft: 'text-orange-600', divide: 'divide-orange-100', cta: 'border-orange-300 text-orange-800 hover:bg-orange-100' },
+        yellow: { border: 'border-yellow-200', bg: 'bg-yellow-50', heading: 'text-yellow-900', body: 'text-yellow-800', muted: 'text-yellow-700', mutedSoft: 'text-yellow-600', divide: 'divide-yellow-100', cta: 'border-yellow-300 text-yellow-800 hover:bg-yellow-100' },
+    } %}
+    <section class="mb-8" aria-label="{{ 'admin.statistics.section.actions'|trans }}" data-testid="actions-section">
+        <h2 class="mb-3 text-lg font-semibold text-gray-900">{{ 'admin.statistics.actions.heading'|trans }}</h2>
+
+        {% if not snapshot.hasActions() %}
+            <div class="rounded-xl border border-green-200 bg-green-50 p-5" data-testid="actions-all-clear">
+                <div class="flex items-start gap-3">
+                    <span aria-hidden="true" class="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-700">✓</span>
+                    <div>
+                        <p class="font-semibold text-green-900">{{ 'admin.statistics.actions.all_clear.title'|trans }}</p>
+                        <p class="mt-1 text-sm text-green-800">{{ 'admin.statistics.actions.all_clear.detail'|trans({
+                            '%horizon%': snapshot.expiryHorizonDays,
+                            '%threshold%': snapshot.overdueThresholdDays,
+                        }) }}</p>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="space-y-4">
+                {% if snapshot.expiringCarryovers is not empty %}
+                    {% set worstDays = snapshot.expiringCarryovers[0].daysUntilExpiry %}
+                    {% set tone = toneVariants[worstDays < 30 ? 'red' : (worstDays < 60 ? 'orange' : 'yellow')] %}
+                    <div class="rounded-xl border {{ tone.border }} {{ tone.bg }} p-5"
+                         data-testid="action-expiring-carryovers">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold {{ tone.heading }}">
+                                    {{ 'admin.statistics.actions.expiring.title'|trans({
+                                        '%count%': snapshot.expiringCarryovers|length,
+                                    }) }}
+                                </p>
+                                <p class="mt-1 text-sm {{ tone.body }}">
+                                    {{ 'admin.statistics.actions.expiring.detail'|trans({
+                                        '%horizon%': snapshot.expiryHorizonDays,
+                                    }) }}
+                                </p>
+                            </div>
+                            <a href="{{ path('app_admin_entitlement_index') }}"
+                               class="whitespace-nowrap rounded-md border bg-white px-3 py-1.5 text-sm font-medium {{ tone.cta }}">
+                                {{ 'admin.statistics.actions.expiring.cta'|trans }}
+                            </a>
+                        </div>
+                        <table class="mt-4 min-w-full text-sm">
+                            <thead>
+                                <tr class="text-left text-xs uppercase tracking-wider {{ tone.muted }}">
+                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.expiring.col.employee'|trans }}</th>
+                                    <th class="py-2 pr-4 text-right">{{ 'admin.statistics.actions.expiring.col.hours'|trans }}</th>
+                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.expiring.col.expires_at'|trans }}</th>
+                                    <th class="py-2 text-right">{{ 'admin.statistics.actions.expiring.col.days_left'|trans }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y {{ tone.divide }}">
+                                {% for entry in snapshot.expiringCarryovers %}
+                                    <tr data-testid="expiring-row-{{ loop.index }}">
+                                        <td class="py-2 pr-4 font-medium {{ tone.heading }}">
+                                            {{ entry.employeeName }}
+                                            <span class="ml-1 text-xs {{ tone.mutedSoft }}">({{ entry.employeeNumber }})</span>
+                                        </td>
+                                        <td class="py-2 pr-4 text-right {{ tone.heading }}">{{ entry.hoursRemaining|number_format(1, ',', '.') }} h</td>
+                                        <td class="py-2 pr-4 {{ tone.body }}">{{ entry.expiresAt|date('d.m.Y') }}</td>
+                                        <td class="py-2 text-right {{ tone.body }}">{{ entry.daysUntilExpiry }} {{ 'admin.statistics.actions.days_unit'|trans }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+                {% if snapshot.overduePending is not empty %}
+                    {% set worstWait = snapshot.overduePending[0].daysWaiting %}
+                    {% set tone = toneVariants[worstWait > 14 ? 'red' : (worstWait > 7 ? 'orange' : 'yellow')] %}
+                    <div class="rounded-xl border {{ tone.border }} {{ tone.bg }} p-5"
+                         data-testid="action-overdue-pending">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold {{ tone.heading }}">
+                                    {{ 'admin.statistics.actions.overdue.title'|trans({
+                                        '%count%': snapshot.overduePending|length,
+                                    }) }}
+                                </p>
+                                <p class="mt-1 text-sm {{ tone.body }}">
+                                    {{ 'admin.statistics.actions.overdue.detail'|trans({
+                                        '%threshold%': snapshot.overdueThresholdDays,
+                                    }) }}
+                                </p>
+                            </div>
+                            <a href="{{ path('app_admin_leave_request_index') }}"
+                               class="whitespace-nowrap rounded-md border bg-white px-3 py-1.5 text-sm font-medium {{ tone.cta }}">
+                                {{ 'admin.statistics.actions.overdue.cta'|trans }}
+                            </a>
+                        </div>
+                        <table class="mt-4 min-w-full text-sm">
+                            <thead>
+                                <tr class="text-left text-xs uppercase tracking-wider {{ tone.muted }}">
+                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.overdue.col.employee'|trans }}</th>
+                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.overdue.col.type'|trans }}</th>
+                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.overdue.col.range'|trans }}</th>
+                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.overdue.col.requested_at'|trans }}</th>
+                                    <th class="py-2 text-right">{{ 'admin.statistics.actions.overdue.col.days_waiting'|trans }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y {{ tone.divide }}">
+                                {% for entry in snapshot.overduePending %}
+                                    <tr data-testid="overdue-row-{{ loop.index }}">
+                                        <td class="py-2 pr-4 font-medium {{ tone.heading }}">{{ entry.employeeName }}</td>
+                                        <td class="py-2 pr-4 {{ tone.body }}">{{ entry.absenceTypeName }}</td>
+                                        <td class="py-2 pr-4 {{ tone.body }}">{{ entry.startDate|date('d.m.') }}–{{ entry.endDate|date('d.m.Y') }}</td>
+                                        <td class="py-2 pr-4 {{ tone.body }}">{{ entry.requestedAt|date('d.m.Y') }}</td>
+                                        <td class="py-2 text-right {{ tone.body }}">{{ entry.daysWaiting }} {{ 'admin.statistics.actions.days_unit'|trans }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+
     {# KPI cards #}
     <section class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
              aria-label="{{ 'admin.statistics.section.kpis'|trans }}">

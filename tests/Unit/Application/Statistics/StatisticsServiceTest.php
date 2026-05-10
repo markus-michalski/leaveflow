@@ -6,20 +6,28 @@ namespace App\Tests\Unit\Application\Statistics;
 
 use App\Application\Statistics\DashboardSnapshot;
 use App\Application\Statistics\DepartmentBreakdownEntry;
+use App\Application\Statistics\ExpiringCarryoverEntry;
+use App\Application\Statistics\OverduePendingEntry;
 use App\Application\Statistics\StatisticsService;
 use App\Domain\Calculator\IllnessRateCalculator;
 use App\Domain\Calculator\UtilizationCalculator;
+use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
+use App\Domain\Entity\LeaveRequest;
 use App\Domain\Entity\Location;
+use App\Domain\Enum\LeaveDayStatus;
+use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Repository\DepartmentRepository;
 use App\Domain\Repository\EmployeeRepository;
 use App\Domain\Repository\LeaveEntitlementRepository;
 use App\Domain\Repository\LeaveRequestDayRepository;
 use App\Domain\Repository\LeaveRequestRepository;
+use App\Domain\ValueObject\LeaveBreakdown;
+use App\Domain\ValueObject\LeaveDay;
 use App\Domain\ValueObject\WorkSchedule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -30,6 +38,8 @@ use Symfony\Component\Clock\MockClock;
 #[CoversClass(StatisticsService::class)]
 #[CoversClass(DashboardSnapshot::class)]
 #[CoversClass(DepartmentBreakdownEntry::class)]
+#[CoversClass(ExpiringCarryoverEntry::class)]
+#[CoversClass(OverduePendingEntry::class)]
 final class StatisticsServiceTest extends TestCase
 {
     private LeaveEntitlementRepository&Stub $entitlementRepo;
@@ -256,14 +266,121 @@ final class StatisticsServiceTest extends TestCase
         self::assertSame([2026, 2025], $snapshot->availableYears);
     }
 
+    #[Test]
+    public function snapshotMapsExpiringCarryoversWithDaysUntilExpiry(): void
+    {
+        $alice = $this->makeEmployee('Alice', 'EMP-1', '2025-01-01', null, 1);
+
+        $carryover = new LeaveEntitlement(
+            $alice,
+            2026,
+            LeaveEntitlementType::Carryover,
+            16.0,
+            new \DateTimeImmutable('2026-08-15'),
+        );
+        $reflection = new \ReflectionProperty(LeaveEntitlement::class, 'id');
+        $reflection->setValue($carryover, 99);
+
+        $this->employeeRepo->method('findAllByCompany')->willReturn([$alice]);
+        $this->entitlementRepo->method('findByCompanyAndYear')->willReturn([]);
+        $this->entitlementRepo->method('findAvailableYears')->willReturn([2026]);
+        $this->entitlementRepo->method('findCarryoversExpiringWithin')->willReturn([$carryover]);
+        $this->dayRepo->method('sumIllnessHoursByEmployeeForCompany')->willReturn([]);
+        $this->dayRepo->method('sumApprovedDeductingHoursByMonth')->willReturn([]);
+        $this->requestRepo->method('countAwaitingDecisionInCompany')->willReturn(0);
+        $this->requestRepo->method('findOverduePendingInCompany')->willReturn([]);
+        $this->departmentRepo->method('findByCompany')->willReturn([]);
+
+        $service = $this->makeService(new MockClock('2026-05-15'));
+        $snapshot = $service->buildDashboard($this->acme, 2026);
+
+        self::assertCount(1, $snapshot->expiringCarryovers);
+        $entry = $snapshot->expiringCarryovers[0];
+        self::assertSame('Alice', $entry->employeeName);
+        self::assertSame('EMP-1', $entry->employeeNumber);
+        self::assertSame(16.0, $entry->hoursRemaining);
+        self::assertSame('2026-08-15', $entry->expiresAt->format('Y-m-d'));
+        // 2026-05-15 to 2026-08-15 = 92 days
+        self::assertSame(92, $entry->daysUntilExpiry);
+        self::assertTrue($snapshot->hasActions());
+    }
+
+    #[Test]
+    public function snapshotMapsOverduePendingWithWaitingDays(): void
+    {
+        $alice = $this->makeEmployee('Alice', 'EMP-1', '2025-01-01', null, 1);
+        $vacation = new AbsenceType(
+            $this->acme,
+            'Urlaub',
+            deductsFromLeave: true,
+            requiresApproval: true,
+            color: '#3B82F6',
+        );
+
+        $request = new LeaveRequest(
+            $alice,
+            $vacation,
+            new \DateTimeImmutable('2026-05-25'),
+            new \DateTimeImmutable('2026-05-29'),
+            LeaveDayType::FullDay,
+            new \DateTimeImmutable('2026-05-01 09:00:00'),
+        );
+        $request->applyBreakdown(new LeaveBreakdown([
+            new LeaveDay(new \DateTimeImmutable('2026-05-25'), 8.0, LeaveDayStatus::Working),
+            new LeaveDay(new \DateTimeImmutable('2026-05-26'), 8.0, LeaveDayStatus::Working),
+            new LeaveDay(new \DateTimeImmutable('2026-05-27'), 8.0, LeaveDayStatus::Working),
+            new LeaveDay(new \DateTimeImmutable('2026-05-28'), 8.0, LeaveDayStatus::Working),
+            new LeaveDay(new \DateTimeImmutable('2026-05-29'), 8.0, LeaveDayStatus::Working),
+        ]));
+        $reflection = new \ReflectionProperty(LeaveRequest::class, 'id');
+        $reflection->setValue($request, 42);
+
+        $this->employeeRepo->method('findAllByCompany')->willReturn([$alice]);
+        $this->entitlementRepo->method('findByCompanyAndYear')->willReturn([]);
+        $this->entitlementRepo->method('findAvailableYears')->willReturn([2026]);
+        $this->entitlementRepo->method('findCarryoversExpiringWithin')->willReturn([]);
+        $this->dayRepo->method('sumIllnessHoursByEmployeeForCompany')->willReturn([]);
+        $this->dayRepo->method('sumApprovedDeductingHoursByMonth')->willReturn([]);
+        $this->requestRepo->method('countAwaitingDecisionInCompany')->willReturn(1);
+        $this->requestRepo->method('findOverduePendingInCompany')->willReturn([$request]);
+        $this->departmentRepo->method('findByCompany')->willReturn([]);
+
+        $service = $this->makeService(new MockClock('2026-05-15'));
+        $snapshot = $service->buildDashboard($this->acme, 2026);
+
+        self::assertCount(1, $snapshot->overduePending);
+        $entry = $snapshot->overduePending[0];
+        self::assertSame(42, $entry->requestId);
+        self::assertSame('Alice', $entry->employeeName);
+        self::assertSame('Urlaub', $entry->absenceTypeName);
+        // Requested 2026-05-01, now 2026-05-15 = 14 days waiting
+        self::assertSame(14, $entry->daysWaiting);
+        self::assertTrue($snapshot->hasActions());
+    }
+
+    #[Test]
+    public function emptyActionBucketsExposeHasActionsFalse(): void
+    {
+        $this->stubEmptyRepos();
+
+        $service = $this->makeService(new MockClock('2026-05-10'));
+        $snapshot = $service->buildDashboard($this->acme, 2026);
+
+        self::assertFalse($snapshot->hasActions());
+        self::assertSame([], $snapshot->expiringCarryovers);
+        self::assertSame([], $snapshot->overduePending);
+    }
+
     private function stubEmptyRepos(): void
     {
         $this->employeeRepo->method('findAllByCompany')->willReturn([]);
         $this->entitlementRepo->method('findByCompanyAndYear')->willReturn([]);
         $this->entitlementRepo->method('findAvailableYears')->willReturn([2026]);
+        $this->entitlementRepo->method('findCarryoversExpiringWithin')->willReturn([]);
         $this->dayRepo->method('sumIllnessHoursByEmployeeForCompany')->willReturn([]);
         $this->dayRepo->method('sumApprovedDeductingHoursByMonth')->willReturn([]);
         $this->requestRepo->method('countAwaitingDecisionInCompany')->willReturn(0);
+        $this->requestRepo->method('findOverduePendingInCompany')->willReturn([]);
         $this->departmentRepo->method('findByCompany')->willReturn([]);
     }
 
