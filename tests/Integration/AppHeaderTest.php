@@ -39,7 +39,11 @@ final class AppHeaderTest extends WebTestCase
     public function headerRendersOnDashboard(): void
     {
         $this->loginAs('admin@leaveflow.test');
+        // Admin's "/" redirects to /admin/statistics — the action briefing is
+        // their canonical landing page, the personal dashboard would be empty
+        // for a user-only admin without an employee record.
         $this->client->request('GET', '/');
+        $this->client->followRedirect();
 
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('[data-testid="app-header-home"]');
@@ -81,6 +85,7 @@ final class AppHeaderTest extends WebTestCase
     {
         $this->loginAs('admin@leaveflow.test');
         $this->client->request('GET', '/');
+        $this->client->followRedirect();
 
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('[data-dropdown-toggle="admin-menu"]');

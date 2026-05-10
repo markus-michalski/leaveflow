@@ -35,6 +35,15 @@ final class LoginController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function dashboard(): Response
     {
+        // Admins land on the statistics action-briefing rather than the
+        // generic personal dashboard — without an employee record the
+        // /-page is mostly empty for them, while the briefing surfaces
+        // exactly the items that need their attention (carryover risk
+        // and overdue requests). Non-admins keep the personal dashboard.
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $this->redirectToRoute('app_admin_statistics_index');
+        }
+
         return $this->render('dashboard/index.html.twig');
     }
 }
