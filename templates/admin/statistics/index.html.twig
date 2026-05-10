@@ -126,22 +126,22 @@
                         <table class="mt-4 min-w-full text-sm">
                             <thead>
                                 <tr class="text-left text-xs uppercase tracking-wider {{ tone.muted }}">
-                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.expiring.col.employee'|trans }}</th>
-                                    <th class="py-2 pr-4 text-right">{{ 'admin.statistics.actions.expiring.col.hours'|trans }}</th>
-                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.expiring.col.expires_at'|trans }}</th>
-                                    <th class="py-2 text-right">{{ 'admin.statistics.actions.expiring.col.days_left'|trans }}</th>
+                                    <th class="px-3 py-2">{{ 'admin.statistics.actions.expiring.col.employee'|trans }}</th>
+                                    <th class="px-3 py-2 text-right">{{ 'admin.statistics.actions.expiring.col.hours'|trans }}</th>
+                                    <th class="px-3 py-2">{{ 'admin.statistics.actions.expiring.col.expires_at'|trans }}</th>
+                                    <th class="px-3 py-2 text-right">{{ 'admin.statistics.actions.expiring.col.days_left'|trans }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y {{ tone.divide }}">
                                 {% for entry in snapshot.expiringCarryovers %}
                                     <tr data-testid="expiring-row-{{ loop.index }}">
-                                        <td class="py-2 pr-4 font-medium {{ tone.heading }}">
+                                        <td class="px-3 py-2 font-medium {{ tone.heading }}">
                                             {{ entry.employeeName }}
                                             <span class="ml-1 text-xs {{ tone.mutedSoft }}">({{ entry.employeeNumber }})</span>
                                         </td>
-                                        <td class="py-2 pr-4 text-right {{ tone.heading }}">{{ entry.hoursRemaining|number_format(1, ',', '.') }} h</td>
-                                        <td class="py-2 pr-4 {{ tone.body }}">{{ entry.expiresAt|date('d.m.Y') }}</td>
-                                        <td class="py-2 text-right {{ tone.body }}">{{ entry.daysUntilExpiry }} {{ 'admin.statistics.actions.days_unit'|trans }}</td>
+                                        <td class="px-3 py-2 text-right {{ tone.heading }}">{{ entry.hoursRemaining|number_format(1, ',', '.') }} h</td>
+                                        <td class="px-3 py-2 {{ tone.body }}">{{ entry.expiresAt|date('d.m.Y') }}</td>
+                                        <td class="px-3 py-2 text-right {{ tone.body }}">{{ entry.daysUntilExpiry }} {{ 'admin.statistics.actions.days_unit'|trans }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -175,21 +175,21 @@
                         <table class="mt-4 min-w-full text-sm">
                             <thead>
                                 <tr class="text-left text-xs uppercase tracking-wider {{ tone.muted }}">
-                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.overdue.col.employee'|trans }}</th>
-                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.overdue.col.type'|trans }}</th>
-                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.overdue.col.range'|trans }}</th>
-                                    <th class="py-2 pr-4">{{ 'admin.statistics.actions.overdue.col.requested_at'|trans }}</th>
-                                    <th class="py-2 text-right">{{ 'admin.statistics.actions.overdue.col.days_waiting'|trans }}</th>
+                                    <th class="px-3 py-2">{{ 'admin.statistics.actions.overdue.col.employee'|trans }}</th>
+                                    <th class="px-3 py-2">{{ 'admin.statistics.actions.overdue.col.type'|trans }}</th>
+                                    <th class="px-3 py-2">{{ 'admin.statistics.actions.overdue.col.range'|trans }}</th>
+                                    <th class="px-3 py-2">{{ 'admin.statistics.actions.overdue.col.requested_at'|trans }}</th>
+                                    <th class="px-3 py-2 text-right">{{ 'admin.statistics.actions.overdue.col.days_waiting'|trans }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y {{ tone.divide }}">
                                 {% for entry in snapshot.overduePending %}
                                     <tr data-testid="overdue-row-{{ loop.index }}">
-                                        <td class="py-2 pr-4 font-medium {{ tone.heading }}">{{ entry.employeeName }}</td>
-                                        <td class="py-2 pr-4 {{ tone.body }}">{{ entry.absenceTypeName }}</td>
-                                        <td class="py-2 pr-4 {{ tone.body }}">{{ entry.startDate|date('d.m.') }}–{{ entry.endDate|date('d.m.Y') }}</td>
-                                        <td class="py-2 pr-4 {{ tone.body }}">{{ entry.requestedAt|date('d.m.Y') }}</td>
-                                        <td class="py-2 text-right {{ tone.body }}">{{ entry.daysWaiting }} {{ 'admin.statistics.actions.days_unit'|trans }}</td>
+                                        <td class="px-3 py-2 font-medium {{ tone.heading }}">{{ entry.employeeName }}</td>
+                                        <td class="px-3 py-2 {{ tone.body }}">{{ entry.absenceTypeName }}</td>
+                                        <td class="px-3 py-2 {{ tone.body }}">{{ entry.startDate|date('d.m.') }}–{{ entry.endDate|date('d.m.Y') }}</td>
+                                        <td class="px-3 py-2 {{ tone.body }}">{{ entry.requestedAt|date('d.m.Y') }}</td>
+                                        <td class="px-3 py-2 text-right {{ tone.body }}">{{ entry.daysWaiting }} {{ 'admin.statistics.actions.days_unit'|trans }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
