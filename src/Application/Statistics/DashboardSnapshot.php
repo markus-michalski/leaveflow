@@ -21,7 +21,7 @@ use App\Domain\ValueObject\UtilizationBreakdown;
 final readonly class DashboardSnapshot
 {
     /**
-     * @param array<int, float>              $monthlyDistribution map of 1..12 => hours, every month present
+     * @param list<float>                    $monthlyDistribution 12 entries, Jan..Dec (0-indexed) for direct JSON serialization to Chart.js
      * @param list<DepartmentBreakdownEntry> $departmentBreakdown ordered by department name, "Ohne Abteilung" last
      * @param list<int>                      $availableYears      newest-first list for the year picker
      */

@@ -1,5 +1,10 @@
 import { Controller } from '@hotwired/stimulus';
-import Chart from 'chart.js/auto';
+import { Chart, registerables } from 'chart.js';
+
+// chart.js ships modular controllers/scales/elements; without /auto we
+// register them ourselves so the bare `chart.js` importmap entry is enough
+// (no separate `chart.js/auto` mapping needed).
+Chart.register(...registerables);
 
 /**
  * Renders the two charts on the admin statistics dashboard:
@@ -43,12 +48,9 @@ export default class extends Controller {
     }
 
     renderMonthlyChart() {
-        // monthlyValue is { "1": 0.0, "2": 0.0, ... } from PHP json_encode
-        const months = Object.keys(this.monthlyValue)
-            .map(Number)
-            .sort((a, b) => a - b);
-        const data = months.map((m) => this.monthlyValue[m] ?? 0);
-
+        // monthlyValue is a 12-entry array Jan..Dec (0-indexed) — PHP emits
+        // it as a JSON array via array_values so the Stimulus Array value
+        // type accepts it directly.
         return new Chart(this.monthlyChartTarget, {
             type: 'bar',
             data: {
@@ -56,7 +58,7 @@ export default class extends Controller {
                 datasets: [
                     {
                         label: this.monthlyLabelValue,
-                        data,
+                        data: this.monthlyValue,
                         backgroundColor: 'rgba(59, 130, 246, 0.65)',
                         borderColor: 'rgb(59, 130, 246)',
                         borderWidth: 1,

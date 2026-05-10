@@ -80,6 +80,7 @@
             <p class="text-xs font-medium uppercase tracking-wider text-gray-500">
                 {{ 'admin.statistics.kpi.utilization.label'|trans }}
             </p>
+            <p class="text-xs text-gray-400">{{ 'admin.statistics.kpi.utilization.sublabel'|trans }}</p>
             <p class="mt-2 text-3xl font-semibold text-gray-900">
                 {{ snapshot.utilization.utilizationPercent|number_format(1, ',', '.') }}<span class="text-lg font-medium text-gray-500"> %</span>
             </p>
@@ -95,6 +96,7 @@
             <p class="text-xs font-medium uppercase tracking-wider text-gray-500">
                 {{ 'admin.statistics.kpi.illness.label'|trans }}
             </p>
+            <p class="text-xs text-gray-400">{{ 'admin.statistics.kpi.illness.sublabel'|trans }}</p>
             <p class="mt-2 text-3xl font-semibold text-gray-900">
                 {{ snapshot.illnessRate.illnessRatePercent|number_format(1, ',', '.') }}<span class="text-lg font-medium text-gray-500"> %</span>
             </p>
@@ -110,6 +112,7 @@
             <p class="text-xs font-medium uppercase tracking-wider text-gray-500">
                 {{ 'admin.statistics.kpi.pending.label'|trans }}
             </p>
+            <p class="text-xs text-gray-400">{{ 'admin.statistics.kpi.pending.sublabel'|trans }}</p>
             <p class="mt-2 text-3xl font-semibold text-gray-900">{{ snapshot.awaitingDecisionCount }}</p>
             <p class="mt-2 text-xs text-gray-500">{{ 'admin.statistics.kpi.pending.detail'|trans }}</p>
         </div>
@@ -118,6 +121,7 @@
             <p class="text-xs font-medium uppercase tracking-wider text-gray-500">
                 {{ 'admin.statistics.kpi.avg_remaining.label'|trans }}
             </p>
+            <p class="text-xs text-gray-400">{{ 'admin.statistics.kpi.avg_remaining.sublabel'|trans }}</p>
             <p class="mt-2 text-3xl font-semibold text-gray-900">
                 {{ snapshot.averageRemainingHours|number_format(1, ',', '.') }}<span class="text-lg font-medium text-gray-500"> h</span>
             </p>

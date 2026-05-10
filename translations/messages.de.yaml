@@ -521,16 +521,20 @@ admin:
         kpi:
             utilization:
                 label: "Genutzter Urlaub"
-                detail: "%used% h von %granted% h genutzt"
+                sublabel: "Alle Mitarbeitenden im gewählten Jahr"
+                detail: "%used% h von %granted% h gewährt (Urlaub + Resturlaub, abgelaufene Carryover-Hours ausgenommen)"
             illness:
                 label: "Krankenquote"
-                detail: "%illness% h Krankheit / %scheduled% h Soll-Arbeitszeit"
+                sublabel: "Krankheits-Stunden im Verhältnis zur Soll-Arbeitszeit"
+                detail: "%illness% h Krankheit / %scheduled% h Soll-Arbeitszeit (Vertragsstunden, ohne Feiertagsabzug)"
             pending:
                 label: "Offene Anträge"
-                detail: "Wartet auf Genehmigung oder Storno-Bestätigung"
+                sublabel: "Wartet auf Bearbeitung"
+                detail: "Pending-Anträge + offene Storno-Bestätigungen"
             avg_remaining:
                 label: "Ø Resturlaub"
-                detail: "Pro Mitarbeiter (%count% aktiv im Zeitraum)"
+                sublabel: "Pro aktiver Mitarbeiter:in"
+                detail: "Berechnet aus dem nicht genutzten Urlaub (Regular + nicht abgelaufener Carryover) geteilt durch %count% aktive Mitarbeitende im Zeitraum"
         chart:
             hours_unit: "Stunden"
             monthly:

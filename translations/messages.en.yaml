@@ -518,16 +518,20 @@ admin:
         kpi:
             utilization:
                 label: "Leave utilization"
-                detail: "%used% h used of %granted% h granted"
+                sublabel: "All employees in the selected year"
+                detail: "%used% h used of %granted% h granted (regular + carryover combined, expired carryover excluded)"
             illness:
                 label: "Illness rate"
-                detail: "%illness% h illness / %scheduled% h scheduled"
+                sublabel: "Illness hours over scheduled work hours"
+                detail: "%illness% h illness / %scheduled% h scheduled (contract hours, holidays not subtracted)"
             pending:
                 label: "Open requests"
-                detail: "Awaiting approval or cancellation decision"
+                sublabel: "Awaiting action"
+                detail: "Pending requests plus open cancellation decisions"
             avg_remaining:
                 label: "Avg. remaining"
-                detail: "Per employee (%count% active in range)"
+                sublabel: "Per active employee"
+                detail: "Unused leave (regular + non-expired carryover) divided by %count% active employees in range"
         chart:
             hours_unit: "Hours"
             monthly:

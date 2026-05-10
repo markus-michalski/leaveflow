@@ -139,10 +139,11 @@ final class StatisticsServiceTest extends TestCase
         $snapshot = $service->buildDashboard($this->acme, 2026);
 
         self::assertCount(12, $snapshot->monthlyDistribution);
-        self::assertSame(0.0, $snapshot->monthlyDistribution[1]);
-        self::assertSame(80.0, $snapshot->monthlyDistribution[3]);
-        self::assertSame(40.0, $snapshot->monthlyDistribution[7]);
-        self::assertSame(0.0, $snapshot->monthlyDistribution[12]);
+        // 0-indexed: 0=Jan, 2=Mar, 6=Jul, 11=Dec
+        self::assertSame(0.0, $snapshot->monthlyDistribution[0]);
+        self::assertSame(80.0, $snapshot->monthlyDistribution[2]);
+        self::assertSame(40.0, $snapshot->monthlyDistribution[6]);
+        self::assertSame(0.0, $snapshot->monthlyDistribution[11]);
     }
 
     #[Test]

@@ -83,9 +83,13 @@ final readonly class StatisticsService
             : 0.0;
 
         $monthlyRaw = $this->dayRepository->sumApprovedDeductingHoursByMonth($company, $year);
+        // Emit as a 0-indexed list (Jan=0..Dec=11) so json_encode produces a
+        // JSON array, not a JSON object — Stimulus' Array value type rejects
+        // the latter. The chart controller pairs the values with the
+        // monthLabels array literal in the template, which is also 0-indexed.
         $monthly = [];
         for ($m = 1; $m <= 12; ++$m) {
-            $monthly[$m] = round($monthlyRaw[$m] ?? 0.0, 1);
+            $monthly[] = round($monthlyRaw[$m] ?? 0.0, 1);
         }
 
         $departmentBreakdown = $this->buildDepartmentBreakdown(
