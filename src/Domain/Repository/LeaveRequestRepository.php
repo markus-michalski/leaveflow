@@ -199,6 +199,37 @@ class LeaveRequestRepository extends ServiceEntityRepository
     }
 
     /**
+     * Personal iCal feed source: approved and recorded leave for the
+     * given employee that overlaps the date range. Recorded illness is
+     * included because it shows up on the employee's own profile too;
+     * the team feed uses {@see findApprovedOverlapping} and excludes
+     * recorded entries for privacy.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findAbsencesForEmployeeInRange(
+        Employee $employee,
+        \DateTimeImmutable $rangeStart,
+        \DateTimeImmutable $rangeEnd,
+    ): array {
+        return $this->createQueryBuilder('r')
+            ->where('r.employee = :employee')
+            ->andWhere('r.status IN (:statuses)')
+            ->andWhere('r.startDate <= :rangeEnd')
+            ->andWhere('r.endDate >= :rangeStart')
+            ->setParameter('employee', $employee)
+            ->setParameter('statuses', [
+                LeaveRequestStatus::Approved->value,
+                LeaveRequestStatus::Recorded->value,
+            ])
+            ->setParameter('rangeStart', $rangeStart->setTime(0, 0))
+            ->setParameter('rangeEnd', $rangeEnd->setTime(0, 0))
+            ->orderBy('r.startDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Approved leave requests that overlap a given date — i.e. the
      * employees currently away on that day. Drives the "Aktuell abwesend"
      * card on the admin statistics dashboard. Sorted by employee name

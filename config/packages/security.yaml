@@ -44,6 +44,9 @@ security:
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        # iCal feeds authenticate via URL token, not session cookie —
+        # calendar apps never send cookies on their refresh requests.
+        - { path: ^/ical/, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/, roles: ROLE_USER }
 

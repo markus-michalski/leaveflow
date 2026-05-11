@@ -31,6 +31,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Employee::class)]
     private ?Employee $employee = null;
 
+    /**
+     * Personal calendar subscription token. Lazy-generated on first
+     * profile-page visit (or via {@see resetIcalToken}). Used by the
+     * public ICS feed endpoints (`/ical/personal/{token}.ics`,
+     * `/ical/team/{token}.ics`) which can't authenticate via session
+     * cookies because calendar clients don't send them.
+     */
+    #[ORM\Column(name: 'ical_token', length: 64, unique: true, nullable: true)]
+    private ?string $icalToken = null;
+
     public function __construct(
         #[ORM\ManyToOne]
         #[ORM\JoinColumn(name: 'company_id', nullable: false)]
@@ -127,5 +137,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         // No-op — plaintext credentials are never stored on the entity.
+    }
+
+    public function getIcalToken(): ?string
+    {
+        return $this->icalToken;
+    }
+
+    /**
+     * Generates a fresh URL-safe token if none exists. Idempotent —
+     * call from the profile-page controller without worrying about
+     * duplicate rotation.
+     */
+    public function ensureIcalToken(): string
+    {
+        if (null === $this->icalToken) {
+            $this->icalToken = bin2hex(random_bytes(32));
+        }
+
+        return $this->icalToken;
+    }
+
+    /**
+     * Rotates the token, invalidating every previously-subscribed
+     * calendar. Used when a token leaks (laptop lost, ex-employee
+     * still subscribed).
+     */
+    public function resetIcalToken(): string
+    {
+        $this->icalToken = bin2hex(random_bytes(32));
+
+        return $this->icalToken;
     }
 }

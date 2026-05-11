@@ -718,6 +718,23 @@ profile:
         total: Total available
         next_expiry: Carryover expires on
         my_requests: My requests
+    ical:
+        heading: "Subscribe to my calendar"
+        description: "Subscribe to your absences and your team's in Google Calendar, Outlook, or Apple Calendar — updates are pulled automatically by your calendar app."
+        copy: "Copy"
+        personal:
+            label: "My personal calendar"
+            description: "Your approved leave plus illness recordings."
+        team:
+            label: "Team calendar"
+            description: "Approved absences in your department. Illness recordings are not included."
+        reset:
+            summary: "Reset token"
+            description: "Reset your token if the link was shared by mistake or a device was lost. All existing subscriptions become invalid — you have to paste the new URL into your calendar again."
+            button: "Reset token now"
+            confirm: "Really reset? Existing calendar subscriptions will stop working."
+        flash:
+            reset: "Your iCal token has been regenerated. Update the URL in your calendar app."
     settings:
         heading: Settings
         adjust: Adjust
