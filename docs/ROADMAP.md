@@ -361,11 +361,30 @@ LeaveFlow is now usable by a real team. Everything after is enhancement.
 
 ---
 
-### Phase 10 — Reports & Export
+### Phase 10 — Reports & Export ✅ (v0.11.0)
 
-- CSV/PDF reports (per-employee, per-team, per-year)
-- iCal export for Google Calendar / Outlook subscription
-- Admin statistics dashboard (utilization, illness rates anonymized)
+- ✅ **Admin statistics dashboard** — anonymized KPIs (Urlaubs-Auslastung,
+  Krankenquote, offene Anträge, Ø verfügbarer Urlaub) plus an action-briefing
+  section ("Handlungsbedarf": Carryover-Verfallsrisiko, liegende Anträge),
+  "Aktuell abwesend"-Karte mit Drill-down zum Team-Kalender, Monats- und
+  Department-Charts via Chart.js, k=3 anonymity threshold for per-team
+  aggregates. Admins land on `/admin/statistics` after login instead of the
+  generic personal dashboard. (#50)
+- ✅ **CSV + PDF export** — Statistik-Dashboard als druckbares A4-PDF mit
+  KPI-Tabelle, Monats-Text-Zusammenfassung (Spitzenmonat, stärkstes Quartal,
+  leere Monate, Gesamtstunden) und Department-Aufstellung via `dompdf`.
+  Urlaubskonten als semicolon-CSV mit UTF-8 BOM, Year-Filter, deutscher
+  Dezimalkomma — Excel-/Numbers-tauglich. Drive-by: phpunit 12.5.21 →
+  12.5.22 (CVE-2026-41570). (#51)
+- ✅ **iCal subscription feeds** — `/ical/personal/{token}.ics` (eigene
+  approved + recorded Abwesenheiten) und `/ical/team/{token}.ics` (Department
+  approved-only, name-prefixed Summary) via `eluceo/ical`. Token-basiert
+  weil Calendar-Apps keine Session-Cookies senden, 64-char hex Token im
+  User lazy-generiert beim ersten Profile-View, Reset-Action mit CSRF +
+  Confirm. 404 für jeden Failure-Mode (Token-Enumeration-resistent).
+  Range −3M..+12M relativ zu heute. (#52)
+
+**Exit:** v0.11.0 (2026-05-11)
 
 ---
 
