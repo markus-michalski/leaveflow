@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('de') }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ 'admin.statistics.export.pdf.title'|trans({ '%year%': snapshot.year }) }}</title>
+    <style>
+        /* dompdf supports a narrow CSS slice — Tailwind is out, this file owns its own style. */
+        @page {
+            size: A4 portrait;
+            margin: 18mm 16mm 22mm 16mm;
+        }
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 10pt;
+            color: #1f2937;
+            margin: 0;
+        }
+        h1 {
+            font-size: 18pt;
+            margin: 0 0 4pt 0;
+            color: #111827;
+        }
+        h2 {
+            font-size: 12pt;
+            margin: 18pt 0 6pt 0;
+            color: #111827;
+            border-bottom: 1pt solid #d1d5db;
+            padding-bottom: 3pt;
+        }
+        .meta {
+            color: #6b7280;
+            font-size: 9pt;
+            margin-bottom: 4pt;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6pt;
+        }
+        th, td {
+            padding: 4pt 6pt;
+            border-bottom: 0.5pt solid #e5e7eb;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f3f4f6;
+            font-weight: bold;
+            font-size: 8.5pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.4pt;
+        }
+        td.num, th.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .kpi-grid {
+            width: 100%;
+            margin-top: 6pt;
+        }
+        .kpi-grid td {
+            border: 0.5pt solid #d1d5db;
+            padding: 6pt 8pt;
+            width: 50%;
+            vertical-align: top;
+        }
+        .kpi-label {
+            font-size: 8pt;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 0.4pt;
+        }
+        .kpi-value {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #111827;
+            margin-top: 2pt;
+        }
+        .kpi-detail {
+            font-size: 8.5pt;
+            color: #6b7280;
+            margin-top: 4pt;
+        }
+        .summary-bullets {
+            margin: 6pt 0 0 0;
+            padding-left: 16pt;
+        }
+        .summary-bullets li {
+            margin-bottom: 3pt;
+        }
+        .footer {
+            position: fixed;
+            bottom: -14mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 8pt;
+            color: #9ca3af;
+        }
+        .hidden-row td {
+            color: #9ca3af;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ 'admin.statistics.export.pdf.heading'|trans }}</h1>
+    <p class="meta">
+        {{ 'admin.statistics.export.pdf.scope'|trans({
+            '%year%': snapshot.year,
+            '%start%': snapshot.rangeStart|date('d.m.Y'),
+            '%end%': snapshot.rangeEnd|date('d.m.Y'),
+        }) }}
+    </p>
+    <p class="meta">
+        {{ 'admin.statistics.export.pdf.generated_at'|trans({ '%date%': generatedAt|date('d.m.Y H:i') }) }}
+    </p>
+
+    <h2>{{ 'admin.statistics.section.kpis'|trans }}</h2>
+    <table class="kpi-grid">
+        <tr>
+            <td>
+                <div class="kpi-label">{{ 'admin.statistics.kpi.utilization.label'|trans }}</div>
+                <div class="kpi-value">{{ snapshot.utilization.utilizationPercent|number_format(1, ',', '.') }} %</div>
+                <div class="kpi-detail">
+                    {{ snapshot.utilization.totalUsedHours|number_format(1, ',', '.') }} h
+                    {{ 'admin.statistics.export.pdf.of'|trans }}
+                    {{ snapshot.utilization.totalGrantedHours|number_format(1, ',', '.') }} h
+                    {{ 'admin.statistics.export.pdf.granted'|trans }}
+                </div>
+            </td>
+            <td>
+                <div class="kpi-label">{{ 'admin.statistics.kpi.illness.label'|trans }}</div>
+                <div class="kpi-value">{{ snapshot.illnessRate.illnessRatePercent|number_format(1, ',', '.') }} %</div>
+                <div class="kpi-detail">
+                    {{ snapshot.illnessRate.totalIllnessHours|number_format(1, ',', '.') }} h
+                    /
+                    {{ snapshot.illnessRate.totalScheduledHours|number_format(1, ',', '.') }} h
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="kpi-label">{{ 'admin.statistics.kpi.pending.label'|trans }}</div>
+                <div class="kpi-value">{{ snapshot.awaitingDecisionCount }}</div>
+                <div class="kpi-detail">{{ 'admin.statistics.kpi.pending.sublabel'|trans }}</div>
+            </td>
+            <td>
+                <div class="kpi-label">{{ 'admin.statistics.kpi.avg_remaining.label'|trans }}</div>
+                <div class="kpi-value">{{ snapshot.averageRemainingHours|number_format(1, ',', '.') }} h</div>
+                <div class="kpi-detail">{{ 'admin.statistics.export.pdf.per_employee'|trans({ '%count%': snapshot.activeEmployeeCount }) }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <h2>{{ 'admin.statistics.export.pdf.monthly_summary'|trans }}</h2>
+    {% if monthlyStats.peakMonthIndex is null %}
+        <p class="meta">{{ 'admin.statistics.export.pdf.monthly_empty'|trans }}</p>
+    {% else %}
+        {% set monthNames = [
+            'month.short.jan'|trans,
+            'month.short.feb'|trans,
+            'month.short.mar'|trans,
+            'month.short.apr'|trans,
+            'month.short.may'|trans,
+            'month.short.jun'|trans,
+            'month.short.jul'|trans,
+            'month.short.aug'|trans,
+            'month.short.sep'|trans,
+            'month.short.oct'|trans,
+            'month.short.nov'|trans,
+            'month.short.dec'|trans,
+        ] %}
+        {% set quarterNames = ['Q1', 'Q2', 'Q3', 'Q4'] %}
+        <ul class="summary-bullets">
+            <li>{{ 'admin.statistics.export.pdf.peak_month'|trans({
+                '%month%': monthNames[monthlyStats.peakMonthIndex],
+                '%hours%': monthlyStats.peakMonthHours|number_format(1, ',', '.'),
+            }) }}</li>
+            <li>{{ 'admin.statistics.export.pdf.peak_quarter'|trans({
+                '%quarter%': quarterNames[monthlyStats.peakQuarterIndex],
+                '%hours%': monthlyStats.peakQuarterHours|number_format(1, ',', '.'),
+            }) }}</li>
+            {% if monthlyStats.emptyMonthCount > 0 %}
+                <li>{{ 'admin.statistics.export.pdf.empty_months'|trans({ '%count%': monthlyStats.emptyMonthCount }) }}</li>
+            {% endif %}
+            <li>{{ 'admin.statistics.export.pdf.total_hours'|trans({
+                '%hours%': monthlyStats.totalHours|number_format(1, ',', '.'),
+            }) }}</li>
+        </ul>
+        <table>
+            <thead>
+                <tr>
+                    <th>{{ 'admin.statistics.export.pdf.col_month'|trans }}</th>
+                    <th class="num">{{ 'admin.statistics.chart.hours_unit'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hours in snapshot.monthlyDistribution %}
+                    <tr>
+                        <td>{{ monthNames[loop.index0] }}</td>
+                        <td class="num">{{ hours|number_format(1, ',', '.') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <h2>{{ 'admin.statistics.section.department_table'|trans }}</h2>
+    {% if snapshot.departmentBreakdown is empty %}
+        <p class="meta">{{ 'admin.statistics.table.departments.empty'|trans }}</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>{{ 'admin.statistics.table.departments.col.name'|trans }}</th>
+                    <th class="num">{{ 'admin.statistics.table.departments.col.headcount'|trans }}</th>
+                    <th class="num">{{ 'admin.statistics.table.departments.col.granted'|trans }}</th>
+                    <th class="num">{{ 'admin.statistics.table.departments.col.used'|trans }}</th>
+                    <th class="num">{{ 'admin.statistics.table.departments.col.utilization'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in snapshot.departmentBreakdown %}
+                    <tr{% if entry.hidden %} class="hidden-row"{% endif %}>
+                        <td>{{ entry.name }}</td>
+                        <td class="num">{{ entry.employeeCount }}</td>
+                        {% if entry.hidden %}
+                            <td colspan="3">{{ 'admin.statistics.table.departments.hidden'|trans({ '%threshold%': snapshot.anonymityThreshold }) }}</td>
+                        {% else %}
+                            <td class="num">{{ entry.totalGrantedHours|number_format(1, ',', '.') }} h</td>
+                            <td class="num">{{ entry.totalUsedHours|number_format(1, ',', '.') }} h</td>
+                            <td class="num">{{ entry.utilizationPercent|number_format(1, ',', '.') }} %</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <div class="footer">
+        {{ 'admin.statistics.export.pdf.footer'|trans({ '%appName%': 'app.name'|trans }) }}
+    </div>
+</body>
+</html>

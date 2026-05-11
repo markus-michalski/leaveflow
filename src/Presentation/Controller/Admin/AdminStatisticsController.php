@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Admin;
 
+use App\Application\Statistics\MonthlyDistributionFormatter;
 use App\Application\Statistics\StatisticsService;
 use App\Domain\Entity\Company;
 use App\Domain\Repository\CompanyRepository;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +27,7 @@ final class AdminStatisticsController extends AbstractController
         private readonly CompanyRepository $companyRepository,
         private readonly ClockInterface $clock,
         private readonly TranslatorInterface $translator,
+        private readonly MonthlyDistributionFormatter $monthlyFormatter,
     ) {
     }
 
@@ -47,6 +51,52 @@ final class AdminStatisticsController extends AbstractController
             'snapshot' => $snapshot,
             'current_year' => $currentYear,
         ]);
+    }
+
+    #[Route('/export.pdf', name: 'export_pdf', methods: ['GET'])]
+    public function exportPdf(Request $request): Response
+    {
+        $company = $this->requireCompany();
+
+        $now = \DateTimeImmutable::createFromInterface($this->clock->now());
+        $currentYear = (int) $now->format('Y');
+
+        $year = (int) $request->query->get('year', (string) $currentYear);
+        if ($year < 1970 || $year > 2200) {
+            $year = $currentYear;
+        }
+
+        $orphanLabel = $this->translator->trans('statistics.department.orphan');
+        $snapshot = $this->statistics->buildDashboard($company, $year, $orphanLabel);
+        $monthlyStats = $this->monthlyFormatter->summarize($snapshot->monthlyDistribution);
+
+        $html = $this->renderView('admin/statistics/export.pdf.html.twig', [
+            'snapshot' => $snapshot,
+            'monthlyStats' => $monthlyStats,
+            'generatedAt' => $now,
+        ]);
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false);
+        $options->set('defaultFont', 'DejaVu Sans');
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = \sprintf('leaveflow-statistik-%d.pdf', $year);
+
+        return new Response(
+            (string) $dompdf->output(),
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => \sprintf('attachment; filename="%s"', $filename),
+                'Cache-Control' => 'private, no-store',
+            ],
+        );
     }
 
     private function requireCompany(): Company

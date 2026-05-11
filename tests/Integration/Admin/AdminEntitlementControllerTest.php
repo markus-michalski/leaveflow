@@ -820,6 +820,59 @@ final class AdminEntitlementControllerTest extends WebTestCase
         self::assertNotNull($this->em->find(LeaveEntitlement::class, $id));
     }
 
+    #[Test]
+    public function csvExportReturnsRowsForSelectedYear(): void
+    {
+        $entitlement = $this->createEntitlement(2026, LeaveEntitlementType::Regular, 240.0, null);
+        $entitlement->consume(80.0);
+        $this->createEntitlement(2025, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/entitlements/export.csv?year=2026');
+
+        $response = $this->client->getResponse();
+        self::assertResponseIsSuccessful();
+        self::assertStringStartsWith('text/csv', (string) $response->headers->get('Content-Type'));
+        self::assertStringContainsString('leaveflow-urlaubskonten-2026.csv', (string) $response->headers->get('Content-Disposition'));
+
+        $body = (string) $response->getContent();
+
+        // BOM is the first three bytes; consumers like Excel rely on it.
+        self::assertStringStartsWith("\xEF\xBB\xBF", $body);
+        self::assertStringContainsString('Max Mustermann', $body);
+        self::assertStringContainsString('240,00', $body);
+        self::assertStringContainsString('80,00', $body);
+        self::assertStringContainsString('160,00', $body);
+        self::assertStringNotContainsString(';2025;', $body);
+    }
+
+    #[Test]
+    public function csvExportAllYearsIncludesEveryEntry(): void
+    {
+        $this->createEntitlement(2025, LeaveEntitlementType::Regular, 240.0, null);
+        $this->createEntitlement(2026, LeaveEntitlementType::Regular, 240.0, null);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/entitlements/export.csv?year=all');
+
+        $body = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringContainsString(';2025;', $body);
+        self::assertStringContainsString(';2026;', $body);
+        self::assertStringContainsString('leaveflow-urlaubskonten-alle-jahre.csv', (string) $this->client->getResponse()->headers->get('Content-Disposition'));
+    }
+
+    #[Test]
+    public function csvExportRequiresAdminRole(): void
+    {
+        $this->loginAs('manager@leaveflow.test');
+        $this->client->request('GET', '/admin/entitlements/export.csv');
+
+        self::assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
+    }
+
     private function loginAs(string $email): void
     {
         $crawler = $this->client->request('GET', '/login');

@@ -444,6 +444,17 @@ admin:
         edit_view:
             title: "Urlaubsart bearbeiten"
     entitlements:
+        export:
+            button: "Als CSV exportieren"
+            col:
+                employee: "Mitarbeiter:in"
+                employee_number: "Mitarbeiternummer"
+                year: "Jahr"
+                type: "Art"
+                granted: "Gewährt (h)"
+                used: "Verbraucht (h)"
+                remaining: "Verfügbar (h)"
+                expires_at: "Ablauffrist (ISO)"
         title: Urlaubskonten
         heading: Urlaubskonten
         description: "Übersicht aller Urlaubsansprüche. Die Ablauffrist eines Resturlaubs lässt sich bei Krankheit/Elternzeit manuell verlängern."
@@ -557,6 +568,24 @@ admin:
                 employee: "Mitarbeiter:in"
                 type: "Art"
                 until: "Bis"
+        export:
+            pdf:
+                button: "Als PDF exportieren"
+                title: "Statistik-Export %year%"
+                heading: "Statistik-Bericht"
+                scope: "Jahr %year% (%start% – %end%)"
+                generated_at: "Erstellt am %date% Uhr"
+                of: "von"
+                granted: "gewährt"
+                per_employee: "Pro Mitarbeiter:in (%count% aktiv)"
+                monthly_summary: "Urlaubsverteilung"
+                monthly_empty: "Keine genehmigten Urlaubsbuchungen im Zeitraum."
+                peak_month: "Spitzenmonat: %month% mit %hours% h"
+                peak_quarter: "Stärkstes Quartal: %quarter% mit %hours% h"
+                empty_months: "%count% Monate ohne Buchungen"
+                total_hours: "Gesamtgenutzt: %hours% h"
+                col_month: "Monat"
+                footer: "%appName% — anonymisierte Auswertung gemäß DSGVO §22 BDSG"
         filter:
             year_label: "Jahr"
             apply: "Anwenden"
