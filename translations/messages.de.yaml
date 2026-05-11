@@ -721,6 +721,23 @@ profile:
         total: Gesamt verfügbar
         next_expiry: Resturlaub verfällt am
         my_requests: Meine Anträge
+    ical:
+        heading: "Mein Kalender abonnieren"
+        description: "Abonniere deine Abwesenheiten und die deines Teams in Google Calendar, Outlook oder Apple Kalender — Updates werden vom Kalender automatisch geholt."
+        copy: "Kopieren"
+        personal:
+            label: "Mein persönlicher Kalender"
+            description: "Eigene genehmigte Urlaube + Krankheitsmeldungen."
+        team:
+            label: "Team-Kalender"
+            description: "Genehmigte Abwesenheiten meiner Abteilung. Krankheit ist nicht enthalten."
+        reset:
+            summary: "Token zurücksetzen"
+            description: "Setze deinen Token zurück, falls du den Link versehentlich geteilt hast oder ein Endgerät verloren ging. Alle bestehenden Abonnements werden ungültig — du musst die neue URL erneut in deinen Kalender einfügen."
+            button: "Token jetzt zurücksetzen"
+            confirm: "Wirklich zurücksetzen? Bestehende Kalender-Abos werden ungültig."
+        flash:
+            reset: "Dein iCal-Token wurde neu erzeugt. Aktualisiere die URL in deinem Kalender."
     settings:
         heading: Einstellungen
         adjust: Anpassen

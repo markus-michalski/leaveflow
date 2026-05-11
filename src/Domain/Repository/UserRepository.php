@@ -29,6 +29,23 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
+     * Lookup for the public iCal feed endpoints. Inactive users are
+     * excluded so deactivated accounts can't keep leaking the feed
+     * via cached subscriptions in their calendar app.
+     */
+    public function findOneActiveByIcalToken(string $token): ?User
+    {
+        if ('' === $token) {
+            return null;
+        }
+
+        return $this->findOneBy([
+            'icalToken' => $token,
+            'active' => true,
+        ]);
+    }
+
+    /**
      * Active admin Users for a company. Recipient set for the
      * EscalationTriggered notification — the documented "last resort" path
      * when dept lead/deputy don't act on a Pending request.

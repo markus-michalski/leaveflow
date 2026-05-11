@@ -7,11 +7,14 @@ namespace App\Presentation\Controller;
 use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Domain\Entity\User;
 use App\Domain\Repository\EmployeeRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Clock\ClockInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[IsGranted('ROLE_USER')]
 final class ProfileController extends AbstractController
@@ -20,6 +23,8 @@ final class ProfileController extends AbstractController
         private readonly EmployeeRepository $employeeRepository,
         private readonly EntitlementBalanceReader $balanceReader,
         private readonly ClockInterface $clock,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -41,11 +46,44 @@ final class ProfileController extends AbstractController
             $balance = $this->balanceReader->forEmployee($employee, $balanceYear, $asOf);
         }
 
+        // Lazy-generate the iCal token on first profile view so subscription
+        // URLs are immediately usable. Only employees with a profile (who
+        // actually have absences to surface) see the section in the template.
+        $icalToken = null;
+        if (null !== $employee) {
+            $existed = null !== $user->getIcalToken();
+            $icalToken = $user->ensureIcalToken();
+            if (!$existed) {
+                $this->entityManager->flush();
+            }
+        }
+
         return $this->render('profile/show.html.twig', [
             'user' => $user,
             'employee' => $employee,
             'balance' => $balance,
             'balanceYear' => $balanceYear,
+            'icalToken' => $icalToken,
+            'icalHasTeam' => null !== $employee && null !== $employee->getDepartment(),
         ]);
+    }
+
+    #[Route('/profile/ical/reset', name: 'app_profile_ical_reset', methods: ['POST'])]
+    public function resetIcalToken(Request $request): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+        if (!$this->isCsrfTokenValid('profile_ical_reset', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $user->resetIcalToken();
+        $this->entityManager->flush();
+
+        $this->addFlash('success', $this->translator->trans('profile.ical.flash.reset'));
+
+        return $this->redirectToRoute('app_profile');
     }
 }
