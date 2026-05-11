@@ -444,6 +444,17 @@ admin:
         edit_view:
             title: "Edit absence type"
     entitlements:
+        export:
+            button: "Export as CSV"
+            col:
+                employee: "Employee"
+                employee_number: "Employee number"
+                year: "Year"
+                type: "Type"
+                granted: "Granted (h)"
+                used: "Used (h)"
+                remaining: "Remaining (h)"
+                expires_at: "Expires (ISO)"
         title: Leave balances
         heading: Leave balances
         description: "Overview of all leave entitlements. The expiry of a carryover entitlement can be extended manually for illness or parental leave."
@@ -554,6 +565,24 @@ admin:
                 employee: "Employee"
                 type: "Type"
                 until: "Until"
+        export:
+            pdf:
+                button: "Export as PDF"
+                title: "Statistics export %year%"
+                heading: "Statistics report"
+                scope: "Year %year% (%start% – %end%)"
+                generated_at: "Generated on %date%"
+                of: "of"
+                granted: "granted"
+                per_employee: "Per employee (%count% active)"
+                monthly_summary: "Leave distribution"
+                monthly_empty: "No approved leave bookings in this range."
+                peak_month: "Peak month: %month% with %hours% h"
+                peak_quarter: "Top quarter: %quarter% with %hours% h"
+                empty_months: "%count% months without bookings"
+                total_hours: "Total used: %hours% h"
+                col_month: "Month"
+                footer: "%appName% — anonymized analytics per GDPR / §22 BDSG"
         filter:
             year_label: "Year"
             apply: "Apply"

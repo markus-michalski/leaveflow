@@ -70,6 +70,75 @@ final class AdminEntitlementController extends AbstractController
         ]);
     }
 
+    #[Route('/export.csv', name: 'export_csv', methods: ['GET'])]
+    public function exportCsv(Request $request): Response
+    {
+        $company = $this->requireCompany();
+
+        $yearParam = $request->query->get('year');
+        $selectedYear = match (true) {
+            'all' === $yearParam => null,
+            \is_string($yearParam) && '' !== $yearParam && ctype_digit($yearParam) => (int) $yearParam,
+            default => (int) (new \DateTimeImmutable())->format('Y'),
+        };
+
+        $entries = $this->repository->findByCompanyAndYear($company, $selectedYear);
+
+        $filename = \sprintf(
+            'leaveflow-urlaubskonten-%s.csv',
+            null === $selectedYear ? 'alle-jahre' : (string) $selectedYear,
+        );
+
+        // String buffer instead of StreamedResponse: at SMB scale (<50
+        // employees × few years) the result is a few KiB and the test
+        // crawler handles String-bodies cleanly, while StreamedResponse
+        // forces ob-juggling in every test.
+        $handle = fopen('php://temp', 'w+');
+        if (false === $handle) {
+            throw new \RuntimeException('Could not open temp stream for CSV export.');
+        }
+        // UTF-8 BOM so Excel/Numbers respect umlauts on first open.
+        fwrite($handle, "\xEF\xBB\xBF");
+        fputcsv($handle, [
+            $this->translator->trans('admin.entitlements.export.col.employee'),
+            $this->translator->trans('admin.entitlements.export.col.employee_number'),
+            $this->translator->trans('admin.entitlements.export.col.year'),
+            $this->translator->trans('admin.entitlements.export.col.type'),
+            $this->translator->trans('admin.entitlements.export.col.granted'),
+            $this->translator->trans('admin.entitlements.export.col.used'),
+            $this->translator->trans('admin.entitlements.export.col.remaining'),
+            $this->translator->trans('admin.entitlements.export.col.expires_at'),
+        ], ';', '"', '');
+        foreach ($entries as $entry) {
+            $employee = $entry->getEmployee();
+            fputcsv($handle, [
+                $employee->getFullName(),
+                $employee->getEmployeeNumber(),
+                (string) $entry->getYear(),
+                LeaveEntitlementType::Regular === $entry->getType()
+                    ? $this->translator->trans('admin.entitlements.type.regular')
+                    : $this->translator->trans('admin.entitlements.type.carryover'),
+                number_format($entry->getHoursGranted(), 2, ',', ''),
+                number_format($entry->getHoursUsed(), 2, ',', ''),
+                number_format($entry->getHoursRemaining(), 2, ',', ''),
+                $entry->getExpiresAt()?->format('Y-m-d') ?? '',
+            ], ';', '"', '');
+        }
+        rewind($handle);
+        $body = (string) stream_get_contents($handle);
+        fclose($handle);
+
+        return new Response(
+            $body,
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => \sprintf('attachment; filename="%s"', $filename),
+                'Cache-Control' => 'private, no-store',
+            ],
+        );
+    }
+
     #[Route('/new', name: 'new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {

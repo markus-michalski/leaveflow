@@ -66,6 +66,11 @@
                     </button>
                 </noscript>
             </form>
+            <a href="{{ path('app_admin_statistics_export_pdf', { year: snapshot.year }) }}"
+               class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+               data-testid="admin-statistics-export-pdf">
+                {{ 'admin.statistics.export.pdf.button'|trans }}
+            </a>
             <a href="{{ path('app_dashboard') }}"
                class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 {{ 'nav.home'|trans }}

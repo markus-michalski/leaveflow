@@ -95,6 +95,31 @@ final class AdminStatisticsControllerTest extends WebTestCase
         );
     }
 
+    #[Test]
+    public function pdfExportReturnsDownloadableFile(): void
+    {
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('GET', '/admin/statistics/export.pdf?year=2026');
+
+        self::assertResponseIsSuccessful();
+        $response = $this->client->getResponse();
+        self::assertSame('application/pdf', $response->headers->get('Content-Type'));
+        $contentDisposition = $response->headers->get('Content-Disposition') ?? '';
+        self::assertStringContainsString('attachment', $contentDisposition);
+        self::assertStringContainsString('leaveflow-statistik-2026.pdf', $contentDisposition);
+        // PDF magic number — the body is a real PDF, not an HTML error page.
+        self::assertStringStartsWith('%PDF-', (string) $response->getContent());
+    }
+
+    #[Test]
+    public function pdfExportRequiresAdminRole(): void
+    {
+        $this->loginAs('manager@leaveflow.test');
+        $this->client->request('GET', '/admin/statistics/export.pdf');
+
+        self::assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
+    }
+
     private function seed(): void
     {
         $this->company = new Company('Acme GmbH');
