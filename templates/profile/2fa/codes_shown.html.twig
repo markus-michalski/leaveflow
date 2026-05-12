@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'profile.2fa.codes.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-2xl p-6">
+    <header class="mb-6">
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'profile.2fa.codes.heading'|trans }}</h1>
+        <p class="mt-2 text-sm text-gray-700">{{ 'profile.2fa.codes.intro'|trans }}</p>
+    </header>
+
+    <section class="rounded-xl border border-yellow-200 bg-yellow-50 p-6 shadow-sm"
+             data-controller="copy-to-clipboard"
+             data-testid="2fa-codes-section">
+        <p class="font-semibold text-yellow-900">{{ 'profile.2fa.codes.warning_title'|trans }}</p>
+        <p class="mt-1 text-sm text-yellow-800">{{ 'profile.2fa.codes.warning_detail'|trans }}</p>
+
+        <pre class="mt-4 grid grid-cols-2 gap-2 rounded-md border border-yellow-200 bg-white px-4 py-3 font-mono text-sm text-gray-800"
+             data-testid="2fa-codes-list">{% for code in codes %}{{ code }}{{ not loop.last ? "\n" : '' }}{% endfor %}</pre>
+
+        <input type="hidden" data-copy-to-clipboard-target="source" value="{% for code in codes %}{{ code }}{{ not loop.last ? '\n' : '' }}{% endfor %}">
+        <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+            <button type="button"
+                    data-action="copy-to-clipboard#copy"
+                    class="rounded-md border border-yellow-300 bg-white px-3 py-2 text-sm font-medium text-yellow-900 hover:bg-yellow-100">
+                {{ 'profile.2fa.codes.copy'|trans }}
+            </button>
+            <a href="data:text/plain;charset=utf-8,{{ codes|join('%0A')|url_encode }}"
+               download="leaveflow-backup-codes.txt"
+               class="rounded-md border border-yellow-300 bg-white px-3 py-2 text-center text-sm font-medium text-yellow-900 hover:bg-yellow-100">
+                {{ 'profile.2fa.codes.download'|trans }}
+            </a>
+        </div>
+    </section>
+
+    <p class="mt-6 text-center">
+        <a href="{{ path('app_profile') }}"
+           class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            {{ 'profile.2fa.codes.done'|trans }}
+        </a>
+    </p>
+</div>
+{% endblock %}

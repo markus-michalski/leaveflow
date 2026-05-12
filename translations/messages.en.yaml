@@ -47,6 +47,7 @@ nav:
         blackout_periods: Blackout periods
         scheduled_jobs: "Cron jobs"
         statistics: Statistics
+        company_settings: "Company settings"
     manager:
         approvals: Approvals
     team:
@@ -128,6 +129,8 @@ admin:
         deactivate: Deactivate
         activate: Reactivate
         send_reset_link: Send reset
+        reset_2fa: "Reset 2FA"
+        reset_2fa_confirm: "Really reset 2FA for this user? They will need to set it up again."
         filter:
             label: Status
             all: All
@@ -147,6 +150,7 @@ admin:
             activated: User %email% has been reactivated.
             deactivated: User %email% has been deactivated.
             reset_sent: Password reset link has been sent to %email%.
+            2fa_reset: "2FA has been reset for %email%."
         invitation:
             subject: Your LeaveFlow access
             greeting: "Hello %email%,"
@@ -514,6 +518,27 @@ admin:
         edit_expiry_view:
             title: "Edit expiry"
             hint: "Leave empty to remove the expiry (e.g. for a recognized BAG notification-duty exception)."
+    company_settings:
+        title: "Company settings"
+        heading: "Company settings"
+        description: "Global settings for your company. Changes apply to every employee."
+        2fa:
+            heading: "Require two-factor authentication"
+            description: "When enabled, every employee must activate 2FA by the deadline below. Until then they see a reminder banner. After the deadline, sign-in is blocked for anyone without 2FA."
+            deadline_label: "Deadline (when enforcement kicks in)"
+            deadline_hint: "Pick a deadline with enough lead time — 30+ days recommended so every employee has time to set it up."
+            enable_button: "Enable 2FA requirement"
+            disable_button: "Disable 2FA requirement"
+            disable_confirm: "Really disable? Existing 2FA setups remain — only the requirement for not-yet-activated employees is lifted."
+            status:
+                enforced: "2FA requirement is active"
+                upcoming: "2FA requirement starts soon"
+                detail: "Deadline: %date%"
+        flash:
+            2fa_enabled: "2FA requirement enabled. Deadline: %date%."
+            2fa_disabled: "2FA requirement disabled."
+            2fa_invalid_date: "Please provide a valid date."
+            2fa_past_date: "The deadline must be in the future."
     statistics:
         title: Statistics
         heading: Statistics dashboard
@@ -718,6 +743,58 @@ profile:
         total: Total available
         next_expiry: Carryover expires on
         my_requests: My requests
+    2fa:
+        heading: "Two-factor authentication (2FA)"
+        description: "A second factor on top of your password protects your account if the password is ever stolen. You'll need an authenticator app (Google Authenticator, Authy, 1Password, Microsoft Authenticator)."
+        code_label: "Current 6-digit code"
+        status:
+            enabled: "2FA is enabled"
+            enabled_detail: "Every login asks for a 6-digit code from your authenticator app."
+        enable:
+            button: "Set up 2FA now"
+        required:
+            upcoming_title: "Your company will require 2FA soon"
+            upcoming_detail: "From %date% you won't be able to sign in without 2FA. Set it up now before you get locked out."
+            now_title: "2FA activation required"
+            now_detail: "Your company requires 2FA. Until you set it up, you cannot use LeaveFlow."
+        setup:
+            title: "Set up 2FA"
+            heading: "Set up 2FA"
+            intro: "Three steps: install the app, scan the QR code, enter a verification code."
+            step1:
+                title: "1. Install an authenticator app"
+                description: "Recommended: Google Authenticator, Authy, 1Password, or Microsoft Authenticator."
+            step2:
+                title: "2. Scan the QR code"
+                description: "Open your app, add a new entry, and scan the QR code."
+                manual_hint: "No QR scanner? Enter the secret manually in your app:"
+            step3:
+                title: "3. Enter a code to confirm"
+                description: "Your app now shows a 6-digit code. Enter it below to complete setup."
+            code_label: "Code from the app"
+            submit: "Activate 2FA"
+            cancel: "Back to profile"
+        codes:
+            title: "Backup codes"
+            heading: "Keep these backup codes safe"
+            intro: "Use these codes if you lose your phone or can't access your authenticator app."
+            warning_title: "You'll only see these codes once."
+            warning_detail: "Save them in a password manager or print them out. Each code works only once."
+            copy: "Copy to clipboard"
+            download: "Download as text file"
+            done: "Back to profile"
+        regenerate:
+            summary: "Regenerate backup codes"
+            description: "Creates 10 new codes. All old codes become invalid immediately. Confirm with your current 6-digit code from the app."
+            button: "Generate new codes"
+        disable:
+            summary: "Disable 2FA"
+            description: "Disables 2FA for your account. You'll only need your password to sign in. Confirm with your current 6-digit code from the app."
+            button: "Disable 2FA"
+            confirm: "Really disable 2FA? Your account will only be protected by the password afterwards."
+        flash:
+            code_invalid: "The code is not valid. Please try again."
+            disabled: "2FA has been disabled."
     ical:
         heading: "Subscribe to my calendar"
         description: "Subscribe to your absences and your team's in Google Calendar, Outlook, or Apple Calendar — updates are pulled automatically by your calendar app."
@@ -926,3 +1003,13 @@ month:
         oct: Oct
         nov: Nov
         dec: Dec
+2fa:
+    challenge:
+        title: "2FA verification"
+        heading: "Enter your code"
+        description: "Enter the 6-digit code from your authenticator app. You may also use a backup code."
+        code_label: "Code"
+        code_hint: "6-digit TOTP code or 8-character backup code"
+        submit: "Verify"
+        help: "Lost your authenticator app? Use one of your backup codes. If those are gone too, contact your administrator for a reset."
+        cancel: "Cancel and sign out"

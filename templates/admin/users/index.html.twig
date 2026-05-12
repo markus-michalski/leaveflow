@@ -112,6 +112,20 @@
                                         </button>
                                     </form>
 
+                                    {% if user.isTotpEnabled() %}
+                                        <form action="{{ path('app_admin_user_reset_2fa', { id: user.id }) }}"
+                                              method="post"
+                                              class="inline"
+                                              onsubmit="return confirm('{{ 'admin.users.reset_2fa_confirm'|trans|e('js') }}');"
+                                              data-testid="admin-users-reset-2fa-{{ user.id }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('reset-2fa-' ~ user.id) }}">
+                                            <button type="submit"
+                                                    class="inline-flex items-center rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-xs font-medium text-yellow-900 hover:bg-yellow-100">
+                                                {{ 'admin.users.reset_2fa'|trans }}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
                                     <form action="{{ path('app_admin_user_toggle_active', { id: user.id }) }}" method="post" class="inline">
                                         <input type="hidden" name="_token" value="{{ csrf_token('toggle-active-' ~ user.id) }}">
                                         {% if user.active %}
