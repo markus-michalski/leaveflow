@@ -1007,6 +1007,12 @@ month:
         nov: Nov
         dec: Dez
 2fa:
+    banner:
+        upcoming_title: "2FA-Pflicht steht an"
+        upcoming_detail: "Ab %date% wirst du dich nicht mehr ohne 2FA einloggen können. Richte es bitte rechtzeitig ein."
+        now_title: "2FA-Aktivierung erforderlich"
+        now_detail: "Deine Firma verlangt 2FA. Bitte aktiviere es jetzt, sonst kannst du LeaveFlow nicht weiter nutzen."
+        cta: "Jetzt einrichten"
     challenge:
         title: "2FA-Bestätigung"
         heading: "Bitte Code eingeben"

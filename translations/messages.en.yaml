@@ -1004,6 +1004,12 @@ month:
         nov: Nov
         dec: Dec
 2fa:
+    banner:
+        upcoming_title: "2FA requirement coming up"
+        upcoming_detail: "Starting %date% you won't be able to sign in without 2FA. Please set it up in time."
+        now_title: "2FA activation required"
+        now_detail: "Your company requires 2FA. Activate it now, otherwise you cannot continue using LeaveFlow."
+        cta: "Set up now"
     challenge:
         title: "2FA verification"
         heading: "Enter your code"

@@ -93,10 +93,10 @@ class Company
      * future relative to `$asOf` so existing users get a chance to set
      * up TOTP before they're locked out.
      */
-    public function enableTwoFactorRequirement(\DateTimeImmutable $enforcedFrom, \DateTimeImmutable $asOf): void
+    public function enableTwoFactorRequirement(\DateTimeInterface $enforcedFrom, \DateTimeInterface $asOf): void
     {
-        $enforcedFrom = $enforcedFrom->setTime(0, 0);
-        $asOf = $asOf->setTime(0, 0);
+        $enforcedFrom = \DateTimeImmutable::createFromInterface($enforcedFrom)->setTime(0, 0);
+        $asOf = \DateTimeImmutable::createFromInterface($asOf)->setTime(0, 0);
         if ($enforcedFrom < $asOf) {
             throw new \InvalidArgumentException('Company.twoFactorEnforcedFrom must not be in the past.');
         }
@@ -114,13 +114,19 @@ class Company
      * True when the grace period has passed and 2FA enforcement is
      * active. False before the deadline (banner-only phase) or when
      * the requirement is disabled.
+     *
+     * Accepts any DateTimeInterface — Twig's `date()` returns the
+     * mutable variant, so the immutable-only signature used to throw
+     * straight from the profile template.
      */
-    public function isTwoFactorEnforced(\DateTimeImmutable $asOf): bool
+    public function isTwoFactorEnforced(\DateTimeInterface $asOf): bool
     {
         if (!$this->requiresTwoFactor || null === $this->twoFactorEnforcedFrom) {
             return false;
         }
 
-        return $asOf->setTime(0, 0) >= $this->twoFactorEnforcedFrom;
+        $normalized = \DateTimeImmutable::createFromInterface($asOf)->setTime(0, 0);
+
+        return $normalized >= $this->twoFactorEnforcedFrom;
     }
 }

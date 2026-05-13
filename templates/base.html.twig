@@ -27,6 +27,7 @@
                block with an empty body. #}
             {% if app.user %}
                 {{ include('_partials/app_header.html.twig') }}
+                {{ include('_partials/two_factor_banner.html.twig', { user: app.user }, with_context: false) }}
             {% endif %}
         {% endblock %}
 

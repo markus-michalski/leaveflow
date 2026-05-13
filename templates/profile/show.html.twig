@@ -175,7 +175,7 @@
             </div>
         {% else %}
             {% if user.company.requiresTwoFactor() %}
-                {% set enforced = user.company.isTwoFactorEnforced(date()|date_modify('today')) %}
+                {% set enforced = user.company.isTwoFactorEnforced(date()) %}
                 <div class="mb-4 rounded-md border {{ enforced ? 'border-red-200 bg-red-50 text-red-800' : 'border-yellow-200 bg-yellow-50 text-yellow-800' }} px-4 py-3 text-sm"
                      data-testid="profile-2fa-company-banner">
                     <p class="font-semibold">
