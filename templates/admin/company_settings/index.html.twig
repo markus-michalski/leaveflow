@@ -29,35 +29,67 @@
             </div>
         {% endif %}
 
+        {# Reusable class blobs so the per-row calls stay readable. Symfony's
+           default form-theme renders raw inputs; this project chose per-row
+           Tailwind classes (see admin/employees/form.html.twig) over a
+           project-wide form theme to keep theme drift to one place. #}
+        {% set labelClass = 'block text-sm font-medium text-gray-700' %}
+        {% set inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500' %}
+        {% set rowClass = '' %}
+
         {{ form_start(form, { attr: { 'data-testid': 'company-settings-profile-form', 'enctype': 'multipart/form-data' } }) }}
             <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="sm:col-span-2">
-                    {{ form_row(form.name) }}
+                    {{ form_row(form.name, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass },
+                    }) }}
                 </div>
                 <div class="sm:col-span-2">
-                    {{ form_row(form.address) }}
+                    {{ form_row(form.address, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass ~ ' font-mono', rows: 4 },
+                    }) }}
                 </div>
                 <div>
-                    {{ form_row(form.taxId) }}
+                    {{ form_row(form.taxId, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass },
+                    }) }}
                 </div>
                 <div>
-                    {{ form_row(form.commercialRegister) }}
+                    {{ form_row(form.commercialRegister, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass },
+                    }) }}
                 </div>
                 <div>
-                    {{ form_row(form.primaryColor) }}
+                    {{ form_row(form.primaryColor, {
+                        label_attr: { class: labelClass },
+                        attr: { class: 'mt-1 h-10 w-24 cursor-pointer rounded-md border border-gray-300 p-1' },
+                    }) }}
                 </div>
                 <div>
-                    {{ form_row(form.logo) }}
+                    {{ form_row(form.logo, {
+                        label_attr: { class: labelClass },
+                        attr: { class: 'mt-1 block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-xs file:font-medium file:text-blue-700 hover:file:bg-blue-100' },
+                    }) }}
                 </div>
                 <div>
-                    {{ form_row(form.retentionPeriodMonths) }}
+                    {{ form_row(form.retentionPeriodMonths, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass ~ ' w-32' },
+                    }) }}
                 </div>
                 <div>
-                    {{ form_row(form.approvalEscalationDays) }}
+                    {{ form_row(form.approvalEscalationDays, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass ~ ' w-32' },
+                    }) }}
                 </div>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-6">
                 <button type="submit"
                         class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
                     {{ 'admin.company_settings.profile.save'|trans }}
