@@ -94,6 +94,11 @@ final class AdminStatisticsController extends AbstractController
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', false);
         $options->set('defaultFont', 'DejaVu Sans');
+        // dompdf's "chroot" whitelists the directories from which file:// URLs
+        // are allowed. Default is empty — without this the company logo
+        // ends up as a broken-image placeholder regardless of the absolute
+        // path passed in.
+        $options->set('chroot', [$this->publicDir]);
 
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml($html, 'UTF-8');
