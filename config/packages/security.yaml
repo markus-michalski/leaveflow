@@ -55,6 +55,9 @@ security:
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        # First-run setup wizard — only reachable before any company exists;
+        # the SetupController itself bounces to /login once setup is done.
+        - { path: ^/setup, roles: PUBLIC_ACCESS }
         # iCal feeds authenticate via URL token, not session cookie —
         # calendar apps never send cookies on their refresh requests.
         - { path: ^/ical/, roles: PUBLIC_ACCESS }

@@ -30,6 +30,42 @@ class Company
     #[ORM\Column(name: 'two_factor_enforced_from', type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $twoFactorEnforcedFrom = null;
 
+    /**
+     * Multi-line postal address — Strasse/PLZ/Ort/Land in a single
+     * free-text field. Structured fields would buy us nothing for a
+     * field that ends up on PDF letterheads anyway.
+     */
+    #[ORM\Column(name: 'address', type: Types::TEXT, nullable: true)]
+    private ?string $address = null;
+
+    /**
+     * Logo path relative to public/uploads/. Rendered in the PDF
+     * export header and (eventually) the app header. Null until the
+     * admin uploads one.
+     */
+    #[ORM\Column(name: 'logo_path', length: 255, nullable: true)]
+    private ?string $logoPath = null;
+
+    /**
+     * Primary brand color (hex, e.g. #3B82F6). Used for the PDF
+     * export accent bar and headings.
+     */
+    #[ORM\Column(name: 'primary_color', length: 7, nullable: true)]
+    private ?string $primaryColor = null;
+
+    /**
+     * USt-IdNr / Tax ID. Optional; shown on PDF exports for
+     * professional invoicing context.
+     */
+    #[ORM\Column(name: 'tax_id', length: 50, nullable: true)]
+    private ?string $taxId = null;
+
+    /**
+     * Handelsregister-Nummer. Optional; same use as taxId.
+     */
+    #[ORM\Column(name: 'commercial_register', length: 100, nullable: true)]
+    private ?string $commercialRegister = null;
+
     public function __construct(
         #[ORM\Column(length: 200)]
         private string $name,
@@ -128,5 +164,76 @@ class Company
         $normalized = \DateTimeImmutable::createFromInterface($asOf)->setTime(0, 0);
 
         return $normalized >= $this->twoFactorEnforcedFrom;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?string $address): void
+    {
+        $address = null === $address ? null : trim($address);
+        $this->address = ('' === $address) ? null : $address;
+    }
+
+    public function getLogoPath(): ?string
+    {
+        return $this->logoPath;
+    }
+
+    public function setLogoPath(?string $logoPath): void
+    {
+        $this->logoPath = $logoPath;
+    }
+
+    public function getPrimaryColor(): ?string
+    {
+        return $this->primaryColor;
+    }
+
+    public function setPrimaryColor(?string $primaryColor): void
+    {
+        if (null === $primaryColor || '' === trim($primaryColor)) {
+            $this->primaryColor = null;
+
+            return;
+        }
+
+        $normalized = strtoupper(trim($primaryColor));
+        if (1 !== preg_match('/^#(?:[0-9A-F]{3}|[0-9A-F]{6})$/', $normalized)) {
+            throw new \InvalidArgumentException(\sprintf('Company.primaryColor must be a hex color like "#RRGGBB" or "#RGB", got "%s".', $primaryColor));
+        }
+        $this->primaryColor = $normalized;
+    }
+
+    public function getTaxId(): ?string
+    {
+        return $this->taxId;
+    }
+
+    public function setTaxId(?string $taxId): void
+    {
+        $taxId = null === $taxId ? null : trim($taxId);
+        $this->taxId = ('' === $taxId) ? null : $taxId;
+    }
+
+    public function getCommercialRegister(): ?string
+    {
+        return $this->commercialRegister;
+    }
+
+    public function setCommercialRegister(?string $register): void
+    {
+        $register = null === $register ? null : trim($register);
+        $this->commercialRegister = ('' === $register) ? null : $register;
+    }
+
+    public function setRetentionPeriodMonths(int $months): void
+    {
+        if ($months < 1) {
+            throw new \InvalidArgumentException('Company.retentionPeriodMonths must be at least 1.');
+        }
+        $this->retentionPeriodMonths = $months;
     }
 }

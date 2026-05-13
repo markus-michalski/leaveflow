@@ -28,6 +28,8 @@ final class AdminStatisticsController extends AbstractController
         private readonly ClockInterface $clock,
         private readonly TranslatorInterface $translator,
         private readonly MonthlyDistributionFormatter $monthlyFormatter,
+        #[\Symfony\Component\DependencyInjection\Attribute\Autowire('%kernel.project_dir%/public')]
+        private readonly string $publicDir,
     ) {
     }
 
@@ -70,10 +72,22 @@ final class AdminStatisticsController extends AbstractController
         $snapshot = $this->statistics->buildDashboard($company, $year, $orphanLabel);
         $monthlyStats = $this->monthlyFormatter->summarize($snapshot->monthlyDistribution);
 
+        // dompdf reads images via the local filesystem path (isRemoteEnabled=false),
+        // so we resolve the company logo to an absolute path the renderer can open.
+        $logoAbsolutePath = null;
+        if (null !== $company->getLogoPath()) {
+            $candidate = $this->publicDir.'/'.$company->getLogoPath();
+            if (is_file($candidate)) {
+                $logoAbsolutePath = $candidate;
+            }
+        }
+
         $html = $this->renderView('admin/statistics/export.pdf.html.twig', [
             'snapshot' => $snapshot,
             'monthlyStats' => $monthlyStats,
             'generatedAt' => $now,
+            'company' => $company,
+            'logoAbsolutePath' => $logoAbsolutePath,
         ]);
 
         $options = new Options();

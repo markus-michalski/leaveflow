@@ -522,6 +522,21 @@ admin:
         title: "Company settings"
         heading: "Company settings"
         description: "Global settings for your company. Changes apply to every employee."
+        profile:
+            heading: "Company profile"
+            description: "Master data for your company — name, address, logo, branding. Used in PDF exports and (optionally) the app navigation."
+            name: "Company name"
+            address: "Address"
+            tax_id: "Tax ID / VAT ID"
+            commercial_register: "Commercial register"
+            primary_color: "Accent color"
+            logo: "Logo (PNG/JPG/SVG, max 1 MB)"
+            logo_mime_error: "Please upload a PNG, JPG, or SVG logo (max 1 MB)."
+            logo_remove: "Remove logo"
+            logo_remove_confirm: "Really remove the current logo?"
+            retention_months: "GDPR retention period (months)"
+            escalation_days: "Approval escalation threshold (days)"
+            save: "Save"
         2fa:
             heading: "Require two-factor authentication"
             description: "When enabled, every employee must activate 2FA by the deadline below. Until then they see a reminder banner. After the deadline, sign-in is blocked for anyone without 2FA."
@@ -535,6 +550,9 @@ admin:
                 upcoming: "2FA requirement starts soon"
                 detail: "Deadline: %date%"
         flash:
+            profile_saved: "Company profile saved."
+            logo_upload_failed: "Logo upload failed."
+            logo_removed: "Logo removed."
             2fa_enabled: "2FA requirement enabled. Deadline: %date%."
             2fa_disabled: "2FA requirement disabled."
             2fa_invalid_date: "Please provide a valid date."
@@ -608,6 +626,8 @@ admin:
                 total_hours: "Total used: %hours% h"
                 col_month: "Month"
                 footer: "%appName% — anonymized analytics per GDPR / §22 BDSG"
+                tax_id: "VAT ID"
+                commercial_register: "Commercial register"
         filter:
             year_label: "Year"
             apply: "Apply"
@@ -1003,6 +1023,39 @@ month:
         oct: Oct
         nov: Nov
         dec: Dec
+setup:
+    title: "First-run setup"
+    heading: "Welcome to LeaveFlow"
+    intro: "Create your company and the first admin account. You can manage employees, locations, and absence types from the admin menu afterwards."
+    submit: "Set up LeaveFlow"
+    next_steps_hint: "After saving you can sign in immediately and continue with the admin tools."
+    step:
+        company:
+            heading: "1. Company"
+        admin:
+            heading: "2. First admin account"
+            description: "This account signs in right after setup. You can add more admins later."
+    field:
+        company_name: "Company name"
+        admin_email: "Admin email"
+        admin_password: "Admin password"
+        admin_password_hint: "At least 12 characters. Pick a long, unique password and store it in your password manager."
+        admin_password_confirm: "Confirm password"
+    error:
+        company_name_required: "Please provide a company name."
+        admin_email_invalid: "Please provide a valid email address."
+        admin_password_too_short: "The password must be at least 12 characters long."
+        admin_password_mismatch: "The two passwords don't match."
+    done:
+        title: "Setup complete"
+        heading: "Done!"
+        intro: "Your company and admin account are ready. Sign in now and finish these steps:"
+        cta: "Go to sign in"
+        step:
+            absence_types: "Tune the default absence types (/admin/absence-types)"
+            locations: "Create locations (/admin/locations)"
+            employees: "Create employees (/admin/employees)"
+            entitlements: "Set up leave balances (/admin/entitlements)"
 2fa:
     banner:
         upcoming_title: "2FA requirement coming up"
