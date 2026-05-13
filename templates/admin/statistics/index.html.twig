@@ -92,15 +92,9 @@
 
         {% if not snapshot.hasActions() %}
             <div class="rounded-xl border border-green-200 bg-green-50 p-5" data-testid="actions-all-clear">
-                <div class="flex items-start gap-3">
-                    <span aria-hidden="true" class="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-700">✓</span>
-                    <div>
-                        <p class="font-semibold text-green-900">{{ 'admin.statistics.actions.all_clear.title'|trans }}</p>
-                        <p class="mt-1 text-sm text-green-800">{{ 'admin.statistics.actions.all_clear.detail'|trans({
-                            '%horizon%': snapshot.expiryHorizonDays,
-                            '%threshold%': snapshot.overdueThresholdDays,
-                        }) }}</p>
-                    </div>
+                <div class="flex items-center gap-3">
+                    <span aria-hidden="true" class="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700">✓</span>
+                    <p class="font-semibold text-green-900">{{ 'admin.statistics.actions.all_clear.title'|trans }}</p>
                 </div>
             </div>
         {% else %}

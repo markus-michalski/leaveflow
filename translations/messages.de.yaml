@@ -576,7 +576,6 @@ admin:
             days_unit: "Tage"
             all_clear:
                 title: "Alles im grünen Bereich"
-                detail: "Keine Carryover laufen in den nächsten %horizon% Tagen ab und kein Antrag liegt länger als %threshold% Tage."
             expiring:
                 title: "Verfalls-Risiko: %count% Mitarbeitende"
                 detail: "Carryover-Stunden, die in den nächsten %horizon% Tagen ablaufen. Mit den Mitarbeitenden klären (Urlaub einplanen oder Auszahlung), sonst Verfall nach BUrlG §7 Abs. 3."
