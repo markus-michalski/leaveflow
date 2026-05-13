@@ -388,6 +388,42 @@ LeaveFlow is now usable by a real team. Everything after is enhancement.
 
 ---
 
+### Phase 10.5 — Local-Auth Hardening ✅ (v0.12.0)
+
+Inserted between Phase 10 and Phase 11 to close the local-auth gap
+before OAuth adapters land — tenants on local auth get 2FA
+immediately instead of having to wait for an IdP migration.
+
+- ✅ **TOTP-based 2FA** via `scheb/2fa-bundle` + `scheb/2fa-totp`.
+  Server-side QR rendering (SVG, no client-side library), manual
+  base32 fallback. Compatible with Google Authenticator, Authy,
+  1Password, Microsoft Authenticator. Candidate secret lives in
+  the session until confirmation so abandoned setup doesn't leave
+  half-configured users.
+- ✅ **Backup codes** — 10 one-time codes per user, 8-char from a
+  32-symbol unambiguous alphabet, SHA-256 hashed in DB. Plaintext
+  shown once with copy + TXT-download. Regenerate flow gated by
+  current TOTP code.
+- ✅ **Admin lockout recovery** — `/admin/users/{id}/2fa-reset`
+  (CSRF + confirm). Drops the user's secret + codes so they
+  re-enroll on next sign-in.
+- ✅ **Company-wide enforcement** — `/admin/company/settings` toggle
+  with future-deadline grace period. Soft banner site-wide during
+  grace, EnforcementSubscriber redirects to setup once the deadline
+  passes. Allow-listed paths keep `/profile/2fa`, `/login`, `/logout`,
+  `/2fa`, `/_profiler`, `/assets` reachable so locked-out users can
+  actually fulfill the requirement.
+
+Drive-by fixes during the slice: backup-code download had literal
+"%0A" instead of newlines (Twig single-quote-vs-double-quote in
+join), copy-to-clipboard controller refactored to use proper
+Stimulus targets, `Company::isTwoFactorEnforced` accepts any
+`DateTimeInterface` (Twig's `date()` returns mutable).
+
+**Exit:** v0.12.0 (2026-05-13)
+
+---
+
 ### Phase 11 — Auth Adapters
 
 - LDAP/Active Directory adapter
