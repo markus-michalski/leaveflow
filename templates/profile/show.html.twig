@@ -40,13 +40,14 @@
     {% endif %}
 
     {% if icalToken is not null %}
-        <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-ical"
-                 data-controller="copy-to-clipboard">
+        <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-ical">
             <h2 class="mb-2 text-lg font-semibold text-gray-900">{{ 'profile.ical.heading'|trans }}</h2>
             <p class="mb-4 text-sm text-gray-600">{{ 'profile.ical.description'|trans }}</p>
 
             <div class="space-y-4">
-                <div>
+                {# Each URL gets its own Stimulus scope so the copy-to-clipboard
+                   target stays unambiguous when two source targets coexist. #}
+                <div data-controller="copy-to-clipboard">
                     <p class="text-sm font-medium text-gray-900">{{ 'profile.ical.personal.label'|trans }}</p>
                     <p class="mt-0.5 text-xs text-gray-500">{{ 'profile.ical.personal.description'|trans }}</p>
                     <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
@@ -60,15 +61,14 @@
                             onclick="this.select()">
                         <button type="button"
                                 class="whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                                data-action="copy-to-clipboard#copy"
-                                data-copy-to-clipboard-source-param="source">
+                                data-action="copy-to-clipboard#copy">
                             {{ 'profile.ical.copy'|trans }}
                         </button>
                     </div>
                 </div>
 
                 {% if icalHasTeam %}
-                    <div>
+                    <div data-controller="copy-to-clipboard">
                         <p class="text-sm font-medium text-gray-900">{{ 'profile.ical.team.label'|trans }}</p>
                         <p class="mt-0.5 text-xs text-gray-500">{{ 'profile.ical.team.description'|trans }}</p>
                         <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
@@ -77,6 +77,7 @@
                                 readonly
                                 value="{{ url('app_ical_team', { token: icalToken }) }}"
                                 class="flex-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700"
+                                data-copy-to-clipboard-target="source"
                                 data-testid="profile-ical-team-url"
                                 onclick="this.select()">
                             <button type="button"
@@ -106,6 +107,97 @@
             </div>
         </section>
     {% endif %}
+
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-2fa">
+        <h2 class="mb-2 text-lg font-semibold text-gray-900">{{ 'profile.2fa.heading'|trans }}</h2>
+        <p class="mb-4 text-sm text-gray-600">{{ 'profile.2fa.description'|trans }}</p>
+
+        {% if user.isTotpEnabled() %}
+            <div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
+                 data-testid="profile-2fa-status-enabled">
+                <p class="font-semibold">{{ 'profile.2fa.status.enabled'|trans }}</p>
+                <p class="mt-1 text-xs">{{ 'profile.2fa.status.enabled_detail'|trans }}</p>
+            </div>
+
+            <div class="mt-4 space-y-3">
+                <details data-testid="profile-2fa-regenerate">
+                    <summary class="cursor-pointer text-sm text-gray-700 hover:text-gray-900">{{ 'profile.2fa.regenerate.summary'|trans }}</summary>
+                    <p class="mt-2 text-xs text-gray-500">{{ 'profile.2fa.regenerate.description'|trans }}</p>
+                    <form method="post"
+                          action="{{ path('app_profile_2fa_regenerate_codes') }}"
+                          class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
+                        <input type="hidden" name="_token" value="{{ csrf_token('profile_2fa_regenerate') }}">
+                        <div class="flex-1">
+                            <label for="regenerate-code" class="block text-xs text-gray-500">{{ 'profile.2fa.code_label'|trans }}</label>
+                            <input id="regenerate-code"
+                                   type="text"
+                                   name="code"
+                                   inputmode="numeric"
+                                   minlength="6"
+                                   maxlength="8"
+                                   autocomplete="one-time-code"
+                                   required
+                                   class="mt-1 block w-40 rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        <button type="submit"
+                                class="whitespace-nowrap rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-xs font-medium text-yellow-900 hover:bg-yellow-100">
+                            {{ 'profile.2fa.regenerate.button'|trans }}
+                        </button>
+                    </form>
+                </details>
+
+                <details data-testid="profile-2fa-disable">
+                    <summary class="cursor-pointer text-sm text-red-700 hover:text-red-900">{{ 'profile.2fa.disable.summary'|trans }}</summary>
+                    <p class="mt-2 text-xs text-gray-500">{{ 'profile.2fa.disable.description'|trans }}</p>
+                    <form method="post"
+                          action="{{ path('app_profile_2fa_disable') }}"
+                          class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end"
+                          onsubmit="return confirm('{{ 'profile.2fa.disable.confirm'|trans|e('js') }}');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('profile_2fa_disable') }}">
+                        <div class="flex-1">
+                            <label for="disable-code" class="block text-xs text-gray-500">{{ 'profile.2fa.code_label'|trans }}</label>
+                            <input id="disable-code"
+                                   type="text"
+                                   name="code"
+                                   inputmode="numeric"
+                                   minlength="6"
+                                   maxlength="8"
+                                   autocomplete="one-time-code"
+                                   required
+                                   class="mt-1 block w-40 rounded-md border border-gray-300 px-3 py-2 font-mono text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                        <button type="submit"
+                                class="whitespace-nowrap rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100">
+                            {{ 'profile.2fa.disable.button'|trans }}
+                        </button>
+                    </form>
+                </details>
+            </div>
+        {% else %}
+            {% if user.company.requiresTwoFactor() %}
+                {% set enforced = user.company.isTwoFactorEnforced(date()) %}
+                <div class="mb-4 rounded-md border {{ enforced ? 'border-red-200 bg-red-50 text-red-800' : 'border-yellow-200 bg-yellow-50 text-yellow-800' }} px-4 py-3 text-sm"
+                     data-testid="profile-2fa-company-banner">
+                    <p class="font-semibold">
+                        {{ enforced ? 'profile.2fa.required.now_title'|trans : 'profile.2fa.required.upcoming_title'|trans }}
+                    </p>
+                    <p class="mt-1 text-xs">
+                        {% if enforced %}
+                            {{ 'profile.2fa.required.now_detail'|trans }}
+                        {% else %}
+                            {{ 'profile.2fa.required.upcoming_detail'|trans({ '%date%': user.company.twoFactorEnforcedFrom|date('d.m.Y') }) }}
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+
+            <a href="{{ path('app_profile_2fa_setup') }}"
+               class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+               data-testid="profile-2fa-enable">
+                {{ 'profile.2fa.enable.button'|trans }}
+            </a>
+        {% endif %}
+    </section>
 
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-settings">
         <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'profile.settings.heading'|trans }}</h2>

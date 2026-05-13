@@ -165,6 +165,27 @@ final class AdminUserController extends AbstractController
         return $this->redirectToRoute('app_admin_user_index');
     }
 
+    #[Route('/{id}/2fa-reset', name: 'reset_2fa', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function reset2fa(Request $request, User $user): Response
+    {
+        if (!$this->isCsrfTokenValid('reset-2fa-'.$user->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        // Lockout recovery only — there's no other admin reason to nuke
+        // 2FA for a user. The user has to enable it again on next login;
+        // the company-pflicht banner pushes them there automatically.
+        $user->disableTotp();
+        $this->entityManager->flush();
+
+        $this->addFlash(
+            'success',
+            $this->translator->trans('admin.users.flash.2fa_reset', ['%email%' => $user->getEmail()])
+        );
+
+        return $this->redirectToRoute('app_admin_user_index');
+    }
+
     #[Route('/{id}/send-reset', name: 'send_reset', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function sendReset(Request $request, User $user): Response
     {

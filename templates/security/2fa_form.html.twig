@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block app_header %}{% endblock %}
+
+{% block title %}{{ '2fa.challenge.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div class="w-full max-w-md rounded-xl bg-white p-8 shadow-sm">
+        <h1 class="text-xl font-semibold text-gray-900">{{ '2fa.challenge.heading'|trans }}</h1>
+        <p class="mt-2 text-sm text-gray-600">{{ '2fa.challenge.description'|trans }}</p>
+
+        {% if authenticationError %}
+            <div class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                 data-testid="2fa-error">
+                {{ authenticationError|trans(authenticationErrorData, 'SchebTwoFactorBundle') }}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{{ checkPathUrl ? checkPathUrl : path(checkPathRoute) }}"
+              class="mt-6"
+              data-testid="2fa-form">
+            {# scheb/2fa-bundle accepts both TOTP codes and backup codes on the same field. #}
+            <label for="_auth_code" class="block text-sm font-medium text-gray-700">
+                {{ '2fa.challenge.code_label'|trans }}
+            </label>
+            <input id="_auth_code"
+                   type="text"
+                   name="{{ authCodeParameterName }}"
+                   inputmode="numeric"
+                   pattern="[0-9A-Za-z]+"
+                   autocomplete="one-time-code"
+                   autofocus
+                   required
+                   class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <p class="mt-1 text-xs text-gray-500">{{ '2fa.challenge.code_hint'|trans }}</p>
+
+            {% if isCsrfProtectionEnabled %}
+                <input type="hidden" name="{{ csrfParameterName }}" value="{{ csrf_token(csrfTokenId) }}">
+            {% endif %}
+
+            <button type="submit"
+                    class="mt-6 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ '2fa.challenge.submit'|trans }}
+            </button>
+        </form>
+
+        <div class="mt-6 border-t border-gray-200 pt-4 text-xs text-gray-500">
+            <p>{{ '2fa.challenge.help'|trans }}</p>
+            <a href="{{ logoutPath }}" class="mt-2 inline-block text-blue-600 hover:underline">
+                {{ '2fa.challenge.cancel'|trans }}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

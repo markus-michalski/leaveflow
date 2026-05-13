@@ -6,13 +6,18 @@ namespace App\Domain\Entity;
 
 use App\Domain\Enum\UserRole;
 use App\Domain\Repository\UserRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Scheb\TwoFactorBundle\Model\BackupCodeInterface;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfiguration;
+use Scheb\TwoFactorBundle\Model\Totp\TotpConfigurationInterface;
+use Scheb\TwoFactorBundle\Model\Totp\TwoFactorInterface as TotpTwoFactorInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwoFactorInterface, BackupCodeInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -40,6 +45,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column(name: 'ical_token', length: 64, unique: true, nullable: true)]
     private ?string $icalToken = null;
+
+    /**
+     * TOTP shared secret, base32-encoded. Stored as-is; the dataset is
+     * already protected by the database access boundary and re-encrypting
+     * would require a key-management layer that's out of scope for v1.
+     * Null when 2FA is not yet activated.
+     */
+    #[ORM\Column(name: 'totp_secret', length: 128, nullable: true)]
+    private ?string $totpSecret = null;
+
+    #[ORM\Column(name: 'totp_enabled', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $totpEnabled = false;
+
+    /**
+     * Hashed one-time backup codes (sha256). Plaintext is shown to the
+     * user exactly once at setup time and never recoverable from the DB.
+     *
+     * @var list<string>
+     */
+    #[ORM\Column(name: 'backup_codes', type: Types::JSON, options: ['default' => '[]'])]
+    private array $backupCodes = [];
 
     public function __construct(
         #[ORM\ManyToOne]
@@ -168,5 +194,108 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->icalToken = bin2hex(random_bytes(32));
 
         return $this->icalToken;
+    }
+
+    public function getTotpSecret(): ?string
+    {
+        return $this->totpSecret;
+    }
+
+    public function setTotpSecret(?string $secret): void
+    {
+        $this->totpSecret = $secret;
+    }
+
+    public function isTotpEnabled(): bool
+    {
+        return $this->totpEnabled;
+    }
+
+    /**
+     * @param list<string> $hashedBackupCodes
+     */
+    public function enableTotp(string $secret, array $hashedBackupCodes): void
+    {
+        $this->totpSecret = $secret;
+        $this->totpEnabled = true;
+        $this->backupCodes = $hashedBackupCodes;
+    }
+
+    /**
+     * Disables 2FA and drops every credential — used both by the user
+     * via /profile/2fa/disable and by admins via the lockout-recovery
+     * action. There's no separate "admin disabled it" flag because the
+     * audit trail lives in {@see LeaveEntitlementAuditEntry}-
+     * style entries elsewhere; this entity stays a state holder.
+     */
+    public function disableTotp(): void
+    {
+        $this->totpSecret = null;
+        $this->totpEnabled = false;
+        $this->backupCodes = [];
+    }
+
+    /**
+     * @param list<string> $hashedBackupCodes
+     */
+    public function replaceBackupCodes(array $hashedBackupCodes): void
+    {
+        $this->backupCodes = $hashedBackupCodes;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getBackupCodes(): array
+    {
+        return $this->backupCodes;
+    }
+
+    // ---- scheb/2fa-bundle TwoFactorInterface (TOTP) ----
+
+    public function isTotpAuthenticationEnabled(): bool
+    {
+        return $this->totpEnabled && null !== $this->totpSecret;
+    }
+
+    public function getTotpAuthenticationUsername(): string
+    {
+        return $this->email;
+    }
+
+    public function getTotpAuthenticationConfiguration(): ?TotpConfigurationInterface
+    {
+        if (null === $this->totpSecret) {
+            return null;
+        }
+
+        // RFC 6238 defaults: SHA1, 6 digits, 30 second period — matches
+        // every common authenticator app (Google Authenticator, Authy,
+        // 1Password, Microsoft Authenticator).
+        return new TotpConfiguration($this->totpSecret, TotpConfiguration::ALGORITHM_SHA1, 30, 6);
+    }
+
+    // ---- scheb/2fa-bundle BackupCodeInterface ----
+
+    public function isBackupCode(string $code): bool
+    {
+        return \in_array($this->hashBackupCode($code), $this->backupCodes, true);
+    }
+
+    public function invalidateBackupCode(string $code): void
+    {
+        $hashed = $this->hashBackupCode($code);
+        $this->backupCodes = array_values(array_filter(
+            $this->backupCodes,
+            static fn (string $stored): bool => $stored !== $hashed,
+        ));
+    }
+
+    private function hashBackupCode(string $code): string
+    {
+        // SHA-256 is acceptable here: codes are 8+ random hex chars, the
+        // attacker would need DB read access to even see the hashes, and
+        // the codes are single-use. A KDF would buy us nothing.
+        return hash('sha256', strtolower(trim($code)));
     }
 }

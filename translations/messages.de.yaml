@@ -47,6 +47,7 @@ nav:
         blackout_periods: Sperrfristen
         scheduled_jobs: "Cron-Jobs"
         statistics: Statistik
+        company_settings: "Firmen-Einstellungen"
     manager:
         approvals: Genehmigungen
     team:
@@ -128,6 +129,8 @@ admin:
         deactivate: Deaktivieren
         activate: Reaktivieren
         send_reset_link: Reset senden
+        reset_2fa: "2FA zurücksetzen"
+        reset_2fa_confirm: "Wirklich 2FA für diesen Benutzer zurücksetzen? Der Benutzer muss 2FA neu einrichten."
         filter:
             label: Status
             all: Alle
@@ -147,6 +150,7 @@ admin:
             activated: Benutzer %email% wurde reaktiviert.
             deactivated: Benutzer %email% wurde deaktiviert.
             reset_sent: Passwort-Reset-Link wurde an %email% gesendet.
+            2fa_reset: "2FA wurde für %email% zurückgesetzt."
         invitation:
             subject: Dein LeaveFlow-Zugang
             greeting: "Hallo %email%,"
@@ -517,6 +521,27 @@ admin:
         edit_expiry_view:
             title: "Ablauffrist bearbeiten"
             hint: "Leer lassen, um die Ablauffrist zu entfernen (z. B. bei anerkannter BAG-Aufklärungspflicht-Ausnahme)."
+    company_settings:
+        title: "Firmen-Einstellungen"
+        heading: "Firmen-Einstellungen"
+        description: "Globale Einstellungen für deine Firma. Änderungen wirken sich auf alle Mitarbeitenden aus."
+        2fa:
+            heading: "Zwei-Faktor-Authentifizierung verpflichtend machen"
+            description: "Wenn aktiviert, müssen alle Mitarbeitenden 2FA bis zu der unten gewählten Frist aktivieren. Bis dahin sehen sie einen Hinweis. Nach Ablauf der Frist können sie sich nicht mehr ohne 2FA einloggen."
+            deadline_label: "Stichtag (ab wann erzwingen)"
+            deadline_hint: "Wähle einen Stichtag mit genügend Vorlauf — empfohlen 30+ Tage, damit alle Mitarbeitenden Zeit zur Einrichtung haben."
+            enable_button: "2FA-Pflicht aktivieren"
+            disable_button: "2FA-Pflicht aufheben"
+            disable_confirm: "Wirklich aufheben? Bestehende 2FA-Aktivierungen bleiben — nur die Pflicht für noch-nicht-aktivierte Mitarbeitende fällt weg."
+            status:
+                enforced: "2FA-Pflicht ist aktiv"
+                upcoming: "2FA-Pflicht startet bald"
+                detail: "Stichtag: %date%"
+        flash:
+            2fa_enabled: "2FA-Pflicht aktiviert. Stichtag: %date%."
+            2fa_disabled: "2FA-Pflicht aufgehoben."
+            2fa_invalid_date: "Bitte ein gültiges Datum angeben."
+            2fa_past_date: "Der Stichtag muss in der Zukunft liegen."
     statistics:
         title: Statistik
         heading: Statistik-Dashboard
@@ -721,6 +746,58 @@ profile:
         total: Gesamt verfügbar
         next_expiry: Resturlaub verfällt am
         my_requests: Meine Anträge
+    2fa:
+        heading: "Zwei-Faktor-Authentifizierung (2FA)"
+        description: "Ein zweiter Faktor neben dem Passwort schützt deinen Account, falls dein Passwort jemals gestohlen wird. Du brauchst eine Authenticator-App (Google Authenticator, Authy, 1Password, Microsoft Authenticator)."
+        code_label: "Aktueller 6-stelliger Code"
+        status:
+            enabled: "2FA ist aktiviert"
+            enabled_detail: "Bei jedem Login wirst du nach einem 6-stelligen Code aus deiner Authenticator-App gefragt."
+        enable:
+            button: "2FA jetzt einrichten"
+        required:
+            upcoming_title: "Deine Firma macht 2FA bald zur Pflicht"
+            upcoming_detail: "Ab %date% wirst du dich nicht mehr ohne 2FA einloggen können. Richte es jetzt ein, bevor du ausgesperrt wirst."
+            now_title: "2FA-Aktivierung erforderlich"
+            now_detail: "Deine Firma verlangt 2FA. Bis du es einrichtest, kannst du LeaveFlow nicht nutzen."
+        setup:
+            title: "2FA einrichten"
+            heading: "2FA einrichten"
+            intro: "Drei Schritte: App installieren, QR-Code scannen, einen Code zur Bestätigung eingeben."
+            step1:
+                title: "1. Authenticator-App installieren"
+                description: "Empfohlen: Google Authenticator, Authy, 1Password oder Microsoft Authenticator."
+            step2:
+                title: "2. QR-Code scannen"
+                description: "Öffne deine App, fügst einen neuen Eintrag hinzu und scanne den QR-Code."
+                manual_hint: "Kein QR-Scanner? Trag den Schlüssel manuell in deiner App ein:"
+            step3:
+                title: "3. Code zur Bestätigung eingeben"
+                description: "Deine App zeigt jetzt einen 6-stelligen Code. Trag ihn unten ein, um die Einrichtung abzuschließen."
+            code_label: "Code aus der App"
+            submit: "2FA aktivieren"
+            cancel: "Zurück zum Profil"
+        codes:
+            title: "Backup-Codes"
+            heading: "Bewahre diese Backup-Codes sicher auf"
+            intro: "Mit diesen Codes kannst du dich einloggen, falls du dein Smartphone verlierst oder die App nicht zugänglich ist."
+            warning_title: "Diese Codes siehst du nur jetzt."
+            warning_detail: "Speichere sie in einem Passwort-Manager oder druck sie aus. Jeder Code funktioniert nur einmal."
+            copy: "In Zwischenablage kopieren"
+            download: "Als Textdatei herunterladen"
+            done: "Zurück zum Profil"
+        regenerate:
+            summary: "Backup-Codes neu erzeugen"
+            description: "Erzeugt 10 neue Codes. Alle alten Codes werden sofort ungültig. Bestätige mit deinem aktuellen 6-stelligen Code aus der App."
+            button: "Neue Codes erzeugen"
+        disable:
+            summary: "2FA deaktivieren"
+            description: "Deaktiviert 2FA für deinen Account. Du brauchst dann nur noch dein Passwort. Bestätige mit deinem aktuellen 6-stelligen Code aus der App."
+            button: "2FA deaktivieren"
+            confirm: "Wirklich 2FA deaktivieren? Dein Account ist danach nur durch das Passwort geschützt."
+        flash:
+            code_invalid: "Der eingegebene Code ist nicht gültig. Versuche es noch einmal."
+            disabled: "2FA wurde deaktiviert."
     ical:
         heading: "Mein Kalender abonnieren"
         description: "Abonniere deine Abwesenheiten und die deines Teams in Google Calendar, Outlook oder Apple Kalender — Updates werden vom Kalender automatisch geholt."
@@ -929,3 +1006,19 @@ month:
         oct: Okt
         nov: Nov
         dec: Dez
+2fa:
+    banner:
+        upcoming_title: "2FA-Pflicht steht an"
+        upcoming_detail: "Ab %date% wirst du dich nicht mehr ohne 2FA einloggen können. Richte es bitte rechtzeitig ein."
+        now_title: "2FA-Aktivierung erforderlich"
+        now_detail: "Deine Firma verlangt 2FA. Bitte aktiviere es jetzt, sonst kannst du LeaveFlow nicht weiter nutzen."
+        cta: "Jetzt einrichten"
+    challenge:
+        title: "2FA-Bestätigung"
+        heading: "Bitte Code eingeben"
+        description: "Trag den 6-stelligen Code aus deiner Authenticator-App ein. Du kannst stattdessen auch einen Backup-Code verwenden."
+        code_label: "Code"
+        code_hint: "6-stelliger TOTP-Code oder 8-stelliger Backup-Code"
+        submit: "Bestätigen"
+        help: "Authenticator-App verloren? Nutze einen deiner Backup-Codes. Sind die auch weg, kontaktiere deinen Administrator zum Zurücksetzen."
+        cancel: "Abbrechen und abmelden"
