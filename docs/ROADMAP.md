@@ -424,6 +424,49 @@ Stimulus targets, `Company::isTwoFactorEnforced` accepts any
 
 ---
 
+### Phase 10.6 — Company Profile & Onboarding ✅ (v0.13.0)
+
+The Company entity existed since Phase 1 but had no UI; production
+installs had to seed it via SQL. Inserted here to close that gap
+before the OAuth adapters in Phase 11 land — those need a configured
+tenant to bind sessions to.
+
+- ✅ **Editable company profile** — `/admin/company/settings` rebuilt
+  around a `CompanyProfileFormType` with name, multi-line address,
+  tax ID, commercial register, accent color, retention period,
+  approval escalation days. New columns: `address`, `logo_path`,
+  `primary_color`, `tax_id`, `commercial_register`. Setters
+  normalize blank-as-null and validate `#RGB` / `#RRGGBB` for the
+  color.
+- ✅ **Logo upload** — PNG/JPG/SVG up to 1 MB. Sluggified +
+  random-suffixed filename so re-uploads don't overwrite, previous
+  file deleted on replace. Stored under `public/uploads/company/`
+  (now gitignored). Rendered in a letterhead at the top of the
+  statistics PDF: logo left, name + address + tax ID + commercial
+  register right.
+- ✅ **First-run setup wizard** — `FirstRunSubscriber` on
+  `kernel.request` redirects every route to `/setup` while no
+  Company row exists; cached lookup so configured tenants pay zero
+  overhead. `/setup` collects company name + first admin (email +
+  password ≥ 12 chars + confirm) in one transaction, then bounces
+  the user to `/login`. Strictly one-shot — once a Company exists
+  the wizard redirects away.
+- ✅ **Pre-flight system check** — before the wizard form unlocks,
+  six checks gate the form (PHP ≥ 8.4, required extensions,
+  database connection, migrations current, `var/` + `public/uploads/`
+  writable). Each failed check shows a copy-pasteable remedy
+  (e.g. `apt-get install php-gd`). Posts that bypass the disabled
+  attribute are bounced.
+- ✅ **Drive-by**: Docker image gained `gd`, `mbstring`, `fileinfo`
+  (needed by endroid/qr-code from Phase 10.5 and the new logo
+  upload pipeline). dompdf `chroot` whitelists `public/` so the
+  logo image actually renders. `/public/uploads/` is now in
+  `.gitignore` with a `.gitkeep` anchor.
+
+**Exit:** v0.13.0 (2026-05-13)
+
+---
+
 ### Phase 11 — Auth Adapters
 
 - LDAP/Active Directory adapter
