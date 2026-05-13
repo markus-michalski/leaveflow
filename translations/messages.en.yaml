@@ -573,7 +573,6 @@ admin:
             days_unit: "days"
             all_clear:
                 title: "All clear"
-                detail: "No carryover expires within the next %horizon% days and no request has been waiting longer than %threshold% days."
             expiring:
                 title: "Expiry risk: %count% employee(s)"
                 detail: "Carryover hours due within the next %horizon% days. Talk to the employees (schedule leave or pay out), otherwise BUrlG §7 (3) forfeiture applies."
