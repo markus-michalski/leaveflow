@@ -10,7 +10,43 @@
         <h1 class="text-2xl font-semibold text-gray-900">{{ 'setup.heading'|trans }}</h1>
         <p class="mt-2 text-sm text-gray-600">{{ 'setup.intro'|trans }}</p>
 
-        <form method="post" action="{{ path('app_setup_index') }}" class="mt-6 space-y-5" data-testid="setup-form">
+        <section class="mt-6 rounded-md border border-gray-200" data-testid="setup-requirements">
+            <header class="border-b border-gray-200 px-4 py-3">
+                <h2 class="text-sm font-semibold text-gray-900">{{ 'setup.requirements.heading'|trans }}</h2>
+                <p class="mt-1 text-xs text-gray-500">{{ 'setup.requirements.description'|trans }}</p>
+            </header>
+            <ul class="divide-y divide-gray-100">
+                {% for check in requirementChecks %}
+                    {% set icon = check.status.value == 'pass' ? '✓' : (check.status.value == 'warn' ? '!' : '✗') %}
+                    {% set toneText = check.status.value == 'pass' ? 'text-green-700' : (check.status.value == 'warn' ? 'text-yellow-700' : 'text-red-700') %}
+                    {% set toneBg = check.status.value == 'pass' ? 'bg-green-100 text-green-700' : (check.status.value == 'warn' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') %}
+                    <li class="flex items-start gap-3 px-4 py-3 text-sm"
+                        data-testid="setup-requirement-{{ loop.index }}"
+                        data-status="{{ check.status.value }}">
+                        <span aria-hidden="true"
+                              class="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full {{ toneBg }} text-xs font-semibold">
+                            {{ icon }}
+                        </span>
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-900">{{ check.label }}</p>
+                            <p class="text-xs {{ toneText }}">{{ check.detail }}</p>
+                            {% if check.remedy %}
+                                <p class="mt-1 rounded bg-gray-50 px-2 py-1 font-mono text-xs text-gray-700">{{ check.remedy }}</p>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        {% if not requirementsOk %}
+            <div class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" data-testid="setup-requirements-blocked">
+                <p class="font-semibold">{{ 'setup.requirements.blocked_title'|trans }}</p>
+                <p class="mt-1 text-xs">{{ 'setup.requirements.blocked_detail'|trans }}</p>
+            </div>
+        {% endif %}
+
+        <form method="post" action="{{ path('app_setup_index') }}" class="mt-6 space-y-5 {{ not requirementsOk ? 'opacity-50 pointer-events-none' : '' }}" data-testid="setup-form">
             <input type="hidden" name="_token" value="{{ csrf_token('setup') }}">
 
             <fieldset class="space-y-3">
@@ -80,7 +116,8 @@
             </fieldset>
 
             <button type="submit"
-                    class="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    {{ not requirementsOk ? 'disabled' : '' }}
+                    class="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
                 {{ 'setup.submit'|trans }}
             </button>
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller;
 
+use App\Application\Onboarding\SystemRequirementsChecker;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\User;
 use App\Domain\Enum\UserRole;
@@ -34,6 +35,7 @@ final class SetupController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly TranslatorInterface $translator,
+        private readonly SystemRequirementsChecker $requirementsChecker,
     ) {
     }
 
@@ -44,6 +46,15 @@ final class SetupController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
+        $requirementChecks = $this->requirementsChecker->check();
+        $requirementsOk = true;
+        foreach ($requirementChecks as $check) {
+            if ($check->isBlocking()) {
+                $requirementsOk = false;
+                break;
+            }
+        }
+
         $errors = [];
         $submitted = [
             'companyName' => '',
@@ -51,6 +62,12 @@ final class SetupController extends AbstractController
         ];
 
         if ('POST' === $request->getMethod()) {
+            if (!$requirementsOk) {
+                // Form is disabled in the template, but defend against a
+                // hand-rolled POST that bypasses the disabled attribute.
+                return $this->redirectToRoute('app_setup_index');
+            }
+
             if (!$this->isCsrfTokenValid('setup', (string) $request->request->get('_token'))) {
                 throw $this->createAccessDeniedException();
             }
@@ -89,6 +106,8 @@ final class SetupController extends AbstractController
         return $this->render('setup/index.html.twig', [
             'errors' => $errors,
             'submitted' => $submitted,
+            'requirementChecks' => $requirementChecks,
+            'requirementsOk' => $requirementsOk,
         ]);
     }
 

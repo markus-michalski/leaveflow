@@ -1027,6 +1027,11 @@ setup:
     title: "First-run setup"
     heading: "Welcome to LeaveFlow"
     intro: "Create your company and the first admin account. You can manage employees, locations, and absence types from the admin menu afterwards."
+    requirements:
+        heading: "System requirements"
+        description: "All checks must be green before LeaveFlow can be set up."
+        blocked_title: "Please fix the open items above first."
+        blocked_detail: "The setup form stays disabled while any check is red. The hint next to each entry tells you what to do."
     submit: "Set up LeaveFlow"
     next_steps_hint: "After saving you can sign in immediately and continue with the admin tools."
     step:

@@ -29,6 +29,13 @@ services:
     App\Application\Approval\ApproverResolverInterface:
         alias: App\Application\Approval\ApproverResolver
 
+    # DoctrineMigrationsBundle exposes the dependency factory under a
+    # service-id alias only — explicit FQCN alias so the setup
+    # requirements checker is autowirable.
+    Doctrine\Migrations\DependencyFactory:
+        alias: doctrine.migrations.dependency_factory
+        public: false
+
 # Expose workflow services to integration tests. Without a real consumer
 # (controllers land later in Phase 6), the container compiler inlines the
 # service away and `self::getContainer()->get(...)` fails in tests.

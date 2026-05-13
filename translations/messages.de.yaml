@@ -1030,6 +1030,11 @@ setup:
     title: "Erstinstallation"
     heading: "Willkommen bei LeaveFlow"
     intro: "Lege deine Firma und den ersten Admin-Zugang an. Danach kannst du Mitarbeitende, Standorte und Urlaubsarten über das Admin-Menü pflegen."
+    requirements:
+        heading: "System-Voraussetzungen"
+        description: "Diese Prüfungen müssen alle grün sein, bevor du LeaveFlow einrichten kannst."
+        blocked_title: "Bitte zuerst die offenen Punkte oben beheben."
+        blocked_detail: "Solange ein Punkt rot ist, lässt sich das Setup-Formular nicht absenden. Die Anweisungen rechts vom jeweiligen Eintrag helfen weiter."
     submit: "LeaveFlow einrichten"
     next_steps_hint: "Nach dem Anlegen bist du direkt eingeloggt und kannst loslegen."
     step:
