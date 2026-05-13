@@ -18,14 +18,20 @@
         <pre class="mt-4 grid grid-cols-2 gap-2 rounded-md border border-yellow-200 bg-white px-4 py-3 font-mono text-sm text-gray-800"
              data-testid="2fa-codes-list">{% for code in codes %}{{ code }}{{ not loop.last ? "\n" : '' }}{% endfor %}</pre>
 
-        <input type="hidden" data-copy-to-clipboard-target="source" value="{% for code in codes %}{{ code }}{{ not loop.last ? '\n' : '' }}{% endfor %}">
+        {# Hidden textarea instead of <input> because input fields can
+           collapse newlines on some browsers — textarea preserves them
+           verbatim, which the copy-to-clipboard controller needs. #}
+        <textarea hidden data-copy-to-clipboard-target="source">{% for code in codes %}{{ code }}{{ not loop.last ? "\n" : '' }}{% endfor %}</textarea>
         <div class="mt-4 flex flex-col gap-2 sm:flex-row">
             <button type="button"
                     data-action="copy-to-clipboard#copy"
                     class="rounded-md border border-yellow-300 bg-white px-3 py-2 text-sm font-medium text-yellow-900 hover:bg-yellow-100">
                 {{ 'profile.2fa.codes.copy'|trans }}
             </button>
-            <a href="data:text/plain;charset=utf-8,{{ codes|join('%0A')|url_encode }}"
+            {# Twig double quotes interpret \n as a real newline; url_encode
+               then renders it as %0A so the browser writes proper line breaks
+               into the downloaded file instead of the literal text "%0A". #}
+            <a href="data:text/plain;charset=utf-8,{{ codes|join("\n")|url_encode }}"
                download="leaveflow-backup-codes.txt"
                class="rounded-md border border-yellow-300 bg-white px-3 py-2 text-center text-sm font-medium text-yellow-900 hover:bg-yellow-100">
                 {{ 'profile.2fa.codes.download'|trans }}

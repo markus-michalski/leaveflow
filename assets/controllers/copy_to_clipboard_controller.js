@@ -1,23 +1,25 @@
 import { Controller } from '@hotwired/stimulus';
 
 /**
- * Copies the closest readonly input's value to the clipboard when the
- * action's button is clicked. Falls back to a manual select-and-prompt
- * if the Clipboard API is unavailable (older browsers, http context).
+ * Copies the controller-scoped `source` target's value to the
+ * clipboard. The source can be any element with a `.value` property
+ * (input, textarea) — textarea is the right choice when the payload
+ * contains newlines (e.g. backup-codes export).
  *
- * The button shows a brief "Kopiert" confirmation by swapping its text
- * for 1.5 seconds — kept minimal, no toast library needed.
+ * Falls back to `document.execCommand('copy')` in non-secure contexts.
+ * The button briefly swaps its text to "Kopiert" for visual feedback.
  */
 export default class extends Controller {
+    static targets = ['source'];
+
     copy(event) {
         const button = event.currentTarget;
-        const wrapper = button.closest('div');
-        const input = wrapper ? wrapper.querySelector('input[type="text"]') : null;
-        if (!input) {
+        const source = this.hasSourceTarget ? this.sourceTarget : null;
+        if (!source) {
             return;
         }
 
-        const value = input.value;
+        const value = 'value' in source ? source.value : source.textContent;
         const successText = button.dataset.successText || 'Kopiert';
         const originalText = button.textContent;
 
@@ -25,10 +27,12 @@ export default class extends Controller {
             if (navigator.clipboard && window.isSecureContext) {
                 return navigator.clipboard.writeText(text);
             }
-            // Fallback for non-secure contexts: legacy execCommand.
-            input.select();
-            document.execCommand('copy');
-            window.getSelection()?.removeAllRanges();
+            // execCommand-fallback works on input/textarea only, hence the guard.
+            if (typeof source.select === 'function') {
+                source.select();
+                document.execCommand('copy');
+                window.getSelection()?.removeAllRanges();
+            }
             return Promise.resolve();
         };
 
@@ -40,7 +44,9 @@ export default class extends Controller {
                 }, 1500);
             })
             .catch(() => {
-                input.select();
+                if (typeof source.select === 'function') {
+                    source.select();
+                }
             });
     }
 }
