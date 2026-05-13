@@ -1057,10 +1057,10 @@ setup:
         intro: "Your company and admin account are ready. Sign in now and finish these steps:"
         cta: "Go to sign in"
         step:
-            absence_types: "Tune the default absence types (/admin/absence-types)"
-            locations: "Create locations (/admin/locations)"
-            employees: "Create employees (/admin/employees)"
-            entitlements: "Set up leave balances (/admin/entitlements)"
+            absence_types: "Tune the default absence types"
+            locations: "Create locations"
+            employees: "Create employees"
+            entitlements: "Set up leave balances"
 2fa:
     banner:
         upcoming_title: "2FA requirement coming up"

@@ -1060,10 +1060,10 @@ setup:
         intro: "Deine Firma und dein Admin-Zugang sind angelegt. Logge dich jetzt ein, um diese Schritte zu erledigen:"
         cta: "Zur Anmeldung"
         step:
-            absence_types: "Standard-Urlaubsarten anpassen (/admin/absence-types)"
-            locations: "Standorte anlegen (/admin/locations)"
-            employees: "Mitarbeitende anlegen (/admin/employees)"
-            entitlements: "Urlaubskonten einrichten (/admin/entitlements)"
+            absence_types: "Standard-Urlaubsarten anpassen"
+            locations: "Standorte anlegen"
+            employees: "Mitarbeitende anlegen"
+            entitlements: "Urlaubskonten einrichten"
 2fa:
     banner:
         upcoming_title: "2FA-Pflicht steht an"
