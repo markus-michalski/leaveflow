@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block app_header %}{% endblock %}
+
+{% block title %}{{ 'setup.done.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div class="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
+        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-700">
+            <span aria-hidden="true" class="text-xl font-semibold">✓</span>
+        </div>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'setup.done.heading'|trans }}</h1>
+        <p class="mt-2 text-sm text-gray-600">{{ 'setup.done.intro'|trans }}</p>
+
+        <ul class="mt-4 space-y-2 text-left text-sm text-gray-700">
+            <li>• {{ 'setup.done.step.absence_types'|trans }}</li>
+            <li>• {{ 'setup.done.step.locations'|trans }}</li>
+            <li>• {{ 'setup.done.step.employees'|trans }}</li>
+            <li>• {{ 'setup.done.step.entitlements'|trans }}</li>
+        </ul>
+
+        <a href="{{ path('app_login') }}"
+           class="mt-6 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            {{ 'setup.done.cta'|trans }}
+        </a>
+    </div>
+</div>
+{% endblock %}

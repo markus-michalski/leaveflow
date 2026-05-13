@@ -102,9 +102,60 @@
             color: #9ca3af;
             font-style: italic;
         }
+        .letterhead {
+            display: table;
+            width: 100%;
+            margin-bottom: 12pt;
+        }
+        .letterhead-logo,
+        .letterhead-meta {
+            display: table-cell;
+            vertical-align: top;
+        }
+        .letterhead-logo img {
+            max-height: 56pt;
+            max-width: 140pt;
+        }
+        .letterhead-meta {
+            text-align: right;
+            font-size: 8.5pt;
+            color: #6b7280;
+        }
+        .letterhead-meta strong {
+            color: #111827;
+            font-size: 10pt;
+            display: block;
+            margin-bottom: 2pt;
+        }
+        .letterhead-meta p {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
+    {# Letterhead — logo on the left if uploaded, company contact details on the right. #}
+    {% if company is defined and (company.logoPath or company.name) %}
+        <div class="letterhead">
+            <div class="letterhead-logo">
+                {% if company.logoPath %}
+                    <img src="{{ logoAbsolutePath }}" alt="{{ company.name }}">
+                {% endif %}
+            </div>
+            <div class="letterhead-meta">
+                <strong>{{ company.name }}</strong>
+                {% if company.address %}
+                    <p>{{ company.address|nl2br }}</p>
+                {% endif %}
+                {% if company.taxId %}
+                    <p>{{ 'admin.statistics.export.pdf.tax_id'|trans }}: {{ company.taxId }}</p>
+                {% endif %}
+                {% if company.commercialRegister %}
+                    <p>{{ 'admin.statistics.export.pdf.commercial_register'|trans }}: {{ company.commercialRegister }}</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
     <h1>{{ 'admin.statistics.export.pdf.heading'|trans }}</h1>
     <p class="meta">
         {{ 'admin.statistics.export.pdf.scope'|trans({

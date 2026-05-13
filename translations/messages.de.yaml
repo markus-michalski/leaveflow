@@ -525,6 +525,21 @@ admin:
         title: "Firmen-Einstellungen"
         heading: "Firmen-Einstellungen"
         description: "Globale Einstellungen für deine Firma. Änderungen wirken sich auf alle Mitarbeitenden aus."
+        profile:
+            heading: "Firmenprofil"
+            description: "Stammdaten deiner Firma — Name, Adresse, Logo, Branding. Wird im PDF-Export und (optional) in der App-Navigation verwendet."
+            name: "Firmenname"
+            address: "Adresse"
+            tax_id: "USt-IdNr."
+            commercial_register: "Handelsregister-Nr."
+            primary_color: "Akzentfarbe"
+            logo: "Logo (PNG/JPG/SVG, max. 1 MB)"
+            logo_mime_error: "Bitte ein Logo im Format PNG, JPG oder SVG hochladen (max. 1 MB)."
+            logo_remove: "Logo entfernen"
+            logo_remove_confirm: "Wirklich das aktuelle Logo entfernen?"
+            retention_months: "DSGVO-Aufbewahrungsdauer (Monate)"
+            escalation_days: "Eskalations-Schwelle (Tage)"
+            save: "Speichern"
         2fa:
             heading: "Zwei-Faktor-Authentifizierung verpflichtend machen"
             description: "Wenn aktiviert, müssen alle Mitarbeitenden 2FA bis zu der unten gewählten Frist aktivieren. Bis dahin sehen sie einen Hinweis. Nach Ablauf der Frist können sie sich nicht mehr ohne 2FA einloggen."
@@ -538,6 +553,9 @@ admin:
                 upcoming: "2FA-Pflicht startet bald"
                 detail: "Stichtag: %date%"
         flash:
+            profile_saved: "Firmenprofil wurde gespeichert."
+            logo_upload_failed: "Logo konnte nicht hochgeladen werden."
+            logo_removed: "Logo wurde entfernt."
             2fa_enabled: "2FA-Pflicht aktiviert. Stichtag: %date%."
             2fa_disabled: "2FA-Pflicht aufgehoben."
             2fa_invalid_date: "Bitte ein gültiges Datum angeben."
@@ -611,6 +629,8 @@ admin:
                 total_hours: "Gesamtgenutzt: %hours% h"
                 col_month: "Monat"
                 footer: "%appName% — anonymisierte Auswertung gemäß DSGVO §22 BDSG"
+                tax_id: "USt-IdNr."
+                commercial_register: "Handelsregister"
         filter:
             year_label: "Jahr"
             apply: "Anwenden"
@@ -1006,6 +1026,44 @@ month:
         oct: Okt
         nov: Nov
         dec: Dez
+setup:
+    title: "Erstinstallation"
+    heading: "Willkommen bei LeaveFlow"
+    intro: "Lege deine Firma und den ersten Admin-Zugang an. Danach kannst du Mitarbeitende, Standorte und Urlaubsarten über das Admin-Menü pflegen."
+    requirements:
+        heading: "System-Voraussetzungen"
+        description: "Diese Prüfungen müssen alle grün sein, bevor du LeaveFlow einrichten kannst."
+        blocked_title: "Bitte zuerst die offenen Punkte oben beheben."
+        blocked_detail: "Solange ein Punkt rot ist, lässt sich das Setup-Formular nicht absenden. Die Anweisungen rechts vom jeweiligen Eintrag helfen weiter."
+    submit: "LeaveFlow einrichten"
+    next_steps_hint: "Nach dem Anlegen bist du direkt eingeloggt und kannst loslegen."
+    step:
+        company:
+            heading: "1. Firma"
+        admin:
+            heading: "2. Erster Admin-Zugang"
+            description: "Mit diesem Konto loggst du dich direkt nach dem Setup ein. Du kannst später weitere Admins anlegen."
+    field:
+        company_name: "Firmenname"
+        admin_email: "Admin-E-Mail"
+        admin_password: "Admin-Passwort"
+        admin_password_hint: "Mindestens 12 Zeichen. Wähle ein langes, einzigartiges Passwort und speichere es in deinem Passwort-Manager."
+        admin_password_confirm: "Passwort wiederholen"
+    error:
+        company_name_required: "Bitte einen Firmennamen angeben."
+        admin_email_invalid: "Bitte eine gültige E-Mail-Adresse angeben."
+        admin_password_too_short: "Das Passwort muss mindestens 12 Zeichen lang sein."
+        admin_password_mismatch: "Die beiden Passwörter stimmen nicht überein."
+    done:
+        title: "Installation abgeschlossen"
+        heading: "Fertig!"
+        intro: "Deine Firma und dein Admin-Zugang sind angelegt. Logge dich jetzt ein, um diese Schritte zu erledigen:"
+        cta: "Zur Anmeldung"
+        step:
+            absence_types: "Standard-Urlaubsarten anpassen"
+            locations: "Standorte anlegen"
+            employees: "Mitarbeitende anlegen"
+            entitlements: "Urlaubskonten einrichten"
 2fa:
     banner:
         upcoming_title: "2FA-Pflicht steht an"

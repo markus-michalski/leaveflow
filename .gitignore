@@ -19,6 +19,13 @@
 /assets/vendor/
 ###< symfony/asset-mapper ###
 
+# Runtime upload directory — company logos etc. are user data, not code.
+# Pattern with /* + re-include of .gitkeep so git honors the negation
+# (a trailing-slash ignore on the parent folder would block re-includes
+# inside it).
+/public/uploads/*
+!/public/uploads/.gitkeep
+
 # Local Claude Code context (not shared in repo)
 /CLAUDE.md
 /.claude/

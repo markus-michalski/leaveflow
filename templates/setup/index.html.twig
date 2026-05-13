@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block app_header %}{% endblock %}
+
+{% block title %}{{ 'setup.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
+    <div class="w-full max-w-xl rounded-xl bg-white p-8 shadow-sm">
+        <h1 class="text-2xl font-semibold text-gray-900">{{ 'setup.heading'|trans }}</h1>
+        <p class="mt-2 text-sm text-gray-600">{{ 'setup.intro'|trans }}</p>
+
+        <section class="mt-6 rounded-md border border-gray-200" data-testid="setup-requirements">
+            <header class="border-b border-gray-200 px-4 py-3">
+                <h2 class="text-sm font-semibold text-gray-900">{{ 'setup.requirements.heading'|trans }}</h2>
+                <p class="mt-1 text-xs text-gray-500">{{ 'setup.requirements.description'|trans }}</p>
+            </header>
+            <ul class="divide-y divide-gray-100">
+                {% for check in requirementChecks %}
+                    {% set icon = check.status.value == 'pass' ? '✓' : (check.status.value == 'warn' ? '!' : '✗') %}
+                    {% set toneText = check.status.value == 'pass' ? 'text-green-700' : (check.status.value == 'warn' ? 'text-yellow-700' : 'text-red-700') %}
+                    {% set toneBg = check.status.value == 'pass' ? 'bg-green-100 text-green-700' : (check.status.value == 'warn' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') %}
+                    <li class="flex items-start gap-3 px-4 py-3 text-sm"
+                        data-testid="setup-requirement-{{ loop.index }}"
+                        data-status="{{ check.status.value }}">
+                        <span aria-hidden="true"
+                              class="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full {{ toneBg }} text-xs font-semibold">
+                            {{ icon }}
+                        </span>
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-900">{{ check.label }}</p>
+                            <p class="text-xs {{ toneText }}">{{ check.detail }}</p>
+                            {% if check.remedy %}
+                                <p class="mt-1 rounded bg-gray-50 px-2 py-1 font-mono text-xs text-gray-700">{{ check.remedy }}</p>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        {% if not requirementsOk %}
+            <div class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" data-testid="setup-requirements-blocked">
+                <p class="font-semibold">{{ 'setup.requirements.blocked_title'|trans }}</p>
+                <p class="mt-1 text-xs">{{ 'setup.requirements.blocked_detail'|trans }}</p>
+            </div>
+        {% endif %}
+
+        <form method="post" action="{{ path('app_setup_index') }}" class="mt-6 space-y-5 {{ not requirementsOk ? 'opacity-50 pointer-events-none' : '' }}" data-testid="setup-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('setup') }}">
+
+            <fieldset class="space-y-3">
+                <legend class="text-sm font-semibold text-gray-900">{{ 'setup.step.company.heading'|trans }}</legend>
+                <div>
+                    <label for="company_name" class="block text-sm font-medium text-gray-700">{{ 'setup.field.company_name'|trans }}</label>
+                    <input id="company_name"
+                           type="text"
+                           name="company_name"
+                           value="{{ submitted.companyName }}"
+                           required
+                           maxlength="200"
+                           autofocus
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    {% if errors.companyName is defined %}
+                        <p class="mt-1 text-xs text-red-700">{{ errors.companyName }}</p>
+                    {% endif %}
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-3 border-t border-gray-200 pt-5">
+                <legend class="text-sm font-semibold text-gray-900">{{ 'setup.step.admin.heading'|trans }}</legend>
+                <p class="text-xs text-gray-500">{{ 'setup.step.admin.description'|trans }}</p>
+
+                <div>
+                    <label for="admin_email" class="block text-sm font-medium text-gray-700">{{ 'setup.field.admin_email'|trans }}</label>
+                    <input id="admin_email"
+                           type="email"
+                           name="admin_email"
+                           value="{{ submitted.adminEmail }}"
+                           required
+                           autocomplete="email"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    {% if errors.adminEmail is defined %}
+                        <p class="mt-1 text-xs text-red-700">{{ errors.adminEmail }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="admin_password" class="block text-sm font-medium text-gray-700">{{ 'setup.field.admin_password'|trans }}</label>
+                    <input id="admin_password"
+                           type="password"
+                           name="admin_password"
+                           required
+                           minlength="12"
+                           autocomplete="new-password"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <p class="mt-1 text-xs text-gray-500">{{ 'setup.field.admin_password_hint'|trans }}</p>
+                    {% if errors.adminPassword is defined %}
+                        <p class="mt-1 text-xs text-red-700">{{ errors.adminPassword }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="admin_password_confirm" class="block text-sm font-medium text-gray-700">{{ 'setup.field.admin_password_confirm'|trans }}</label>
+                    <input id="admin_password_confirm"
+                           type="password"
+                           name="admin_password_confirm"
+                           required
+                           minlength="12"
+                           autocomplete="new-password"
+                           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    {% if errors.adminPasswordConfirm is defined %}
+                        <p class="mt-1 text-xs text-red-700">{{ errors.adminPasswordConfirm }}</p>
+                    {% endif %}
+                </div>
+            </fieldset>
+
+            <button type="submit"
+                    {{ not requirementsOk ? 'disabled' : '' }}
+                    class="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
+                {{ 'setup.submit'|trans }}
+            </button>
+
+            <p class="text-center text-xs text-gray-500">{{ 'setup.next_steps_hint'|trans }}</p>
+        </form>
+    </div>
+</div>
+{% endblock %}

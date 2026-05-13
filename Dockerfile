@@ -16,13 +16,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # install-php-extensions ships with the image.
+# gd is required by endroid/qr-code (2FA setup QR generation) and dompdf
+# (PDF logo embedding); both ship since Phase 10.5 / 10.6 and would 500
+# without it on a fresh container. mbstring / fileinfo are pulled by the
+# Symfony Validator + UploadedFile guess for logo uploads.
 RUN install-php-extensions \
         pdo_mysql \
         intl \
         zip \
         pcntl \
         opcache \
-        apcu
+        apcu \
+        gd \
+        mbstring \
+        fileinfo
 
 # Composer from the official image.
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

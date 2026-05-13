@@ -9,6 +9,96 @@
         <p class="mt-1 text-sm text-gray-500">{{ 'admin.company_settings.description'|trans }}</p>
     </header>
 
+    {# Profile section — name, address, branding, retention/escalation. #}
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-profile">
+        <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.profile.heading'|trans }}</h2>
+        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.profile.description'|trans }}</p>
+
+        {% if company.logoPath %}
+            <div class="mt-4 flex flex-wrap items-center gap-4 rounded-md border border-gray-200 bg-gray-50 p-3">
+                <img src="{{ asset(company.logoPath) }}" alt="{{ company.name }}" class="h-16 w-auto max-w-[12rem] rounded bg-white p-1 shadow-sm" data-testid="company-settings-current-logo">
+                <form method="post"
+                      action="{{ path('app_admin_company_settings_remove_logo') }}"
+                      onsubmit="return confirm('{{ 'admin.company_settings.profile.logo_remove_confirm'|trans|e('js') }}');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('company_settings_logo') }}">
+                    <button type="submit"
+                            class="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100">
+                        {{ 'admin.company_settings.profile.logo_remove'|trans }}
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+
+        {# Reusable class blobs so the per-row calls stay readable. Symfony's
+           default form-theme renders raw inputs; this project chose per-row
+           Tailwind classes (see admin/employees/form.html.twig) over a
+           project-wide form theme to keep theme drift to one place. #}
+        {% set labelClass = 'block text-sm font-medium text-gray-700' %}
+        {% set inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500' %}
+        {% set rowClass = '' %}
+
+        {{ form_start(form, { attr: { 'data-testid': 'company-settings-profile-form', 'enctype': 'multipart/form-data' } }) }}
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    {{ form_row(form.name, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass },
+                    }) }}
+                </div>
+                <div class="sm:col-span-2">
+                    {{ form_row(form.address, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass ~ ' font-mono', rows: 4 },
+                    }) }}
+                </div>
+                <div>
+                    {{ form_row(form.taxId, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass },
+                    }) }}
+                </div>
+                <div>
+                    {{ form_row(form.commercialRegister, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass },
+                    }) }}
+                </div>
+                <div>
+                    {{ form_row(form.primaryColor, {
+                        label_attr: { class: labelClass },
+                        attr: { class: 'mt-1 h-10 w-24 cursor-pointer rounded-md border border-gray-300 p-1' },
+                    }) }}
+                </div>
+                <div>
+                    {{ form_row(form.logo, {
+                        label_attr: { class: labelClass },
+                        attr: { class: 'mt-1 block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-xs file:font-medium file:text-blue-700 hover:file:bg-blue-100' },
+                    }) }}
+                </div>
+                <div>
+                    {{ form_row(form.retentionPeriodMonths, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass ~ ' w-32' },
+                    }) }}
+                </div>
+                <div>
+                    {{ form_row(form.approvalEscalationDays, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass ~ ' w-32' },
+                    }) }}
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <button type="submit"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    {{ 'admin.company_settings.profile.save'|trans }}
+                </button>
+            </div>
+        {{ form_end(form) }}
+    </section>
+
+    {# Existing 2FA-requirement section — separate form so file-upload state doesn't bleed into the toggle. #}
     <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-2fa">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.2fa.heading'|trans }}</h2>
         <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.2fa.description'|trans }}</p>
