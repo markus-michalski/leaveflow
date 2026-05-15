@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Presentation\Controller;
 
 use App\Application\Onboarding\SystemRequirementsChecker;
+use App\Application\Security\UserProvisioningService;
 use App\Domain\Entity\Company;
-use App\Domain\Entity\User;
 use App\Domain\Enum\UserRole;
 use App\Domain\Repository\CompanyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -33,9 +32,9 @@ final class SetupController extends AbstractController
     public function __construct(
         private readonly CompanyRepository $companyRepository,
         private readonly EntityManagerInterface $entityManager,
-        private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly TranslatorInterface $translator,
         private readonly SystemRequirementsChecker $requirementsChecker,
+        private readonly UserProvisioningService $userProvisioning,
     ) {
     }
 
@@ -92,11 +91,8 @@ final class SetupController extends AbstractController
 
             if ([] === $errors) {
                 $company = new Company($submitted['companyName']);
-                $admin = new User($company, $submitted['adminEmail'], UserRole::Admin);
-                $admin->setHashedPassword($this->passwordHasher->hashPassword($admin, $adminPassword));
-
                 $this->entityManager->persist($company);
-                $this->entityManager->persist($admin);
+                $this->userProvisioning->provisionLocal($company, $submitted['adminEmail'], UserRole::Admin, $adminPassword);
                 $this->entityManager->flush();
 
                 return $this->redirectToRoute('app_setup_done');

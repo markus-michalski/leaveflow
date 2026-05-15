@@ -469,10 +469,47 @@ tenant to bind sessions to.
 
 ### Phase 11 — Auth Adapters
 
-- LDAP/Active Directory adapter
-- OAuth2: Google Workspace
-- OAuth2: Microsoft Entra ID (formerly Azure AD)
-- Clean abstraction via `UserProviderInterface` — architectural foundation must be laid in Phase 1
+Delivered as four slices so each is independently testable and mergeable.
+Foundation audit (2026-05-14) confirmed: `User.password` is nullable, `UserChecker` is auth-source-agnostic, the Doctrine entity provider is a plain sibling — no monolithic blocker. Four debt items must land in Phase 11.0 before any IdP work starts.
+
+#### Phase 11.0 — Foundation Prep
+
+- **`authSource` enum column on `User`** (`local` | `ldap` | `google` | `entra`) — migration defaults existing rows to `local`. Drives every conditional below.
+- **`externalId` nullable string column** on `User` + unique composite index `(auth_source, external_id)` — for IdP `sub` / `objectGuid`, survives email changes.
+- **`UserProvisioningService`** — extract `new User(...)` + persist logic out of `AdminUserController` and `SetupController` into a single service with `provisionLocal()` and `provisionFromIdpClaims()`. JIT-provisioning from OAuth/LDAP builds on top.
+- **Gate reset-password and local login on `authSource === local`** — `ResetPasswordController` must not mail tokens to SSO-only users; a `LocalLoginAuthenticator` (or `UserChecker::checkPreAuth` branch) must refuse password auth for non-local accounts.
+- **2FA-vs-IdP-MFA policy decision** (document in ROADMAP + enforce in code): bypass `scheb/2fa` for `google` / `entra` (IdP enforces MFA), keep for `ldap` and `local`.
+
+**Exit:** migration + tests green, existing local-auth smoke tests unchanged, PHPStan L8, Deptrac 0.
+
+#### Phase 11.1 — OAuth2: Google Workspace
+
+- KnpUOAuth2ClientBundle + `league/oauth2-google`
+- `GoogleAuthenticator` — OIDC flow, JIT-provision via `UserProvisioningService::provisionFromIdpClaims()`
+- Admin UI to enable/disable Google login per company + note the `hd` (hosted domain) claim for tenant validation
+- `authSource=google` users bypass local login + 2FA
+
+**Exit:** dev-environment login with a real Google account works; existing local-auth tests unchanged.
+
+#### Phase 11.2 — OAuth2: Microsoft Entra ID
+
+- `TheNetworg/oauth2-azure` or `thenetworg/oauth2-azure` — same OIDC shape as Google, adds `tenant_id` config
+- `EntraAuthenticator` — identical pattern to `GoogleAuthenticator`, `authSource=entra`
+- Admin UI toggle + Tenant ID field
+
+**Exit:** same criteria as 11.1 with Entra credentials.
+
+#### Phase 11.3 — LDAP / Active Directory
+
+- `symfony/ldap` + `security.yaml` LDAP provider + a custom `LdapUserProvisioner` (group → `UserRole` mapping)
+- Bind credentials via env (`LDAP_HOST`, `LDAP_DN`, `LDAP_PASSWORD`)
+- Admin UI: LDAP config fields per company (host, base DN, user filter, group-to-role map)
+- `authSource=ldap` users keep 2FA (corporate AD typically has no MFA)
+- Test against OpenLDAP Docker image in CI (`osixia/openldap`)
+
+**Exit:** CI passes against the OpenLDAP fixture container; PHPStan L8, Deptrac 0.
+
+**Implementation order rationale:** Google first (pure cloud, dev-testable without infra), Entra second (same OIDC shape, cheap), LDAP last (on-prem dependency worst dev-loop — must ride on solid abstractions, not drive them). Target audience for LDAP is German SMBs with on-prem AD; it lands on proven ground.
 
 ---
 
