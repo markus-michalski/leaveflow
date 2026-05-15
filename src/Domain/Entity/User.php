@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity;
 
+use App\Domain\Enum\AuthSource;
 use App\Domain\Enum\UserRole;
 use App\Domain\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
@@ -17,6 +18,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
+#[ORM\UniqueConstraint(name: 'UNIQ_auth_source_external_id', columns: ['auth_source', 'external_id'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwoFactorInterface, BackupCodeInterface
 {
     #[ORM\Id]
@@ -35,6 +37,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
 
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: Employee::class)]
     private ?Employee $employee = null;
+
+    #[ORM\Column(name: 'auth_source', type: 'string', length: 20, enumType: AuthSource::class, options: ['default' => 'local'])]
+    private AuthSource $authSource = AuthSource::Local;
+
+    /**
+     * IdP-issued subject identifier (OAuth `sub`, LDAP `objectGuid`).
+     * Null for local users. Combined with `authSource` as a unique key
+     * so re-binding on email change stays safe.
+     */
+    #[ORM\Column(name: 'external_id', length: 255, nullable: true)]
+    private ?string $externalId = null;
 
     /**
      * Personal calendar subscription token. Lazy-generated on first
@@ -165,6 +178,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         // No-op — plaintext credentials are never stored on the entity.
     }
 
+    public function getAuthSource(): AuthSource
+    {
+        return $this->authSource;
+    }
+
+    public function getExternalId(): ?string
+    {
+        return $this->externalId;
+    }
+
+    /**
+     * Binds the user to an external IdP. Must not be called with AuthSource::Local —
+     * local users are created via UserProvisioningService::provisionLocal().
+     */
+    public function bindToIdp(AuthSource $authSource, string $externalId): void
+    {
+        if (AuthSource::Local === $authSource) {
+            throw new \InvalidArgumentException('Use provisionLocal() for local users; bindToIdp() is for external IdPs only.');
+        }
+
+        if ('' === trim($externalId)) {
+            throw new \InvalidArgumentException('IdP external_id must not be empty.');
+        }
+
+        $this->authSource = $authSource;
+        $this->externalId = $externalId;
+    }
+
     public function getIcalToken(): ?string
     {
         return $this->icalToken;
@@ -255,7 +296,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
 
     public function isTotpAuthenticationEnabled(): bool
     {
-        return $this->totpEnabled && null !== $this->totpSecret;
+        // OAuth IdPs (Google, Entra) enforce MFA on their side — bypass our TOTP.
+        // LDAP and local users go through the standard TOTP flow.
+        return !$this->authSource->skipsTwoFactor()
+            && $this->totpEnabled
+            && null !== $this->totpSecret;
     }
 
     public function getTotpAuthenticationUsername(): string

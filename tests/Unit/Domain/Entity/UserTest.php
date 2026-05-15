@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Domain\Entity;
 
 use App\Domain\Entity\Company;
 use App\Domain\Entity\User;
+use App\Domain\Enum\AuthSource;
 use App\Domain\Enum\UserRole;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -122,5 +123,80 @@ final class UserTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         new User($this->makeCompany(), '   ', UserRole::Employee);
+    }
+
+    // ---- AuthSource ----
+
+    #[Test]
+    public function defaultAuthSourceIsLocal(): void
+    {
+        $user = new User($this->makeCompany(), 'jane@example.com', UserRole::Employee);
+
+        self::assertSame(AuthSource::Local, $user->getAuthSource());
+    }
+
+    #[Test]
+    public function externalIdIsNullByDefault(): void
+    {
+        $user = new User($this->makeCompany(), 'jane@example.com', UserRole::Employee);
+
+        self::assertNull($user->getExternalId());
+    }
+
+    #[Test]
+    public function bindToIdpSetsAuthSourceAndExternalId(): void
+    {
+        $user = new User($this->makeCompany(), 'jane@example.com', UserRole::Employee);
+        $user->bindToIdp(AuthSource::Google, 'google-sub-12345');
+
+        self::assertSame(AuthSource::Google, $user->getAuthSource());
+        self::assertSame('google-sub-12345', $user->getExternalId());
+    }
+
+    #[Test]
+    public function bindToIdpRejectsLocalAuthSource(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $user = new User($this->makeCompany(), 'jane@example.com', UserRole::Employee);
+        $user->bindToIdp(AuthSource::Local, 'some-id');
+    }
+
+    #[Test]
+    public function bindToIdpRejectsEmptyExternalId(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $user = new User($this->makeCompany(), 'jane@example.com', UserRole::Employee);
+        $user->bindToIdp(AuthSource::Google, '   ');
+    }
+
+    #[Test]
+    public function totpIsSkippedForOAuthUsers(): void
+    {
+        $user = new User($this->makeCompany(), 'jane@example.com', UserRole::Employee);
+        $user->enableTotp('BASE32SECRET', [hash('sha256', 'backup1')]);
+        $user->bindToIdp(AuthSource::Google, 'sub-123');
+
+        self::assertFalse($user->isTotpAuthenticationEnabled());
+    }
+
+    #[Test]
+    public function totpRemainsActiveForLocalUsers(): void
+    {
+        $user = new User($this->makeCompany(), 'jane@example.com', UserRole::Employee);
+        $user->enableTotp('BASE32SECRET', [hash('sha256', 'backup1')]);
+
+        self::assertTrue($user->isTotpAuthenticationEnabled());
+    }
+
+    #[Test]
+    public function ldapUsersKeepTotpEnabled(): void
+    {
+        $user = new User($this->makeCompany(), 'jane@example.com', UserRole::Employee);
+        $user->enableTotp('BASE32SECRET', [hash('sha256', 'backup1')]);
+        $user->bindToIdp(AuthSource::Ldap, 'cn=jane,dc=example,dc=com');
+
+        self::assertTrue($user->isTotpAuthenticationEnabled());
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Admin;
 
+use App\Application\Security\UserProvisioningService;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\User;
 use App\Domain\Enum\UserRole;
@@ -34,6 +35,7 @@ final class AdminUserController extends AbstractController
         private readonly ResetPasswordHelperInterface $resetPasswordHelper,
         private readonly MailerInterface $mailer,
         private readonly TranslatorInterface $translator,
+        private readonly UserProvisioningService $userProvisioning,
     ) {
     }
 
@@ -94,8 +96,7 @@ final class AdminUserController extends AbstractController
             /** @var string $email */
             $email = $form->get('email')->getData();
 
-            $user = new User($company, $email, $user->getRole());
-            $this->entityManager->persist($user);
+            $user = $this->userProvisioning->provisionLocal($company, $email, $user->getRole());
             $this->entityManager->flush();
 
             $this->sendInvitationEmail($user);
@@ -205,6 +206,11 @@ final class AdminUserController extends AbstractController
 
     private function sendInvitationEmail(User $user): void
     {
+        // SSO users authenticate via their IdP — no local password to set.
+        if (!$user->getAuthSource()->isLocal()) {
+            return;
+        }
+
         // Admin-triggered invitations must override any pending reset request
         // so the admin can re-send without waiting out the bundle throttle.
         $this->resetPasswordRequestRepository->removeRequests($user);

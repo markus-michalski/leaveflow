@@ -126,9 +126,14 @@ final class ResetPasswordController extends AbstractController
     {
         $user = $this->userRepository->findOneByEmail($emailFormData);
 
-        // Always behave the same whether the user exists or not — avoid leaking
-        // which addresses are registered.
-        if (null === $user) {
+        // Always behave identically regardless of whether the user exists, what auth
+        // source they use, or whether an email was actually sent — prevents user-
+        // enumeration and auth-source fingerprinting via response-time differences.
+        // generateFakeResetToken() burns CPU equivalent to a real token so the POST
+        // response time is the same for all three paths (no user / SSO user / local user).
+        if (null === $user || !$user->getAuthSource()->isLocal()) {
+            $this->resetPasswordHelper->generateFakeResetToken();
+
             return $this->redirectToRoute('app_check_email');
         }
 
