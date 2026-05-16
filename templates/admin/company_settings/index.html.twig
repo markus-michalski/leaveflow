@@ -98,6 +98,49 @@
         {{ form_end(form) }}
     </section>
 
+    {# Google Workspace OAuth section — separate form, same pattern as 2FA toggle. #}
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-google">
+        <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.google.heading'|trans }}</h2>
+        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.google.description'|trans }}</p>
+
+        <form method="post"
+              action="{{ path('app_admin_company_settings_set_google_oauth') }}"
+              class="mt-4 space-y-4"
+              data-testid="company-settings-google-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('company_settings_google') }}">
+            <input type="hidden" name="enable" value="{{ company.isGoogleOAuthEnabled() ? '0' : '1' }}">
+
+            {% if company.isGoogleOAuthEnabled() %}
+                <p class="inline-flex items-center gap-2 text-sm font-medium text-green-700">
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    {{ 'admin.company_settings.google.status.enabled'|trans }}
+                </p>
+            {% else %}
+                <p class="text-sm text-gray-500">{{ 'admin.company_settings.google.status.disabled'|trans }}</p>
+            {% endif %}
+
+            <div>
+                <label for="hosted_domain" class="block text-sm font-medium text-gray-700">
+                    {{ 'admin.company_settings.google.hosted_domain_label'|trans }}
+                </label>
+                <input id="hosted_domain"
+                       type="text"
+                       name="hosted_domain"
+                       value="{{ company.googleOAuthHostedDomain ?? '' }}"
+                       placeholder="acme.com"
+                       class="mt-1 block w-64 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.google.hosted_domain_hint'|trans }}</p>
+            </div>
+
+            <button type="submit"
+                    class="inline-flex items-center rounded-md {% if company.isGoogleOAuthEnabled() %}border border-red-200 bg-red-50 text-red-700 hover:bg-red-100{% else %}bg-blue-600 text-white hover:bg-blue-700{% endif %} px-4 py-2 text-sm font-medium">
+                {{ company.isGoogleOAuthEnabled()
+                    ? 'admin.company_settings.google.disable_button'|trans
+                    : 'admin.company_settings.google.enable_button'|trans }}
+            </button>
+        </form>
+    </section>
+
     {# Existing 2FA-requirement section — separate form so file-upload state doesn't bleed into the toggle. #}
     <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-2fa">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.2fa.heading'|trans }}</h2>

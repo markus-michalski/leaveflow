@@ -17,7 +17,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
  * and SetupController. Phase 11.1+ IdP authenticators use provisionFromIdpClaims()
  * for just-in-time user creation on first SSO login.
  */
-final class UserProvisioningService
+final class UserProvisioningService implements UserProvisioningServiceInterface
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,

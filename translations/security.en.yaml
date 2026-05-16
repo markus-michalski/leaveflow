@@ -1,0 +1,4 @@
+google_login_disabled: "Google login is not enabled for this service."
+google_wrong_hosted_domain: "Your Google account does not belong to the allowed organisation."
+google_email_taken: "This email address is already linked to a different sign-in method."
+google_email_not_verified: "Your Google email address is not verified. Please verify it in your Google account."

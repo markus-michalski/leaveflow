@@ -30,6 +30,9 @@
 /CLAUDE.md
 /.claude/
 
+# Git workflow skill state (local tooling, not source)
+/.git-workflow/
+
 ###> friendsofphp/php-cs-fixer ###
 /.php-cs-fixer.php
 /.php-cs-fixer.cache

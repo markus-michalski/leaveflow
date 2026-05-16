@@ -139,6 +139,35 @@ final class AdminCompanySettingsController extends AbstractController
         return $this->redirectToRoute('app_admin_company_settings_index');
     }
 
+    #[Route('/google-oauth', name: 'set_google_oauth', methods: ['POST'])]
+    public function setGoogleOAuth(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('company_settings_google', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $company = $this->requireCompany();
+        $enable = '1' === $request->request->get('enable');
+
+        if ($enable) {
+            $company->enableGoogleOAuth();
+        } else {
+            $company->disableGoogleOAuth();
+        }
+
+        $rawDomain = trim((string) $request->request->get('hosted_domain', ''));
+        $company->setGoogleOAuthHostedDomain('' === $rawDomain ? null : $rawDomain);
+
+        $this->entityManager->flush();
+
+        $key = $enable
+            ? 'admin.company_settings.flash.google_oauth_enabled'
+            : 'admin.company_settings.flash.google_oauth_disabled';
+        $this->addFlash('success', $this->translator->trans($key));
+
+        return $this->redirectToRoute('app_admin_company_settings_index');
+    }
+
     private function requireCompany(): Company
     {
         $company = $this->companyRepository->findOneBy([]);

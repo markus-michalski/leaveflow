@@ -482,12 +482,19 @@ Foundation audit (2026-05-14) confirmed: `User.password` is nullable, `UserCheck
 
 **Exit:** migration + tests green, existing local-auth smoke tests unchanged, PHPStan L8, Deptrac 0.
 
-#### Phase 11.1 — OAuth2: Google Workspace
+#### Phase 11.1 — OAuth2: Google Workspace ✅
 
-- KnpUOAuth2ClientBundle + `league/oauth2-google`
-- `GoogleAuthenticator` — OIDC flow, JIT-provision via `UserProvisioningService::provisionFromIdpClaims()`
-- Admin UI to enable/disable Google login per company + note the `hd` (hosted domain) claim for tenant validation
-- `authSource=google` users bypass local login + 2FA
+- ✅ `knpuniversity/oauth2-client-bundle` + `league/oauth2-google`
+- ✅ `GoogleUserResolver` (Application layer) — JIT-provisioning, `hd`-claim validation, email-conflict guard
+- ✅ `UserProvisioningServiceInterface` extracted so `GoogleUserResolver` is unit-testable
+- ✅ `GoogleAuthenticator` (Infrastructure) — OIDC flow, delegates resolution to `GoogleUserResolver`
+- ✅ `GoogleAuthController` — `/connect/google` + `/connect/google/check`
+- ✅ `Company.googleOAuthEnabled` + `Company.googleOAuthHostedDomain` — admin toggle + hd restriction
+- ✅ Admin UI in `/admin/company/settings` — enable/disable Google login + hosted domain field
+- ✅ Login page — conditional "Mit Google anmelden" button (shown only when enabled)
+- ✅ `authSource=google` users bypass 2FA (via existing `skipsTwoFactor()` from Phase 11.0)
+- ✅ 8 unit tests for `GoogleUserResolver` — all green, no PHPUnit notices
+- ✅ PHPStan L8, Deptrac 0, CS clean, 945 total tests
 
 **Exit:** dev-environment login with a real Google account works; existing local-auth tests unchanged.
 
