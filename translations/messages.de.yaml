@@ -70,6 +70,8 @@ security:
         remember_me: Angemeldet bleiben
         forgot_password: Passwort vergessen?
         submit: Anmelden
+        or: oder
+        google: Mit Google anmelden
     reset_password:
         request:
             title: Passwort zurücksetzen
@@ -540,6 +542,16 @@ admin:
             retention_months: "DSGVO-Aufbewahrungsdauer (Monate)"
             escalation_days: "Eskalations-Schwelle (Tage)"
             save: "Speichern"
+        google:
+            heading: "Google Workspace Login"
+            description: "Erlaubt Mitarbeitenden, sich mit ihrem Google-Konto anzumelden. Empfohlen für Teams, die Google Workspace nutzen. Die Option 'Mit Google anmelden' erscheint auf der Login-Seite."
+            hosted_domain_label: "Erlaubte Google-Workspace-Domain (optional)"
+            hosted_domain_hint: "Wenn angegeben, darf sich nur anmelden, wer ein Konto dieser Domain hat, z. B. 'acme.com'. Leer lassen, um alle Google-Konten zuzulassen."
+            enable_button: "Google-Login aktivieren"
+            disable_button: "Google-Login deaktivieren"
+            status:
+                enabled: "Google-Login ist aktiv"
+                disabled: "Google-Login ist nicht aktiv"
         2fa:
             heading: "Zwei-Faktor-Authentifizierung verpflichtend machen"
             description: "Wenn aktiviert, müssen alle Mitarbeitenden 2FA bis zu der unten gewählten Frist aktivieren. Bis dahin sehen sie einen Hinweis. Nach Ablauf der Frist können sie sich nicht mehr ohne 2FA einloggen."
@@ -560,6 +572,8 @@ admin:
             2fa_disabled: "2FA-Pflicht aufgehoben."
             2fa_invalid_date: "Bitte ein gültiges Datum angeben."
             2fa_past_date: "Der Stichtag muss in der Zukunft liegen."
+            google_oauth_enabled: "Google-Login wurde aktiviert."
+            google_oauth_disabled: "Google-Login wurde deaktiviert."
     statistics:
         title: Statistik
         heading: Statistik-Dashboard

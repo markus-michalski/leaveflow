@@ -70,6 +70,8 @@ security:
         remember_me: Remember me
         forgot_password: Forgot your password?
         submit: Sign in
+        or: or
+        google: Sign in with Google
     reset_password:
         request:
             title: Reset password
@@ -537,6 +539,16 @@ admin:
             retention_months: "GDPR retention period (months)"
             escalation_days: "Approval escalation threshold (days)"
             save: "Save"
+        google:
+            heading: "Google Workspace Login"
+            description: "Allow employees to sign in with their Google account. Recommended for teams using Google Workspace. A 'Sign in with Google' button will appear on the login page."
+            hosted_domain_label: "Allowed Google Workspace domain (optional)"
+            hosted_domain_hint: "If set, only accounts from this domain may sign in, e.g. 'acme.com'. Leave empty to allow any Google account."
+            enable_button: "Enable Google login"
+            disable_button: "Disable Google login"
+            status:
+                enabled: "Google login is active"
+                disabled: "Google login is not active"
         2fa:
             heading: "Require two-factor authentication"
             description: "When enabled, every employee must activate 2FA by the deadline below. Until then they see a reminder banner. After the deadline, sign-in is blocked for anyone without 2FA."
@@ -557,6 +569,8 @@ admin:
             2fa_disabled: "2FA requirement disabled."
             2fa_invalid_date: "Please provide a valid date."
             2fa_past_date: "The deadline must be in the future."
+            google_oauth_enabled: "Google login enabled."
+            google_oauth_disabled: "Google login disabled."
     statistics:
         title: Statistics
         heading: Statistics dashboard

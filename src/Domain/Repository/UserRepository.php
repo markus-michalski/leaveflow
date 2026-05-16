@@ -6,6 +6,7 @@ namespace App\Domain\Repository;
 
 use App\Domain\Entity\Company;
 use App\Domain\Entity\User;
+use App\Domain\Enum\AuthSource;
 use App\Domain\Enum\UserRole;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -26,6 +27,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function findOneByEmail(string $email): ?User
     {
         return $this->findOneBy(['email' => strtolower(trim($email))]);
+    }
+
+    /**
+     * Looks up a user by IdP source + the provider's subject identifier.
+     * Used by OAuth/LDAP authenticators to find an already-provisioned user
+     * on subsequent logins without relying on the (mutable) email address.
+     */
+    public function findByIdp(AuthSource $source, string $externalId): ?User
+    {
+        return $this->findOneBy([
+            'authSource' => $source,
+            'externalId' => $externalId,
+        ]);
     }
 
     /**

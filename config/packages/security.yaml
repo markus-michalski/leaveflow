@@ -26,6 +26,9 @@ security:
             provider: app_user_provider
             user_checker: App\Infrastructure\Security\UserChecker
 
+            custom_authenticators:
+                - App\Infrastructure\Security\GoogleAuthenticator
+
             form_login:
                 login_path: app_login
                 check_path: app_login
@@ -54,6 +57,7 @@ security:
 
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/connect/google, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
         # First-run setup wizard — only reachable before any company exists;
         # the SetupController itself bounces to /login once setup is done.

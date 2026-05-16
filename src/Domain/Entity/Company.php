@@ -236,4 +236,43 @@ class Company
         }
         $this->retentionPeriodMonths = $months;
     }
+
+    // ── Google Workspace OAuth ──────────────────────────────────────────────
+
+    #[ORM\Column(name: 'google_oauth_enabled', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $googleOAuthEnabled = false;
+
+    /**
+     * Optional hosted-domain restriction (the `hd` claim in Google's OIDC
+     * token). When set, only users from that Google Workspace domain may sign
+     * in via Google. Leave null to allow any Google account.
+     */
+    #[ORM\Column(name: 'google_oauth_hosted_domain', length: 253, nullable: true)]
+    private ?string $googleOAuthHostedDomain = null;
+
+    public function isGoogleOAuthEnabled(): bool
+    {
+        return $this->googleOAuthEnabled;
+    }
+
+    public function enableGoogleOAuth(): void
+    {
+        $this->googleOAuthEnabled = true;
+    }
+
+    public function disableGoogleOAuth(): void
+    {
+        $this->googleOAuthEnabled = false;
+    }
+
+    public function getGoogleOAuthHostedDomain(): ?string
+    {
+        return $this->googleOAuthHostedDomain;
+    }
+
+    public function setGoogleOAuthHostedDomain(?string $domain): void
+    {
+        $domain = null === $domain ? null : strtolower(trim($domain));
+        $this->googleOAuthHostedDomain = ('' === $domain) ? null : $domain;
+    }
 }
