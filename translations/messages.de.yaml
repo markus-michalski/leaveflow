@@ -550,6 +550,7 @@ admin:
             hosted_domain_hint: "Wenn angegeben, darf sich nur anmelden, wer ein Konto dieser Domain hat, z. B. 'acme.com'. Leer lassen, um alle Google-Konten zuzulassen."
             enable_button: "Google-Login aktivieren"
             disable_button: "Google-Login deaktivieren"
+            save_button: "Domain-Einschränkung speichern"
             status:
                 enabled: "Google-Login ist aktiv"
                 disabled: "Google-Login ist nicht aktiv"
@@ -560,6 +561,7 @@ admin:
             tenant_id_hint: "Wenn angegeben, dürfen sich nur Nutzer aus diesem Azure-Tenant anmelden (UUID, z. B. 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'). Leer lassen, um alle Microsoft-Konten zuzulassen."
             enable_button: "Microsoft-Login aktivieren"
             disable_button: "Microsoft-Login deaktivieren"
+            save_button: "Tenant-ID speichern"
             status:
                 enabled: "Microsoft-Login (Entra ID) ist aktiv"
                 disabled: "Microsoft-Login (Entra ID) ist nicht aktiv"

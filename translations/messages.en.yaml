@@ -547,6 +547,7 @@ admin:
             hosted_domain_hint: "If set, only accounts from this domain may sign in, e.g. 'acme.com'. Leave empty to allow any Google account."
             enable_button: "Enable Google login"
             disable_button: "Disable Google login"
+            save_button: "Save domain restriction"
             status:
                 enabled: "Google login is active"
                 disabled: "Google login is not active"
@@ -557,6 +558,7 @@ admin:
             tenant_id_hint: "If set, only users from this Azure tenant may sign in (UUID, e.g. 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'). Leave empty to allow any Microsoft account."
             enable_button: "Enable Microsoft login"
             disable_button: "Disable Microsoft login"
+            save_button: "Save Tenant ID"
             status:
                 enabled: "Microsoft login (Entra ID) is active"
                 disabled: "Microsoft login (Entra ID) is not active"
