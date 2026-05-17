@@ -1,0 +1,51 @@
+# Organizational units
+dn: ou=users,dc=leaveflow,dc=test
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=groups,dc=leaveflow,dc=test
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+# Users
+dn: uid=alice,ou=users,dc=leaveflow,dc=test
+objectClass: top
+objectClass: inetOrgPerson
+cn: Alice Employee
+sn: Employee
+uid: alice
+mail: alice.ldap@leaveflow.test
+userPassword: alice123
+
+dn: uid=bob,ou=users,dc=leaveflow,dc=test
+objectClass: top
+objectClass: inetOrgPerson
+cn: Bob Manager
+sn: Manager
+uid: bob
+mail: bob.ldap@leaveflow.test
+userPassword: bob123
+
+dn: uid=carol,ou=users,dc=leaveflow,dc=test
+objectClass: top
+objectClass: inetOrgPerson
+cn: Carol Admin
+sn: Admin
+uid: carol
+mail: carol.ldap@leaveflow.test
+userPassword: carol123
+
+# Groups
+dn: cn=managers,ou=groups,dc=leaveflow,dc=test
+objectClass: top
+objectClass: groupOfNames
+cn: managers
+member: uid=bob,ou=users,dc=leaveflow,dc=test
+
+dn: cn=admins,ou=groups,dc=leaveflow,dc=test
+objectClass: top
+objectClass: groupOfNames
+cn: admins
+member: uid=carol,ou=users,dc=leaveflow,dc=test

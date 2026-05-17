@@ -197,6 +197,46 @@ final class AdminCompanySettingsController extends AbstractController
         return $this->redirectToRoute('app_admin_company_settings_index');
     }
 
+    #[Route('/ldap', name: 'set_ldap', methods: ['POST'])]
+    public function setLdap(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('company_settings_ldap', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $company = $this->requireCompany();
+        $enable = '1' === $request->request->get('enable');
+
+        if ($enable) {
+            $company->enableLdap();
+        } else {
+            $company->disableLdap();
+        }
+
+        $company->setLdapHost(trim((string) $request->request->get('ldap_host', '')) ?: null);
+        $port = (int) $request->request->get('ldap_port', 389);
+        $company->setLdapPort($port > 0 ? $port : null);
+        $company->setLdapEncryption(trim((string) $request->request->get('ldap_encryption', 'none')) ?: null);
+        $company->setLdapBindDn(trim((string) $request->request->get('ldap_bind_dn', '')) ?: null);
+        $rawPassword = (string) $request->request->get('ldap_bind_password', '');
+        if ('' !== $rawPassword) {
+            $company->setLdapBindPassword($rawPassword);
+        }
+        $company->setLdapBaseDn(trim((string) $request->request->get('ldap_base_dn', '')) ?: null);
+        $company->setLdapUserFilter(trim((string) $request->request->get('ldap_user_filter', '')) ?: null);
+        $company->setLdapGroupManagerDn(trim((string) $request->request->get('ldap_group_manager_dn', '')) ?: null);
+        $company->setLdapGroupAdminDn(trim((string) $request->request->get('ldap_group_admin_dn', '')) ?: null);
+
+        $this->entityManager->flush();
+
+        $key = $enable
+            ? 'admin.company_settings.flash.ldap_enabled'
+            : 'admin.company_settings.flash.ldap_disabled';
+        $this->addFlash('success', $this->translator->trans($key));
+
+        return $this->redirectToRoute('app_admin_company_settings_index');
+    }
+
     private function requireCompany(): Company
     {
         $company = $this->companyRepository->findOneBy([]);

@@ -73,6 +73,7 @@ security:
         or: or
         google: Sign in with Google
         entra: Sign in with Microsoft
+        ldap_hint: "LDAP login is enabled. Sign in with your corporate credentials (username and password)."
     reset_password:
         request:
             title: Reset password
@@ -565,6 +566,39 @@ admin:
             security_warning:
                 heading: "Security notice: Tenant ID recommended"
                 body: "Without a Tenant ID restriction, users with personal Microsoft accounts can sign in and potentially claim your employees' email addresses. Enter your Azure directory's Tenant ID and save to eliminate this risk."
+        ldap:
+            heading: "LDAP / Active Directory Login"
+            description: "Allow employees to sign in with their corporate credentials (LDAP / Active Directory). LDAP users retain the 2FA requirement — set up LDAPS or STARTTLS for SSO-grade security."
+            host_label: "LDAP host"
+            host_placeholder: "ldap.company.example.com"
+            port_label: "Port"
+            port_placeholder: "389"
+            encryption_label: "Encryption"
+            encryption_none: "None (plaintext)"
+            encryption_tls: "STARTTLS"
+            encryption_ssl: "LDAPS (port 636)"
+            bind_dn_label: "Bind DN (service account)"
+            bind_dn_placeholder: "cn=leaveflow,ou=service,dc=company,dc=example,dc=com"
+            bind_dn_hint: "Leave empty for anonymous bind (only if your LDAP server permits it)."
+            bind_password_label: "Bind password"
+            bind_password_placeholder: "Only fill in to change the existing password"
+            base_dn_label: "Base DN (user search)"
+            base_dn_placeholder: "ou=users,dc=company,dc=example,dc=com"
+            user_filter_label: "User filter"
+            user_filter_placeholder: "(uid={username})"
+            user_filter_hint: "{username} is replaced with the submitted username. For Active Directory: (sAMAccountName={username})"
+            group_manager_dn_label: "Manager group (DN)"
+            group_manager_dn_placeholder: "cn=managers,ou=groups,dc=company,dc=example,dc=com"
+            group_manager_dn_hint: "Members of this LDAP group receive the Manager role. Leave empty to skip group-based role mapping."
+            group_admin_dn_label: "Admin group (DN)"
+            group_admin_dn_placeholder: "cn=admins,ou=groups,dc=company,dc=example,dc=com"
+            group_admin_dn_hint: "Members of this LDAP group receive the Administrator role."
+            enable_button: "Enable LDAP login"
+            disable_button: "Disable LDAP login"
+            save_button: "Save configuration"
+            status:
+                enabled: "LDAP login is active"
+                disabled: "LDAP login is not active"
         2fa:
             heading: "Require two-factor authentication"
             description: "When enabled, every employee must activate 2FA by the deadline below. Until then they see a reminder banner. After the deadline, sign-in is blocked for anyone without 2FA."
@@ -589,6 +623,8 @@ admin:
             google_oauth_disabled: "Google login disabled."
             entra_oauth_enabled: "Microsoft login (Entra ID) enabled."
             entra_oauth_disabled: "Microsoft login (Entra ID) disabled."
+            ldap_enabled: "LDAP login enabled."
+            ldap_disabled: "LDAP login disabled."
     statistics:
         title: Statistics
         heading: Statistics dashboard

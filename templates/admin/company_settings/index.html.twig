@@ -256,6 +256,71 @@
         </div>
     </section>
 
+    {# LDAP / Active Directory #}
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-ldap">
+        <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.ldap.heading'|trans }}</h2>
+        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.ldap.description'|trans }}</p>
+
+        <div class="mt-4">
+            {% if company.isLdapEnabled() %}
+                <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800">
+                    <span class="h-2 w-2 rounded-full bg-green-500"></span>
+                    {{ 'admin.company_settings.ldap.status.enabled'|trans }}
+                </div>
+
+                {# Save config (keep enabled) #}
+                <form method="post"
+                      action="{{ path('app_admin_company_settings_set_ldap') }}"
+                      class="mb-4"
+                      data-testid="company-settings-ldap-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('company_settings_ldap') }}">
+                    <input type="hidden" name="enable" value="1">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        {% include 'admin/company_settings/_ldap_fields.html.twig' with { company: company } %}
+                    </div>
+                    <button type="submit"
+                            class="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                        {{ 'admin.company_settings.ldap.save_button'|trans }}
+                    </button>
+                </form>
+
+                {# Disable (preserve current config values) #}
+                <form method="post" action="{{ path('app_admin_company_settings_set_ldap') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('company_settings_ldap') }}">
+                    <input type="hidden" name="enable" value="0">
+                    <input type="hidden" name="ldap_host" value="{{ company.ldapHost ?? '' }}">
+                    <input type="hidden" name="ldap_port" value="{{ company.ldapPort ?? 389 }}">
+                    <input type="hidden" name="ldap_encryption" value="{{ company.ldapEncryption ?? 'none' }}">
+                    <input type="hidden" name="ldap_bind_dn" value="{{ company.ldapBindDn ?? '' }}">
+                    <input type="hidden" name="ldap_base_dn" value="{{ company.ldapBaseDn ?? '' }}">
+                    <input type="hidden" name="ldap_user_filter" value="{{ company.ldapUserFilter ?? '' }}">
+                    <input type="hidden" name="ldap_group_manager_dn" value="{{ company.ldapGroupManagerDn ?? '' }}">
+                    <input type="hidden" name="ldap_group_admin_dn" value="{{ company.ldapGroupAdminDn ?? '' }}">
+                    <button type="submit"
+                            class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-400">
+                        {{ 'admin.company_settings.ldap.disable_button'|trans }}
+                    </button>
+                </form>
+            {% else %}
+                <p class="text-sm text-gray-500">{{ 'admin.company_settings.ldap.status.disabled'|trans }}</p>
+                <form method="post"
+                      action="{{ path('app_admin_company_settings_set_ldap') }}"
+                      class="mt-4"
+                      data-testid="company-settings-ldap-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('company_settings_ldap') }}">
+                    <input type="hidden" name="enable" value="1">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        {% include 'admin/company_settings/_ldap_fields.html.twig' with { company: company } %}
+                    </div>
+                    <button type="submit"
+                            class="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-600">
+                        {{ 'admin.company_settings.ldap.enable_button'|trans }}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </section>
+
     {# Existing 2FA-requirement section — separate form so file-upload state doesn't bleed into the toggle. #}
     <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-2fa">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.2fa.heading'|trans }}</h2>

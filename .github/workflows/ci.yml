@@ -27,7 +27,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, intl, pdo_mysql, zip, pcntl, opcache, apcu, pcov
+          extensions: mbstring, intl, pdo_mysql, zip, pcntl, opcache, apcu, pcov, ldap
           coverage: pcov
           ini-values: |
             date.timezone=Europe/Berlin
@@ -95,11 +95,31 @@ jobs:
         ports:
           - 1025:1025
 
+      openldap:
+        image: bitnami/openldap:2
+        env:
+          LDAP_ROOT: dc=leaveflow,dc=test
+          LDAP_ADMIN_USERNAME: admin
+          LDAP_ADMIN_PASSWORD: adminpassword
+          LDAP_PORT_NUMBER: "1389"
+        ports:
+          - 1389:1389
+        options: >-
+          --health-cmd "ldapsearch -x -H ldap://localhost:1389 -b dc=leaveflow,dc=test -D cn=admin,dc=leaveflow,dc=test -w adminpassword || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
       APP_ENV: test
       APP_SECRET: ci-secret-does-not-matter
       DATABASE_URL: mysql://app:app@127.0.0.1:3306/app?serverVersion=11.4.2-MariaDB&charset=utf8mb4
       MAILER_DSN: smtp://127.0.0.1:1025
+      LDAP_HOST: 127.0.0.1
+      LDAP_PORT: "1389"
+      LDAP_ADMIN_DN: cn=admin,dc=leaveflow,dc=test
+      LDAP_ADMIN_PASSWORD: adminpassword
+      LDAP_BASE_DN: dc=leaveflow,dc=test
 
     steps:
       - uses: actions/checkout@v4
@@ -108,7 +128,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, intl, pdo_mysql, zip, pcntl, opcache, apcu, pcov
+          extensions: mbstring, intl, pdo_mysql, zip, pcntl, opcache, apcu, pcov, ldap
           coverage: pcov
           ini-values: |
             date.timezone=Europe/Berlin

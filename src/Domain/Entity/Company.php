@@ -314,4 +314,160 @@ class Company
         $tenantId = null === $tenantId ? null : trim($tenantId);
         $this->entraOAuthTenantId = ('' === $tenantId) ? null : $tenantId;
     }
+
+    // ── LDAP / Active Directory ─────────────────────────────────────────────
+
+    #[ORM\Column(name: 'ldap_enabled', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $ldapEnabled = false;
+
+    /** Hostname or IP of the LDAP/AD server. */
+    #[ORM\Column(name: 'ldap_host', length: 253, nullable: true)]
+    private ?string $ldapHost = null;
+
+    /** Port number. 389 for plain/STARTTLS, 636 for LDAPS. */
+    #[ORM\Column(name: 'ldap_port', nullable: true)]
+    private ?int $ldapPort = null;
+
+    /** Transport security: 'none', 'tls' (STARTTLS), or 'ssl' (LDAPS). */
+    #[ORM\Column(name: 'ldap_encryption', length: 4, nullable: true)]
+    private ?string $ldapEncryption = null;
+
+    /** DN of the service account used for searching the directory. Null = anonymous bind. */
+    #[ORM\Column(name: 'ldap_bind_dn', length: 512, nullable: true)]
+    private ?string $ldapBindDn = null;
+
+    #[ORM\Column(name: 'ldap_bind_password', length: 255, nullable: true)]
+    private ?string $ldapBindPassword = null;
+
+    /** Base DN for user searches, e.g. "ou=users,dc=example,dc=com". */
+    #[ORM\Column(name: 'ldap_base_dn', length: 512, nullable: true)]
+    private ?string $ldapBaseDn = null;
+
+    /**
+     * LDAP filter used to locate a user by username.
+     * Use {username} as placeholder — it is replaced at runtime.
+     * Default: "(uid={username})". For Active Directory: "(sAMAccountName={username})".
+     */
+    #[ORM\Column(name: 'ldap_user_filter', length: 255, nullable: true)]
+    private ?string $ldapUserFilter = null;
+
+    /** DN of the LDAP group whose members receive the Manager role. */
+    #[ORM\Column(name: 'ldap_group_manager_dn', length: 512, nullable: true)]
+    private ?string $ldapGroupManagerDn = null;
+
+    /** DN of the LDAP group whose members receive the Admin role. */
+    #[ORM\Column(name: 'ldap_group_admin_dn', length: 512, nullable: true)]
+    private ?string $ldapGroupAdminDn = null;
+
+    public function isLdapEnabled(): bool
+    {
+        return $this->ldapEnabled;
+    }
+
+    public function enableLdap(): void
+    {
+        $this->ldapEnabled = true;
+    }
+
+    public function disableLdap(): void
+    {
+        $this->ldapEnabled = false;
+    }
+
+    public function getLdapHost(): ?string
+    {
+        return $this->ldapHost;
+    }
+
+    public function setLdapHost(?string $host): void
+    {
+        $host = null === $host ? null : trim($host);
+        $this->ldapHost = ('' === $host) ? null : $host;
+    }
+
+    public function getLdapPort(): ?int
+    {
+        return $this->ldapPort;
+    }
+
+    public function setLdapPort(?int $port): void
+    {
+        $this->ldapPort = $port;
+    }
+
+    public function getLdapEncryption(): ?string
+    {
+        return $this->ldapEncryption;
+    }
+
+    public function setLdapEncryption(?string $encryption): void
+    {
+        $this->ldapEncryption = $encryption;
+    }
+
+    public function getLdapBindDn(): ?string
+    {
+        return $this->ldapBindDn;
+    }
+
+    public function setLdapBindDn(?string $dn): void
+    {
+        $dn = null === $dn ? null : trim($dn);
+        $this->ldapBindDn = ('' === $dn) ? null : $dn;
+    }
+
+    public function getLdapBindPassword(): ?string
+    {
+        return $this->ldapBindPassword;
+    }
+
+    public function setLdapBindPassword(?string $password): void
+    {
+        $password = null === $password ? null : $password;
+        $this->ldapBindPassword = ('' === $password) ? null : $password;
+    }
+
+    public function getLdapBaseDn(): ?string
+    {
+        return $this->ldapBaseDn;
+    }
+
+    public function setLdapBaseDn(?string $baseDn): void
+    {
+        $baseDn = null === $baseDn ? null : trim($baseDn);
+        $this->ldapBaseDn = ('' === $baseDn) ? null : $baseDn;
+    }
+
+    public function getLdapUserFilter(): ?string
+    {
+        return $this->ldapUserFilter;
+    }
+
+    public function setLdapUserFilter(?string $filter): void
+    {
+        $filter = null === $filter ? null : trim($filter);
+        $this->ldapUserFilter = ('' === $filter) ? null : $filter;
+    }
+
+    public function getLdapGroupManagerDn(): ?string
+    {
+        return $this->ldapGroupManagerDn;
+    }
+
+    public function setLdapGroupManagerDn(?string $dn): void
+    {
+        $dn = null === $dn ? null : trim($dn);
+        $this->ldapGroupManagerDn = ('' === $dn) ? null : $dn;
+    }
+
+    public function getLdapGroupAdminDn(): ?string
+    {
+        return $this->ldapGroupAdminDn;
+    }
+
+    public function setLdapGroupAdminDn(?string $dn): void
+    {
+        $dn = null === $dn ? null : trim($dn);
+        $this->ldapGroupAdminDn = ('' === $dn) ? null : $dn;
+    }
 }
