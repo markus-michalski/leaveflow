@@ -72,6 +72,7 @@ security:
         submit: Sign in
         or: or
         google: Sign in with Google
+        entra: Sign in with Microsoft
     reset_password:
         request:
             title: Reset password
@@ -546,9 +547,24 @@ admin:
             hosted_domain_hint: "If set, only accounts from this domain may sign in, e.g. 'acme.com'. Leave empty to allow any Google account."
             enable_button: "Enable Google login"
             disable_button: "Disable Google login"
+            save_button: "Save domain restriction"
             status:
                 enabled: "Google login is active"
                 disabled: "Google login is not active"
+        entra:
+            heading: "Microsoft Entra ID Login"
+            description: "Allow employees to sign in with their Microsoft account (Azure AD / Entra ID). Recommended for teams using Microsoft 365. A 'Sign in with Microsoft' button will appear on the login page."
+            tenant_id_label: "Tenant ID (optional)"
+            tenant_id_hint: "If set, only users from this Azure tenant may sign in (UUID, e.g. 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'). Leave empty to allow any Microsoft account."
+            enable_button: "Enable Microsoft login"
+            disable_button: "Disable Microsoft login"
+            save_button: "Save Tenant ID"
+            status:
+                enabled: "Microsoft login (Entra ID) is active"
+                disabled: "Microsoft login (Entra ID) is not active"
+            security_warning:
+                heading: "Security notice: Tenant ID recommended"
+                body: "Without a Tenant ID restriction, users with personal Microsoft accounts can sign in and potentially claim your employees' email addresses. Enter your Azure directory's Tenant ID and save to eliminate this risk."
         2fa:
             heading: "Require two-factor authentication"
             description: "When enabled, every employee must activate 2FA by the deadline below. Until then they see a reminder banner. After the deadline, sign-in is blocked for anyone without 2FA."
@@ -571,6 +587,8 @@ admin:
             2fa_past_date: "The deadline must be in the future."
             google_oauth_enabled: "Google login enabled."
             google_oauth_disabled: "Google login disabled."
+            entra_oauth_enabled: "Microsoft login (Entra ID) enabled."
+            entra_oauth_disabled: "Microsoft login (Entra ID) disabled."
     statistics:
         title: Statistics
         heading: Statistics dashboard

@@ -168,6 +168,35 @@ final class AdminCompanySettingsController extends AbstractController
         return $this->redirectToRoute('app_admin_company_settings_index');
     }
 
+    #[Route('/entra-oauth', name: 'set_entra_oauth', methods: ['POST'])]
+    public function setEntraOAuth(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('company_settings_entra', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $company = $this->requireCompany();
+        $enable = '1' === $request->request->get('enable');
+
+        if ($enable) {
+            $company->enableEntraOAuth();
+        } else {
+            $company->disableEntraOAuth();
+        }
+
+        $rawTenantId = trim((string) $request->request->get('tenant_id', ''));
+        $company->setEntraOAuthTenantId('' === $rawTenantId ? null : $rawTenantId);
+
+        $this->entityManager->flush();
+
+        $key = $enable
+            ? 'admin.company_settings.flash.entra_oauth_enabled'
+            : 'admin.company_settings.flash.entra_oauth_disabled';
+        $this->addFlash('success', $this->translator->trans($key));
+
+        return $this->redirectToRoute('app_admin_company_settings_index');
+    }
+
     private function requireCompany(): Company
     {
         $company = $this->companyRepository->findOneBy([]);

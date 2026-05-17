@@ -28,6 +28,7 @@ security:
 
             custom_authenticators:
                 - App\Infrastructure\Security\GoogleAuthenticator
+                - App\Infrastructure\Security\EntraAuthenticator
 
             form_login:
                 login_path: app_login
@@ -58,6 +59,7 @@ security:
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/connect/google, roles: PUBLIC_ACCESS }
+        - { path: ^/connect/entra, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
         # First-run setup wizard — only reachable before any company exists;
         # the SetupController itself bounces to /login once setup is done.

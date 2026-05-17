@@ -72,6 +72,7 @@ security:
         submit: Anmelden
         or: oder
         google: Mit Google anmelden
+        entra: Mit Microsoft anmelden
     reset_password:
         request:
             title: Passwort zurücksetzen
@@ -549,9 +550,24 @@ admin:
             hosted_domain_hint: "Wenn angegeben, darf sich nur anmelden, wer ein Konto dieser Domain hat, z. B. 'acme.com'. Leer lassen, um alle Google-Konten zuzulassen."
             enable_button: "Google-Login aktivieren"
             disable_button: "Google-Login deaktivieren"
+            save_button: "Domain-Einschränkung speichern"
             status:
                 enabled: "Google-Login ist aktiv"
                 disabled: "Google-Login ist nicht aktiv"
+        entra:
+            heading: "Microsoft Entra ID Login"
+            description: "Erlaubt Mitarbeitenden, sich mit ihrem Microsoft-Konto (Azure AD / Entra ID) anzumelden. Empfohlen für Teams, die Microsoft 365 nutzen. Die Option 'Mit Microsoft anmelden' erscheint auf der Login-Seite."
+            tenant_id_label: "Tenant-ID (optional)"
+            tenant_id_hint: "Wenn angegeben, dürfen sich nur Nutzer aus diesem Azure-Tenant anmelden (UUID, z. B. 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'). Leer lassen, um alle Microsoft-Konten zuzulassen."
+            enable_button: "Microsoft-Login aktivieren"
+            disable_button: "Microsoft-Login deaktivieren"
+            save_button: "Tenant-ID speichern"
+            status:
+                enabled: "Microsoft-Login (Entra ID) ist aktiv"
+                disabled: "Microsoft-Login (Entra ID) ist nicht aktiv"
+            security_warning:
+                heading: "Sicherheitshinweis: Tenant-ID empfohlen"
+                body: "Ohne Tenant-ID-Einschränkung können sich auch Nutzer mit persönlichen Microsoft-Konten anmelden und möglicherweise E-Mail-Adressen von Firmenmitarbeitenden beanspruchen. Gib die Tenant-ID deines Azure-Verzeichnisses ein und speichere, um dieses Risiko zu eliminieren."
         2fa:
             heading: "Zwei-Faktor-Authentifizierung verpflichtend machen"
             description: "Wenn aktiviert, müssen alle Mitarbeitenden 2FA bis zu der unten gewählten Frist aktivieren. Bis dahin sehen sie einen Hinweis. Nach Ablauf der Frist können sie sich nicht mehr ohne 2FA einloggen."
@@ -574,6 +590,8 @@ admin:
             2fa_past_date: "Der Stichtag muss in der Zukunft liegen."
             google_oauth_enabled: "Google-Login wurde aktiviert."
             google_oauth_disabled: "Google-Login wurde deaktiviert."
+            entra_oauth_enabled: "Microsoft-Login (Entra ID) wurde aktiviert."
+            entra_oauth_disabled: "Microsoft-Login (Entra ID) wurde deaktiviert."
     statistics:
         title: Statistik
         heading: Statistik-Dashboard

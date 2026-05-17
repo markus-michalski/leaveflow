@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Security;
+
+use App\Application\Security\EntraUserResolver;
+use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
+use KnpU\OAuth2ClientBundle\Security\Authenticator\OAuth2Authenticator;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
+use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
+use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+use TheNetworg\OAuth2\Client\Provider\AzureResourceOwner;
+
+final class EntraAuthenticator extends OAuth2Authenticator
+{
+    public function __construct(
+        private readonly ClientRegistry $clientRegistry,
+        private readonly EntraUserResolver $userResolver,
+        private readonly RouterInterface $router,
+    ) {
+    }
+
+    public function supports(Request $request): bool
+    {
+        return 'connect_entra_check' === $request->attributes->get('_route');
+    }
+
+    public function authenticate(Request $request): Passport
+    {
+        $client = $this->clientRegistry->getClient('azure');
+        $accessToken = $this->fetchAccessToken($client);
+
+        return new SelfValidatingPassport(
+            new UserBadge($accessToken->getToken(), function () use ($accessToken, $client) {
+                /** @var AzureResourceOwner $azureUser */
+                $azureUser = $client->fetchUserFromToken($accessToken);
+
+                return $this->userResolver->resolve($azureUser);
+            })
+        );
+    }
+
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): Response
+    {
+        return new RedirectResponse($this->router->generate('app_dashboard'));
+    }
+
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
+    {
+        $session = $request->getSession();
+        if ($session instanceof FlashBagAwareSessionInterface) {
+            $session->getFlashBag()->add('error', $exception->getMessageKey());
+        }
+
+        return new RedirectResponse($this->router->generate('app_login'));
+    }
+}
