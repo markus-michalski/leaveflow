@@ -32,6 +32,7 @@ final class LoginController extends AbstractController
             'error' => $authenticationUtils->getLastAuthenticationError(),
             'google_oauth_enabled' => null !== $company && $company->isGoogleOAuthEnabled(),
             'entra_oauth_enabled' => null !== $company && $company->isEntraOAuthEnabled(),
+            'ldap_enabled' => null !== $company && $company->isLdapEnabled(),
         ]);
     }
 

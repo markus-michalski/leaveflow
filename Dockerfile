@@ -29,7 +29,8 @@ RUN install-php-extensions \
         apcu \
         gd \
         mbstring \
-        fileinfo
+        fileinfo \
+        ldap
 
 # Composer from the official image.
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

@@ -6,3 +6,6 @@ entra_login_disabled: "Microsoft login (Entra ID) is not enabled for this servic
 entra_wrong_tenant: "Your Microsoft account does not belong to the allowed Azure tenant."
 entra_email_taken: "This email address is already linked to a different sign-in method."
 entra_no_email: "Your Microsoft account has no email address configured."
+ldap_login_disabled: "LDAP login is not enabled for this service."
+ldap_email_taken: "This email address is already linked to a different sign-in method."
+ldap_connection_error: "Could not connect to the LDAP server. Please contact your administrator."

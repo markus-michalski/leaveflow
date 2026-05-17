@@ -73,6 +73,7 @@ security:
         or: oder
         google: Mit Google anmelden
         entra: Mit Microsoft anmelden
+        ldap_hint: "LDAP-Login ist aktiviert. Melde dich mit deinen Unternehmens-Zugangsdaten (Benutzername und Passwort) an."
     reset_password:
         request:
             title: Passwort zurücksetzen
@@ -568,6 +569,39 @@ admin:
             security_warning:
                 heading: "Sicherheitshinweis: Tenant-ID empfohlen"
                 body: "Ohne Tenant-ID-Einschränkung können sich auch Nutzer mit persönlichen Microsoft-Konten anmelden und möglicherweise E-Mail-Adressen von Firmenmitarbeitenden beanspruchen. Gib die Tenant-ID deines Azure-Verzeichnisses ein und speichere, um dieses Risiko zu eliminieren."
+        ldap:
+            heading: "LDAP / Active Directory Login"
+            description: "Erlaubt Mitarbeitenden, sich mit ihren Unternehmens-Zugangsdaten (LDAP / Active Directory) anzumelden. Nutzende von LDAP behalten die 2FA-Pflicht — für SSO-Stärke LDAPS oder STARTTLS einrichten."
+            host_label: "LDAP-Host"
+            host_placeholder: "ldap.firma.example.com"
+            port_label: "Port"
+            port_placeholder: "389"
+            encryption_label: "Verschlüsselung"
+            encryption_none: "Keine (Klartext)"
+            encryption_tls: "STARTTLS"
+            encryption_ssl: "LDAPS (Port 636)"
+            bind_dn_label: "Bind-DN (Service-Account)"
+            bind_dn_placeholder: "cn=leaveflow,ou=service,dc=firma,dc=example,dc=com"
+            bind_dn_hint: "Leer lassen für anonymen Bind (nur wenn dein LDAP-Server das erlaubt)."
+            bind_password_label: "Bind-Passwort"
+            bind_password_placeholder: "Nur ändern, um das bestehende Passwort zu ersetzen"
+            base_dn_label: "Basis-DN (User-Suche)"
+            base_dn_placeholder: "ou=users,dc=firma,dc=example,dc=com"
+            user_filter_label: "Benutzer-Filter"
+            user_filter_placeholder: "(uid={username})"
+            user_filter_hint: "{username} wird durch den eingegebenen Benutzernamen ersetzt. Für Active Directory: (sAMAccountName={username})"
+            group_manager_dn_label: "Manager-Gruppe (DN)"
+            group_manager_dn_placeholder: "cn=managers,ou=groups,dc=firma,dc=example,dc=com"
+            group_manager_dn_hint: "Mitglieder dieser LDAP-Gruppe erhalten die Rolle 'Manager'. Leer lassen, wenn kein Gruppen-Mapping gewünscht."
+            group_admin_dn_label: "Admin-Gruppe (DN)"
+            group_admin_dn_placeholder: "cn=admins,ou=groups,dc=firma,dc=example,dc=com"
+            group_admin_dn_hint: "Mitglieder dieser LDAP-Gruppe erhalten die Rolle 'Administrator'."
+            enable_button: "LDAP-Login aktivieren"
+            disable_button: "LDAP-Login deaktivieren"
+            save_button: "Konfiguration speichern"
+            status:
+                enabled: "LDAP-Login ist aktiv"
+                disabled: "LDAP-Login ist nicht aktiv"
         2fa:
             heading: "Zwei-Faktor-Authentifizierung verpflichtend machen"
             description: "Wenn aktiviert, müssen alle Mitarbeitenden 2FA bis zu der unten gewählten Frist aktivieren. Bis dahin sehen sie einen Hinweis. Nach Ablauf der Frist können sie sich nicht mehr ohne 2FA einloggen."
@@ -592,6 +626,8 @@ admin:
             google_oauth_disabled: "Google-Login wurde deaktiviert."
             entra_oauth_enabled: "Microsoft-Login (Entra ID) wurde aktiviert."
             entra_oauth_disabled: "Microsoft-Login (Entra ID) wurde deaktiviert."
+            ldap_enabled: "LDAP-Login wurde aktiviert."
+            ldap_disabled: "LDAP-Login wurde deaktiviert."
     statistics:
         title: Statistik
         heading: Statistik-Dashboard

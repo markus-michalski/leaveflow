@@ -27,8 +27,13 @@ security:
             user_checker: App\Infrastructure\Security\UserChecker
 
             custom_authenticators:
+                - App\Infrastructure\Security\LdapAuthenticator
                 - App\Infrastructure\Security\GoogleAuthenticator
                 - App\Infrastructure\Security\EntraAuthenticator
+
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
 
             form_login:
                 login_path: app_login

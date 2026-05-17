@@ -47,6 +47,21 @@ services:
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
     restart: unless-stopped
 
+  # OpenLDAP for local LDAP login development and integration tests.
+  # Accessible from the app container as ldap://openldap:389
+  openldap:
+    image: osixia/openldap:1.5.0
+    environment:
+      LDAP_ORGANISATION: "LeaveFlow Test"
+      LDAP_DOMAIN: leaveflow.test
+      LDAP_ADMIN_PASSWORD: adminpassword
+    volumes:
+      - ./docker/openldap/fixture.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/fixture.ldif:ro
+    command: --copy-service
+    ports:
+      - "1389:389"
+    restart: unless-stopped
+
 volumes:
   database_data:
   caddy_data:

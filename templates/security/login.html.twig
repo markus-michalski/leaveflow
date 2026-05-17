@@ -103,6 +103,20 @@
                 {{ 'security.login.entra'|trans }}
             </a>
         {% endif %}
+
+        {% if ldap_enabled is defined and ldap_enabled %}
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+                <div class="relative flex justify-center text-xs text-gray-400"><span class="bg-white px-2">{{ 'security.login.or'|trans }}</span></div>
+            </div>
+            <div class="rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800"
+                 data-testid="login-ldap-notice">
+                <svg class="mr-1.5 inline h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21 12 3l9.75 18H2.25Zm9.75-13.5v6m0 3h.008v.008H12V16.5Z"/>
+                </svg>
+                {{ 'security.login.ldap_hint'|trans }}
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

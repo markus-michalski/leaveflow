@@ -1,0 +1,109 @@
+{# Reusable LDAP configuration fields — included in both the enable and edit forms. #}
+
+<div class="sm:col-span-2">
+    <label class="block text-sm font-medium text-gray-700">
+        {{ 'admin.company_settings.ldap.host_label'|trans }}
+    </label>
+    <input type="text"
+           name="ldap_host"
+           value="{{ company.ldapHost ?? '' }}"
+           placeholder="{{ 'admin.company_settings.ldap.host_placeholder'|trans }}"
+           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+</div>
+
+<div>
+    <label class="block text-sm font-medium text-gray-700">
+        {{ 'admin.company_settings.ldap.port_label'|trans }}
+    </label>
+    <input type="number"
+           name="ldap_port"
+           value="{{ company.ldapPort ?? 389 }}"
+           min="1"
+           max="65535"
+           placeholder="{{ 'admin.company_settings.ldap.port_placeholder'|trans }}"
+           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+</div>
+
+<div>
+    <label class="block text-sm font-medium text-gray-700">
+        {{ 'admin.company_settings.ldap.encryption_label'|trans }}
+    </label>
+    <select name="ldap_encryption"
+            class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        {% set enc = company.ldapEncryption ?? 'none' %}
+        <option value="none" {{ enc == 'none' ? 'selected' }}>{{ 'admin.company_settings.ldap.encryption_none'|trans }}</option>
+        <option value="tls"  {{ enc == 'tls'  ? 'selected' }}>{{ 'admin.company_settings.ldap.encryption_tls'|trans }}</option>
+        <option value="ssl"  {{ enc == 'ssl'  ? 'selected' }}>{{ 'admin.company_settings.ldap.encryption_ssl'|trans }}</option>
+    </select>
+</div>
+
+<div class="sm:col-span-2">
+    <label class="block text-sm font-medium text-gray-700">
+        {{ 'admin.company_settings.ldap.bind_dn_label'|trans }}
+    </label>
+    <input type="text"
+           name="ldap_bind_dn"
+           value="{{ company.ldapBindDn ?? '' }}"
+           placeholder="{{ 'admin.company_settings.ldap.bind_dn_placeholder'|trans }}"
+           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+    <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.ldap.bind_dn_hint'|trans }}</p>
+</div>
+
+<div class="sm:col-span-2">
+    <label class="block text-sm font-medium text-gray-700">
+        {{ 'admin.company_settings.ldap.bind_password_label'|trans }}
+    </label>
+    <input type="password"
+           name="ldap_bind_password"
+           value=""
+           autocomplete="new-password"
+           placeholder="{{ 'admin.company_settings.ldap.bind_password_placeholder'|trans }}"
+           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+</div>
+
+<div class="sm:col-span-2">
+    <label class="block text-sm font-medium text-gray-700">
+        {{ 'admin.company_settings.ldap.base_dn_label'|trans }}
+    </label>
+    <input type="text"
+           name="ldap_base_dn"
+           value="{{ company.ldapBaseDn ?? '' }}"
+           placeholder="{{ 'admin.company_settings.ldap.base_dn_placeholder'|trans }}"
+           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+</div>
+
+<div class="sm:col-span-2">
+    <label class="block text-sm font-medium text-gray-700">
+        {{ 'admin.company_settings.ldap.user_filter_label'|trans }}
+    </label>
+    <input type="text"
+           name="ldap_user_filter"
+           value="{{ company.ldapUserFilter ?? '(uid={username})' }}"
+           placeholder="{{ 'admin.company_settings.ldap.user_filter_placeholder'|trans }}"
+           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+    <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.ldap.user_filter_hint'|trans }}</p>
+</div>
+
+<div class="sm:col-span-2">
+    <label class="block text-sm font-medium text-gray-700">
+        {{ 'admin.company_settings.ldap.group_manager_dn_label'|trans }}
+    </label>
+    <input type="text"
+           name="ldap_group_manager_dn"
+           value="{{ company.ldapGroupManagerDn ?? '' }}"
+           placeholder="{{ 'admin.company_settings.ldap.group_manager_dn_placeholder'|trans }}"
+           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+    <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.ldap.group_manager_dn_hint'|trans }}</p>
+</div>
+
+<div class="sm:col-span-2">
+    <label class="block text-sm font-medium text-gray-700">
+        {{ 'admin.company_settings.ldap.group_admin_dn_label'|trans }}
+    </label>
+    <input type="text"
+           name="ldap_group_admin_dn"
+           value="{{ company.ldapGroupAdminDn ?? '' }}"
+           placeholder="{{ 'admin.company_settings.ldap.group_admin_dn_placeholder'|trans }}"
+           class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+    <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.ldap.group_admin_dn_hint'|trans }}</p>
+</div>
