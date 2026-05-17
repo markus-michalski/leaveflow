@@ -98,6 +98,62 @@
         {{ form_end(form) }}
     </section>
 
+    {# Existing 2FA-requirement section — separate form so file-upload state doesn't bleed into the toggle. #}
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-2fa">
+        <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.2fa.heading'|trans }}</h2>
+        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.2fa.description'|trans }}</p>
+
+        {% if company.requiresTwoFactor() %}
+            {% set enforced = company.isTwoFactorEnforced(today) %}
+            <div class="mt-4 rounded-md border {{ enforced ? 'border-green-200 bg-green-50 text-green-800' : 'border-yellow-200 bg-yellow-50 text-yellow-800' }} px-4 py-3 text-sm"
+                 data-testid="company-settings-2fa-status">
+                <p class="font-semibold">
+                    {{ enforced ? 'admin.company_settings.2fa.status.enforced'|trans : 'admin.company_settings.2fa.status.upcoming'|trans }}
+                </p>
+                <p class="mt-1 text-xs">
+                    {{ 'admin.company_settings.2fa.status.detail'|trans({ '%date%': company.twoFactorEnforcedFrom|date('d.m.Y') }) }}
+                </p>
+            </div>
+
+            <form method="post"
+                  action="{{ path('app_admin_company_settings_set_2fa_requirement') }}"
+                  class="mt-4"
+                  onsubmit="return confirm('{{ 'admin.company_settings.2fa.disable_confirm'|trans|e('js') }}');">
+                <input type="hidden" name="_token" value="{{ csrf_token('company_settings_2fa') }}">
+                <input type="hidden" name="enable" value="0">
+                <button type="submit"
+                        class="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100">
+                    {{ 'admin.company_settings.2fa.disable_button'|trans }}
+                </button>
+            </form>
+        {% else %}
+            <form method="post"
+                  action="{{ path('app_admin_company_settings_set_2fa_requirement') }}"
+                  class="mt-4 space-y-3"
+                  data-testid="company-settings-2fa-enable-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('company_settings_2fa') }}">
+                <input type="hidden" name="enable" value="1">
+                <div>
+                    <label for="enforced_from" class="block text-sm font-medium text-gray-700">
+                        {{ 'admin.company_settings.2fa.deadline_label'|trans }}
+                    </label>
+                    <input id="enforced_from"
+                           type="date"
+                           name="enforced_from"
+                           required
+                           min="{{ today|date('Y-m-d') }}"
+                           value="{{ (today|date_modify('+30 days'))|date('Y-m-d') }}"
+                           class="mt-1 block w-44 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.2fa.deadline_hint'|trans }}</p>
+                </div>
+                <button type="submit"
+                        class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    {{ 'admin.company_settings.2fa.enable_button'|trans }}
+                </button>
+            </form>
+        {% endif %}
+    </section>
+
     {# Google Workspace OAuth section #}
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-google">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.google.heading'|trans }}</h2>
@@ -257,7 +313,7 @@
     </section>
 
     {# LDAP / Active Directory #}
-    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-ldap">
+    <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-ldap">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.ldap.heading'|trans }}</h2>
         <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.ldap.description'|trans }}</p>
 
@@ -321,60 +377,5 @@
         </div>
     </section>
 
-    {# Existing 2FA-requirement section — separate form so file-upload state doesn't bleed into the toggle. #}
-    <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-2fa">
-        <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.2fa.heading'|trans }}</h2>
-        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.2fa.description'|trans }}</p>
-
-        {% if company.requiresTwoFactor() %}
-            {% set enforced = company.isTwoFactorEnforced(today) %}
-            <div class="mt-4 rounded-md border {{ enforced ? 'border-green-200 bg-green-50 text-green-800' : 'border-yellow-200 bg-yellow-50 text-yellow-800' }} px-4 py-3 text-sm"
-                 data-testid="company-settings-2fa-status">
-                <p class="font-semibold">
-                    {{ enforced ? 'admin.company_settings.2fa.status.enforced'|trans : 'admin.company_settings.2fa.status.upcoming'|trans }}
-                </p>
-                <p class="mt-1 text-xs">
-                    {{ 'admin.company_settings.2fa.status.detail'|trans({ '%date%': company.twoFactorEnforcedFrom|date('d.m.Y') }) }}
-                </p>
-            </div>
-
-            <form method="post"
-                  action="{{ path('app_admin_company_settings_set_2fa_requirement') }}"
-                  class="mt-4"
-                  onsubmit="return confirm('{{ 'admin.company_settings.2fa.disable_confirm'|trans|e('js') }}');">
-                <input type="hidden" name="_token" value="{{ csrf_token('company_settings_2fa') }}">
-                <input type="hidden" name="enable" value="0">
-                <button type="submit"
-                        class="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100">
-                    {{ 'admin.company_settings.2fa.disable_button'|trans }}
-                </button>
-            </form>
-        {% else %}
-            <form method="post"
-                  action="{{ path('app_admin_company_settings_set_2fa_requirement') }}"
-                  class="mt-4 space-y-3"
-                  data-testid="company-settings-2fa-enable-form">
-                <input type="hidden" name="_token" value="{{ csrf_token('company_settings_2fa') }}">
-                <input type="hidden" name="enable" value="1">
-                <div>
-                    <label for="enforced_from" class="block text-sm font-medium text-gray-700">
-                        {{ 'admin.company_settings.2fa.deadline_label'|trans }}
-                    </label>
-                    <input id="enforced_from"
-                           type="date"
-                           name="enforced_from"
-                           required
-                           min="{{ today|date('Y-m-d') }}"
-                           value="{{ (today|date_modify('+30 days'))|date('Y-m-d') }}"
-                           class="mt-1 block w-44 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                    <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.2fa.deadline_hint'|trans }}</p>
-                </div>
-                <button type="submit"
-                        class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                    {{ 'admin.company_settings.2fa.enable_button'|trans }}
-                </button>
-            </form>
-        {% endif %}
-    </section>
 </div>
 {% endblock %}
