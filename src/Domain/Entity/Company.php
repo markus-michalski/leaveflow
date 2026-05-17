@@ -275,4 +275,43 @@ class Company
         $domain = null === $domain ? null : strtolower(trim($domain));
         $this->googleOAuthHostedDomain = ('' === $domain) ? null : $domain;
     }
+
+    // ── Microsoft Entra ID OAuth ────────────────────────────────────────────
+
+    #[ORM\Column(name: 'entra_oauth_enabled', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $entraOAuthEnabled = false;
+
+    /**
+     * Optional tenant ID restriction. When set, only tokens whose `tid`
+     * claim matches this value are accepted. Leave null to allow any tenant
+     * (useful for multi-tenant Entra app registrations).
+     */
+    #[ORM\Column(name: 'entra_oauth_tenant_id', length: 36, nullable: true)]
+    private ?string $entraOAuthTenantId = null;
+
+    public function isEntraOAuthEnabled(): bool
+    {
+        return $this->entraOAuthEnabled;
+    }
+
+    public function enableEntraOAuth(): void
+    {
+        $this->entraOAuthEnabled = true;
+    }
+
+    public function disableEntraOAuth(): void
+    {
+        $this->entraOAuthEnabled = false;
+    }
+
+    public function getEntraOAuthTenantId(): ?string
+    {
+        return $this->entraOAuthTenantId;
+    }
+
+    public function setEntraOAuthTenantId(?string $tenantId): void
+    {
+        $tenantId = null === $tenantId ? null : trim($tenantId);
+        $this->entraOAuthTenantId = ('' === $tenantId) ? null : $tenantId;
+    }
 }

@@ -141,6 +141,55 @@
         </form>
     </section>
 
+    {# Microsoft Entra ID OAuth section #}
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-entra">
+        <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.entra.heading'|trans }}</h2>
+        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.entra.description'|trans }}</p>
+
+        <form method="post"
+              action="{{ path('app_admin_company_settings_set_entra_oauth') }}"
+              class="mt-4 space-y-4"
+              data-testid="company-settings-entra-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('company_settings_entra') }}">
+            <input type="hidden" name="enable" value="{{ company.isEntraOAuthEnabled() ? '0' : '1' }}">
+
+            {% if company.isEntraOAuthEnabled() %}
+                <p class="inline-flex items-center gap-2 text-sm font-medium text-green-700">
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    {{ 'admin.company_settings.entra.status.enabled'|trans }}
+                </p>
+                {% if not company.entraOAuthTenantId %}
+                    <div class="rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800" data-testid="entra-tenant-warning">
+                        <p class="font-semibold">{{ 'admin.company_settings.entra.security_warning.heading'|trans }}</p>
+                        <p class="mt-1">{{ 'admin.company_settings.entra.security_warning.body'|trans }}</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <p class="text-sm text-gray-500">{{ 'admin.company_settings.entra.status.disabled'|trans }}</p>
+            {% endif %}
+
+            <div>
+                <label for="tenant_id" class="block text-sm font-medium text-gray-700">
+                    {{ 'admin.company_settings.entra.tenant_id_label'|trans }}
+                </label>
+                <input id="tenant_id"
+                       type="text"
+                       name="tenant_id"
+                       value="{{ company.entraOAuthTenantId ?? '' }}"
+                       placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                       class="mt-1 block w-80 rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.entra.tenant_id_hint'|trans }}</p>
+            </div>
+
+            <button type="submit"
+                    class="inline-flex items-center rounded-md {% if company.isEntraOAuthEnabled() %}border border-red-200 bg-red-50 text-red-700 hover:bg-red-100{% else %}bg-blue-600 text-white hover:bg-blue-700{% endif %} px-4 py-2 text-sm font-medium">
+                {{ company.isEntraOAuthEnabled()
+                    ? 'admin.company_settings.entra.disable_button'|trans
+                    : 'admin.company_settings.entra.enable_button'|trans }}
+            </button>
+        </form>
+    </section>
+
     {# Existing 2FA-requirement section — separate form so file-upload state doesn't bleed into the toggle. #}
     <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-2fa">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.2fa.heading'|trans }}</h2>
