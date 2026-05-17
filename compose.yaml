@@ -48,19 +48,18 @@ services:
     restart: unless-stopped
 
   # OpenLDAP for local LDAP login development and integration tests.
-  # Accessible from the app container as ldap://openldap:1389
+  # Accessible from the app container as ldap://openldap:389
   openldap:
-    image: bitnami/openldap:2
+    image: osixia/openldap:1.5.0
     environment:
-      LDAP_ROOT: dc=leaveflow,dc=test
-      LDAP_ADMIN_USERNAME: admin
+      LDAP_ORGANISATION: "LeaveFlow Test"
+      LDAP_DOMAIN: leaveflow.test
       LDAP_ADMIN_PASSWORD: adminpassword
-      LDAP_PORT_NUMBER: "1389"
-      LDAP_CUSTOM_LDIF_DIR: /ldifs
     volumes:
-      - ./docker/openldap/fixture.ldif:/ldifs/fixture.ldif:ro
+      - ./docker/openldap/fixture.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/fixture.ldif:ro
+    command: --copy-service
     ports:
-      - "1389:1389"
+      - "1389:389"
     restart: unless-stopped
 
 volumes:
