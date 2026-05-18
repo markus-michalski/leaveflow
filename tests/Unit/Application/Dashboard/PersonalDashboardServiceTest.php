@@ -85,7 +85,6 @@ final class PersonalDashboardServiceTest extends TestCase
 
         $dashboard = $this->service->buildForEmployee($employee);
 
-        self::assertInstanceOf(EmployeeDashboard::class, $dashboard);
         self::assertSame(2026, $dashboard->balanceYear);
         self::assertSame(160.0, $dashboard->balance->regularRemaining);
         self::assertSame(0.0, $dashboard->balance->carryoverRemaining);
@@ -196,8 +195,7 @@ final class PersonalDashboardServiceTest extends TestCase
 
         $dashboard = $this->service->buildForManager($manager);
 
-        self::assertInstanceOf(ManagerDashboard::class, $dashboard);
-        self::assertInstanceOf(EmployeeDashboard::class, $dashboard->personal);
+        self::assertSame(2026, $dashboard->personal->balanceYear);
     }
 
     #[Test]

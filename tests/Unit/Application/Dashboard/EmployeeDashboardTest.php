@@ -121,6 +121,7 @@ final class EmployeeDashboardTest extends TestCase
         return $request;
     }
 
+    /** @param list<LeaveRequest> $requests */
     private function dashboardWithRequests(array $requests): EmployeeDashboard
     {
         return new EmployeeDashboard(
