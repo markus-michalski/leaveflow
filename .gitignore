@@ -31,7 +31,7 @@
 /.claude/
 
 # Git workflow skill state (local tooling, not source)
-/.git-workflow/
+/.git-workflow*
 
 ###> friendsofphp/php-cs-fixer ###
 /.php-cs-fixer.php
