@@ -21,20 +21,37 @@
                     {{ 'profile.balance.my_requests'|trans }}
                 </a>
             </div>
-            <dl class="grid grid-cols-3 gap-y-2 text-sm">
-                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.balance.regular'|trans }}</dt>
-                <dd class="col-span-2 text-gray-900 font-mono" data-testid="profile-balance-regular">{{ balance.regularRemaining|number_format(2, ',', '.') }} h</dd>
-
-                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.balance.carryover'|trans }}</dt>
-                <dd class="col-span-2 text-gray-900 font-mono" data-testid="profile-balance-carryover">{{ balance.carryoverRemaining|number_format(2, ',', '.') }} h</dd>
-
-                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.balance.total'|trans }}</dt>
-                <dd class="col-span-2 font-mono font-semibold text-gray-900" data-testid="profile-balance-total">{{ balance.totalRemaining|number_format(2, ',', '.') }} h</dd>
-
-                {% if balance.nextExpiry %}
-                    <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.balance.next_expiry'|trans }}</dt>
-                    <dd class="col-span-2 text-amber-700" data-testid="profile-balance-expiry">{{ balance.nextExpiry|date('d.m.Y') }}</dd>
+            <dl class="grid grid-cols-3 gap-y-1.5 text-sm">
+                {# Regular leave #}
+                <dt class="col-span-1 font-medium text-gray-700">{{ 'profile.balance.regular'|trans }}</dt>
+                <dd class="col-span-2 text-right font-mono text-gray-900" data-testid="profile-balance-regular">{{ balance.regularGranted|number_format(2, ',', '.') }} h</dd>
+                {% if balance.regularUsed > 0 %}
+                    <dt class="col-span-1 pl-3 text-gray-400">{{ 'profile.balance.used'|trans }}</dt>
+                    <dd class="col-span-2 text-right font-mono text-rose-600">−{{ balance.regularUsed|number_format(2, ',', '.') }} h</dd>
                 {% endif %}
+                <dt class="col-span-1 pl-3 text-gray-500">{{ 'profile.balance.remaining'|trans }}</dt>
+                <dd class="col-span-2 text-right font-mono font-medium text-gray-900">{{ balance.regularRemaining|number_format(2, ',', '.') }} h</dd>
+
+                {# Carryover #}
+                {% if balance.carryoverGranted > 0 %}
+                    <dt class="col-span-3 mt-1 border-t border-gray-100 pt-1"></dt>
+                    <dt class="col-span-1 font-medium text-gray-700">{{ 'profile.balance.carryover'|trans }}</dt>
+                    <dd class="col-span-2 text-right font-mono text-gray-900" data-testid="profile-balance-carryover">{{ balance.carryoverGranted|number_format(2, ',', '.') }} h</dd>
+                    {% if balance.carryoverUsed > 0 %}
+                        <dt class="col-span-1 pl-3 text-gray-400">{{ 'profile.balance.used'|trans }}</dt>
+                        <dd class="col-span-2 text-right font-mono text-rose-600">−{{ balance.carryoverUsed|number_format(2, ',', '.') }} h</dd>
+                    {% endif %}
+                    <dt class="col-span-1 pl-3 text-gray-500">{{ 'profile.balance.remaining'|trans }}</dt>
+                    <dd class="col-span-2 text-right font-mono font-medium text-gray-900" data-testid="profile-balance-carryover-remaining">{{ balance.carryoverRemaining|number_format(2, ',', '.') }} h</dd>
+                    {% if balance.nextExpiry %}
+                        <dt class="col-span-1 pl-3 text-gray-400">{{ 'profile.balance.next_expiry'|trans }}</dt>
+                        <dd class="col-span-2 text-right text-amber-700" data-testid="profile-balance-expiry">{{ balance.nextExpiry|date('d.m.Y') }}</dd>
+                    {% endif %}
+                {% endif %}
+
+                {# Total #}
+                <dt class="col-span-1 mt-1 border-t border-gray-100 pt-2 font-semibold text-gray-800">{{ 'profile.balance.total'|trans }}</dt>
+                <dd class="col-span-2 mt-1 border-t border-gray-100 pt-2 text-right font-mono font-semibold text-gray-900" data-testid="profile-balance-total">{{ balance.totalRemaining|number_format(2, ',', '.') }} h</dd>
             </dl>
         </section>
     {% endif %}

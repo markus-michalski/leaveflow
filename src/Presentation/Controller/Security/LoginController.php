@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Security;
 
+use App\Application\Dashboard\PersonalDashboardService;
+use App\Domain\Entity\User;
 use App\Domain\Repository\CompanyRepository;
+use App\Domain\Repository\EmployeeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,6 +18,8 @@ final class LoginController extends AbstractController
 {
     public function __construct(
         private readonly CompanyRepository $companyRepository,
+        private readonly EmployeeRepository $employeeRepository,
+        private readonly PersonalDashboardService $dashboardService,
     ) {
     }
 
@@ -55,6 +60,30 @@ final class LoginController extends AbstractController
             return $this->redirectToRoute('app_admin_statistics_index');
         }
 
-        return $this->render('dashboard/index.html.twig');
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $employee = $this->employeeRepository->findOneByUser($user);
+
+        if (null === $employee) {
+            return $this->render('dashboard/index.html.twig', [
+                'employeeDashboard' => null,
+                'managerDashboard' => null,
+            ]);
+        }
+
+        if ($this->isGranted('ROLE_MANAGER')) {
+            return $this->render('dashboard/index.html.twig', [
+                'employeeDashboard' => null,
+                'managerDashboard' => $this->dashboardService->buildForManager($employee),
+            ]);
+        }
+
+        return $this->render('dashboard/index.html.twig', [
+            'employeeDashboard' => $this->dashboardService->buildForEmployee($employee),
+            'managerDashboard' => null,
+        ]);
     }
 }

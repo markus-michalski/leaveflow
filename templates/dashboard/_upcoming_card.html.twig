@@ -1,0 +1,36 @@
+<section class="rounded-xl bg-white p-6 shadow-sm" data-testid="dashboard-upcoming">
+    <div class="mb-4 flex items-start justify-between">
+        <h2 class="text-base font-semibold text-gray-900">{{ 'dashboard.upcoming.heading'|trans }}</h2>
+        <a href="{{ path('app_my_leave_request_index') }}" class="text-xs text-blue-600 hover:underline">
+            {{ 'dashboard.upcoming.all'|trans }}
+        </a>
+    </div>
+
+    {% if dash.upcomingRequests is empty %}
+        <p class="text-sm text-gray-400">{{ 'dashboard.upcoming.empty'|trans }}</p>
+    {% else %}
+        {% set status_classes = {
+            'pending':          'bg-amber-100 text-amber-800',
+            'recorded':         'bg-sky-100 text-sky-800',
+            'approved':         'bg-green-100 text-green-800',
+            'cancel_requested': 'bg-orange-100 text-orange-800',
+        } %}
+        <ul class="divide-y divide-gray-100">
+            {% for req in dash.upcomingRequests %}
+                <li class="flex items-center gap-3 py-2.5">
+                    <span class="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                          style="background-color: {{ req.absenceType.color }}"></span>
+                    <span class="flex-1 min-w-0">
+                        <span class="block text-sm font-medium text-gray-800 truncate">{{ req.absenceType.name }}</span>
+                        <span class="block text-xs text-gray-500">
+                            {{ req.startDate|date('d.m.Y') }}{% if req.startDate != req.endDate %} – {{ req.endDate|date('d.m.Y') }}{% endif %}
+                        </span>
+                    </span>
+                    <span class="inline-flex shrink-0 items-center rounded-md px-2 py-1 text-xs font-medium {{ status_classes[req.status.value]|default('bg-gray-100 text-gray-700') }}">
+                        {{ ('my.leave_requests.status.' ~ req.status.value)|trans }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</section>

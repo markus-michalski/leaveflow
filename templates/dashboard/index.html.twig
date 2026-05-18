@@ -4,13 +4,94 @@
 
 {% block body %}
 <div class="mx-auto max-w-6xl p-6">
-    <header class="mb-8">
+
+    <header class="mb-6">
         <h1 class="text-2xl font-semibold text-gray-900">{{ 'dashboard.heading'|trans }}</h1>
         <p class="text-sm text-gray-500">{{ 'dashboard.welcome'|trans({ '%name%': app.user.email }) }}</p>
     </header>
 
-    <section class="rounded-xl bg-white p-6 shadow-sm">
-        <p class="text-gray-700">{{ 'dashboard.placeholder'|trans }}</p>
-    </section>
+    {# No employee record (admin-only user or SSO without provisioned employee) #}
+    {% if employeeDashboard is null and managerDashboard is null %}
+        <section class="rounded-xl bg-white p-6 shadow-sm">
+            <p class="text-sm text-gray-500">{{ 'dashboard.no_employee_record'|trans }}</p>
+        </section>
+
+    {# Manager Dashboard #}
+    {% elseif managerDashboard is not null %}
+        {% set dash = managerDashboard.personal %}
+
+        {% if managerDashboard.hasPendingApprovals %}
+            <div class="mb-6 flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-6 py-6">
+                <div class="flex items-center gap-3">
+                    <svg class="h-5 w-5 flex-shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm font-medium text-amber-800">
+                        {{ 'dashboard.manager.pending_alert'|trans({ '%count%': managerDashboard.pendingApprovalCount }) }}
+                    </span>
+                </div>
+                <a href="{{ path('app_manager_approval_index') }}"
+                   class="shrink-0 inline-flex items-center rounded-md bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-200">
+                    {{ 'dashboard.manager.review_approvals'|trans }}
+                </a>
+            </div>
+        {% endif %}
+
+        <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+            {% include 'dashboard/_balance_card.html.twig' with { dash: dash } %}
+            {% include 'dashboard/_upcoming_card.html.twig' with { dash: dash } %}
+        </div>
+
+        <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="dashboard-team-week">
+            <h2 class="mb-4 text-base font-semibold text-gray-900">{{ 'dashboard.manager.team_week'|trans }}</h2>
+            {% if managerDashboard.teamAbsencesWeek is empty %}
+                <p class="text-sm text-gray-400">{{ 'dashboard.manager.team_week_empty'|trans }}</p>
+            {% else %}
+                <ul class="divide-y divide-gray-100">
+                    {% for req in managerDashboard.teamAbsencesWeek %}
+                        <li class="flex items-center gap-3 py-2.5">
+                            <span class="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                                  style="background-color: {{ req.absenceType.color }}"></span>
+                            <span class="flex-1 text-sm font-medium text-gray-800">{{ req.employee.fullName }}</span>
+                            <span class="text-xs text-gray-500">
+                                {{ req.startDate|date('d.m.') }}{% if req.startDate != req.endDate %} – {{ req.endDate|date('d.m.Y') }}{% else %}{{ req.endDate|date('d.m.Y') }}{% endif %}
+                            </span>
+                            <span class="text-xs text-gray-400">{{ req.absenceType.name }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+
+    {# Employee Dashboard #}
+    {% else %}
+        {% set dash = employeeDashboard %}
+
+        <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+            {% include 'dashboard/_balance_card.html.twig' with { dash: dash } %}
+            {% include 'dashboard/_upcoming_card.html.twig' with { dash: dash } %}
+        </div>
+
+        <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="dashboard-team-today">
+            <h2 class="mb-4 text-base font-semibold text-gray-900">{{ 'dashboard.team_today'|trans }}</h2>
+            {% if not dash.hasDepartment %}
+                <p class="text-sm text-gray-400">{{ 'dashboard.team_today_no_dept'|trans }}</p>
+            {% elseif dash.teamAbsencesToday is empty %}
+                <p class="text-sm text-gray-400">{{ 'dashboard.team_today_empty'|trans }}</p>
+            {% else %}
+                <ul class="divide-y divide-gray-100">
+                    {% for req in dash.teamAbsencesToday %}
+                        <li class="flex items-center gap-3 py-2.5">
+                            <span class="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                                  style="background-color: {{ req.absenceType.color }}"></span>
+                            <span class="flex-1 text-sm font-medium text-gray-800">{{ req.employee.fullName }}</span>
+                            <span class="text-xs text-gray-400">{{ req.absenceType.name }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+    {% endif %}
+
 </div>
 {% endblock %}

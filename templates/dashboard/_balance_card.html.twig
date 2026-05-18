@@ -1,0 +1,88 @@
+<section class="rounded-xl bg-white p-6 shadow-sm" data-testid="dashboard-balance">
+    <div class="mb-4 flex items-start justify-between">
+        <h2 class="text-base font-semibold text-gray-900">
+            {{ 'dashboard.balance.heading'|trans({ '%year%': dash.balanceYear }) }}
+        </h2>
+        <a href="{{ path('app_my_leave_request_new') }}"
+           class="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
+            {{ 'dashboard.balance.new_request'|trans }}
+        </a>
+    </div>
+
+    {% if dash.hasCarryoverExpiringSoon %}
+        <div class="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+            <svg class="h-4 w-4 flex-shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-xs text-amber-800">
+                {{ 'dashboard.balance.carryover_expiry_warning'|trans({
+                    '%days%': dash.daysUntilCarryoverExpiry,
+                    '%date%': dash.balance.nextExpiry|date('d.m.Y'),
+                }) }}
+            </span>
+        </div>
+    {% endif %}
+
+    <dl class="grid grid-cols-3 gap-y-1.5 text-sm">
+        {# Regular leave #}
+        <dt class="col-span-2 font-medium text-gray-700">{{ 'dashboard.balance.regular'|trans }}</dt>
+        <dd class="col-span-1 text-right font-mono text-gray-900">
+            {{ dash.balance.regularGranted|number_format(2, ',', '.') }} h
+        </dd>
+        {% if dash.balance.regularUsed > 0 %}
+            <dt class="col-span-2 pl-3 text-gray-400">{{ 'dashboard.balance.used'|trans }}</dt>
+            <dd class="col-span-1 text-right font-mono text-rose-600">
+                −{{ dash.balance.regularUsed|number_format(2, ',', '.') }} h
+            </dd>
+        {% endif %}
+        <dt class="col-span-2 pl-3 text-gray-500">{{ 'dashboard.balance.remaining'|trans }}</dt>
+        <dd class="col-span-1 text-right font-mono font-medium text-gray-900">
+            {{ dash.balance.regularRemaining|number_format(2, ',', '.') }} h
+        </dd>
+
+        {# Carryover (only shown when present) #}
+        {% if dash.balance.carryoverGranted > 0 %}
+            <dt class="col-span-3 mt-1 border-t border-gray-100 pt-2"></dt>
+            <dt class="col-span-2 font-medium text-gray-700">{{ 'dashboard.balance.carryover'|trans }}</dt>
+            <dd class="col-span-1 text-right font-mono text-gray-900">
+                {{ dash.balance.carryoverGranted|number_format(2, ',', '.') }} h
+            </dd>
+            {% if dash.balance.carryoverUsed > 0 %}
+                <dt class="col-span-2 pl-3 text-gray-400">{{ 'dashboard.balance.used'|trans }}</dt>
+                <dd class="col-span-1 text-right font-mono text-rose-600">
+                    −{{ dash.balance.carryoverUsed|number_format(2, ',', '.') }} h
+                </dd>
+            {% endif %}
+            <dt class="col-span-2 pl-3 text-gray-500">{{ 'dashboard.balance.remaining'|trans }}</dt>
+            <dd class="col-span-1 text-right font-mono font-medium text-gray-900">
+                {{ dash.balance.carryoverRemaining|number_format(2, ',', '.') }} h
+            </dd>
+        {% endif %}
+
+        {# Total #}
+        <dt class="col-span-2 mt-1 border-t border-gray-100 pt-2 font-semibold text-gray-800">
+            {{ 'dashboard.balance.total'|trans }}
+        </dt>
+        <dd class="col-span-1 mt-1 border-t border-gray-100 pt-2 text-right font-mono font-semibold text-gray-900">
+            {{ dash.balance.totalRemaining|number_format(2, ',', '.') }} h
+        </dd>
+
+        {# Planned (pending requests not yet booked against entitlements) #}
+        {% if dash.plannedHours > 0 %}
+            <dt class="col-span-2 pl-3 text-gray-400">{{ 'dashboard.balance.planned'|trans }}</dt>
+            <dd class="col-span-1 text-right font-mono text-amber-600">
+                −{{ dash.plannedHours|number_format(2, ',', '.') }} h
+            </dd>
+            <dt class="col-span-2 font-semibold text-gray-800">{{ 'dashboard.balance.effective'|trans }}</dt>
+            <dd class="col-span-1 text-right font-mono font-semibold text-gray-900">
+                {{ (dash.balance.totalRemaining - dash.plannedHours)|number_format(2, ',', '.') }} h
+            </dd>
+        {% endif %}
+    </dl>
+
+    <div class="mt-4">
+        <a href="{{ path('app_profile') }}" class="text-xs text-blue-600 hover:underline">
+            {{ 'dashboard.balance.full_profile'|trans }}
+        </a>
+    </div>
+</section>

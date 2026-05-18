@@ -60,7 +60,31 @@ dashboard:
     title: Dashboard
     heading: Dashboard
     welcome: Signed in as %name%
-    placeholder: Your leave overview will appear here soon.
+    no_employee_record: No employee profile is linked to your account. Please contact your administrator.
+    team_today: Team absent today
+    team_today_empty: No one from your team is absent today.
+    team_today_no_dept: You are not assigned to a department.
+    balance:
+        heading: "Leave balance %year%"
+        new_request: New request
+        regular: Leave (regular)
+        carryover: Carry-over
+        used: thereof used
+        remaining: available
+        planned: planned
+        total: Total available
+        effective: Effectively available
+        full_profile: Full profile
+        carryover_expiry_warning: "Carry-over expires in %days% days (%date%)."
+    upcoming:
+        heading: Upcoming absences
+        all: All requests
+        empty: No upcoming requests.
+    manager:
+        pending_alert: "%count% request|%count% requests are awaiting your decision."
+        review_approvals: Review now
+        team_week: Team this week
+        team_week_empty: No one from your team is absent this week.
 security:
     login:
         title: Sign in
@@ -825,10 +849,12 @@ profile:
     no_employee_record: No employee record is linked to your account. Please contact your administrator.
     balance:
         heading: "My leave balance %year%"
-        regular: Regular entitlement
-        carryover: Carryover from last year
+        regular: Leave (regular)
+        carryover: Carry-over
+        used: thereof used
+        remaining: available
         total: Total available
-        next_expiry: Carryover expires on
+        next_expiry: Carry-over expires on
         my_requests: My requests
     2fa:
         heading: "Two-factor authentication (2FA)"

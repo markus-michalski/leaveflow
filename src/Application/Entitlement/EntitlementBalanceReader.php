@@ -27,8 +27,10 @@ final readonly class EntitlementBalanceReader
         /** @var list<LeaveEntitlement> $entitlements */
         $entitlements = $this->repository->findByEmployeeAndYear($employee, $year);
 
-        $regular = 0.0;
-        $carryover = 0.0;
+        $regularGranted = 0.0;
+        $regularUsed = 0.0;
+        $carryoverGranted = 0.0;
+        $carryoverUsed = 0.0;
         $nextExpiry = null;
 
         foreach ($entitlements as $entitlement) {
@@ -36,21 +38,30 @@ final readonly class EntitlementBalanceReader
                 continue;
             }
 
-            $remaining = $entitlement->getHoursRemaining();
-
             if (LeaveEntitlementType::Regular === $entitlement->getType()) {
-                $regular += $remaining;
+                $regularGranted += $entitlement->getHoursGranted();
+                $regularUsed += $entitlement->getHoursUsed();
                 continue;
             }
 
-            $carryover += $remaining;
+            $carryoverGranted += $entitlement->getHoursGranted();
+            $carryoverUsed += $entitlement->getHoursUsed();
 
             $expiry = $entitlement->getExpiresAt();
+            $remaining = $entitlement->getHoursRemaining();
             if (null !== $expiry && $remaining > 0 && (null === $nextExpiry || $expiry < $nextExpiry)) {
                 $nextExpiry = $expiry;
             }
         }
 
-        return new BalanceSnapshot($regular, $carryover, $nextExpiry);
+        return new BalanceSnapshot(
+            regularGranted: $regularGranted,
+            regularUsed: $regularUsed,
+            regularRemaining: $regularGranted - $regularUsed,
+            carryoverGranted: $carryoverGranted,
+            carryoverUsed: $carryoverUsed,
+            carryoverRemaining: $carryoverGranted - $carryoverUsed,
+            nextExpiry: $nextExpiry,
+        );
     }
 }
