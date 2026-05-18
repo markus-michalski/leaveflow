@@ -39,7 +39,7 @@ final class EmployeeDashboardTest extends TestCase
     }
 
     #[Test]
-    public function plannedHours_returnsZeroWhenNoUpcomingRequests(): void
+    public function plannedHoursReturnsZeroWhenNoUpcomingRequests(): void
     {
         $dashboard = $this->dashboardWithRequests([]);
 
@@ -47,7 +47,7 @@ final class EmployeeDashboardTest extends TestCase
     }
 
     #[Test]
-    public function plannedHours_sumsPendingRequestHoursOnly(): void
+    public function plannedHoursSumsPendingRequestHoursOnly(): void
     {
         $employee = $this->employee('Maya Manager');
 
@@ -62,7 +62,7 @@ final class EmployeeDashboardTest extends TestCase
     }
 
     #[Test]
-    public function plannedHours_sumsMultiplePendingRequests(): void
+    public function plannedHoursSumsMultiplePendingRequests(): void
     {
         $employee = $this->employee('Maya Manager');
 
@@ -75,7 +75,7 @@ final class EmployeeDashboardTest extends TestCase
     }
 
     #[Test]
-    public function plannedHours_ignoresCancelRequestedRequests(): void
+    public function plannedHoursIgnoresCancelRequestedRequests(): void
     {
         $employee = $this->employee('Maya Manager');
 

@@ -73,7 +73,7 @@ final class PersonalDashboardServiceTest extends TestCase
     // -----------------------------------------------------------------
 
     #[Test]
-    public function buildForEmployee_returnsBalanceForCurrentYear(): void
+    public function buildForEmployeeReturnsBalanceForCurrentYear(): void
     {
         $employee = $this->employee('Maya Manager');
 
@@ -93,7 +93,7 @@ final class PersonalDashboardServiceTest extends TestCase
     }
 
     #[Test]
-    public function buildForEmployee_returnsUpcomingRequests(): void
+    public function buildForEmployeeReturnsUpcomingRequests(): void
     {
         $employee = $this->employee('Erik Employee');
         $request = $this->approvedRequest($employee, '2026-05-20', '2026-05-22');
@@ -111,7 +111,7 @@ final class PersonalDashboardServiceTest extends TestCase
     }
 
     #[Test]
-    public function buildForEmployee_returnsTeamAbsencesTodayForDepartmentedEmployee(): void
+    public function buildForEmployeeReturnsTeamAbsencesTodayForDepartmentedEmployee(): void
     {
         $employee = $this->employeeInDept('Erik Employee');
         $colleague = $this->employeeInDept('Anna Absent');
@@ -131,7 +131,7 @@ final class PersonalDashboardServiceTest extends TestCase
     }
 
     #[Test]
-    public function buildForEmployee_returnsEmptyTeamAbsencesWhenNoDepartment(): void
+    public function buildForEmployeeReturnsEmptyTeamAbsencesWhenNoDepartment(): void
     {
         $employee = $this->employee('Erik Employee');
 
@@ -149,7 +149,7 @@ final class PersonalDashboardServiceTest extends TestCase
     // -----------------------------------------------------------------
 
     #[Test]
-    public function hasCarryoverExpiringSoon_trueWhenExpiryWithinThreshold(): void
+    public function hasCarryoverExpiringSoonTrueWhenExpiryWithinThreshold(): void
     {
         $employee = $this->employee('Maya Manager');
         $carryover = new LeaveEntitlement($employee, 2026, LeaveEntitlementType::Carryover, 40.0);
@@ -166,7 +166,7 @@ final class PersonalDashboardServiceTest extends TestCase
     }
 
     #[Test]
-    public function hasCarryoverExpiringSoon_falseWhenExpiryBeyondThreshold(): void
+    public function hasCarryoverExpiringSoonFalseWhenExpiryBeyondThreshold(): void
     {
         $employee = $this->employee('Maya Manager');
         $carryover = new LeaveEntitlement($employee, 2026, LeaveEntitlementType::Carryover, 40.0);
@@ -186,7 +186,7 @@ final class PersonalDashboardServiceTest extends TestCase
     // -----------------------------------------------------------------
 
     #[Test]
-    public function buildForManager_containsPersonalDashboard(): void
+    public function buildForManagerContainsPersonalDashboard(): void
     {
         $manager = $this->employeeInDept('Maya Manager');
 
@@ -202,7 +202,7 @@ final class PersonalDashboardServiceTest extends TestCase
     }
 
     #[Test]
-    public function buildForManager_returnsPendingApprovals(): void
+    public function buildForManagerReturnsPendingApprovals(): void
     {
         $manager = $this->employeeInDept('Maya Manager');
         $reportee = $this->employeeInDept('Erik Employee');
@@ -223,7 +223,7 @@ final class PersonalDashboardServiceTest extends TestCase
     }
 
     #[Test]
-    public function buildForManager_returnsWeekAbsencesExcludingManager(): void
+    public function buildForManagerReturnsWeekAbsencesExcludingManager(): void
     {
         $manager = $this->employeeInDept('Maya Manager');
 
