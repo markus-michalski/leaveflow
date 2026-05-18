@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\Dashboard;
 
-use App\Application\Dashboard\EmployeeDashboard;
-use App\Application\Dashboard\ManagerDashboard;
 use App\Application\Dashboard\PersonalDashboardService;
 use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Domain\Entity\AbsenceType;
