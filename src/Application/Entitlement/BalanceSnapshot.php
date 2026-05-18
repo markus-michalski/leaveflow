@@ -15,7 +15,11 @@ namespace App\Application\Entitlement;
 final readonly class BalanceSnapshot
 {
     public function __construct(
+        public float $regularGranted,
+        public float $regularUsed,
         public float $regularRemaining,
+        public float $carryoverGranted,
+        public float $carryoverUsed,
         public float $carryoverRemaining,
         public ?\DateTimeImmutable $nextExpiry,
     ) {
@@ -24,5 +28,15 @@ final readonly class BalanceSnapshot
     public function totalRemaining(): float
     {
         return $this->regularRemaining + $this->carryoverRemaining;
+    }
+
+    public function totalGranted(): float
+    {
+        return $this->regularGranted + $this->carryoverGranted;
+    }
+
+    public function totalUsed(): float
+    {
+        return $this->regularUsed + $this->carryoverUsed;
     }
 }

@@ -60,7 +60,31 @@ dashboard:
     title: Dashboard
     heading: Dashboard
     welcome: Angemeldet als %name%
-    placeholder: Hier erscheint bald deine Urlaubsübersicht.
+    no_employee_record: Für deinen Account ist kein Mitarbeiterprofil hinterlegt. Wende dich an deinen Administrator.
+    team_today: Team heute abwesend
+    team_today_empty: Niemand aus deinem Team ist heute abwesend.
+    team_today_no_dept: Du bist keiner Abteilung zugeordnet.
+    balance:
+        heading: "Urlaubskonto %year%"
+        new_request: Neuer Antrag
+        regular: Urlaub (regulär)
+        carryover: Resturlaub
+        used: davon verbraucht
+        remaining: verfügbar
+        planned: geplant
+        total: Gesamt verfügbar
+        effective: Effektiv verfügbar
+        full_profile: Vollständiges Profil
+        carryover_expiry_warning: "Resturlaub läuft in %days% Tagen ab (%date%)."
+    upcoming:
+        heading: Bevorstehende Abwesenheiten
+        all: Alle Anträge
+        empty: Keine bevorstehenden Anträge.
+    manager:
+        pending_alert: "%count% Antrag|%count% Anträge warten auf deine Entscheidung."
+        review_approvals: Jetzt prüfen
+        team_week: Team diese Woche
+        team_week_empty: Niemand aus deinem Team ist diese Woche abwesend.
 security:
     login:
         title: Anmelden
@@ -828,8 +852,10 @@ profile:
     no_employee_record: Für deinen Account ist kein Mitarbeiterprofil hinterlegt. Wende dich an die Administration.
     balance:
         heading: "Mein Urlaubskonto %year%"
-        regular: Regulärer Anspruch
-        carryover: Resturlaub aus Vorjahr
+        regular: Urlaub (regulär)
+        carryover: Resturlaub
+        used: davon verbraucht
+        remaining: verfügbar
         total: Gesamt verfügbar
         next_expiry: Resturlaub verfällt am
         my_requests: Meine Anträge

@@ -398,4 +398,37 @@ class LeaveRequestRepository extends ServiceEntityRepository
 
         return $result;
     }
+
+    /**
+     * Active and upcoming requests for a single employee — used on the personal
+     * dashboard. "Active" means the request's end date is today or later, so
+     * it covers requests that started in the past but haven't ended yet, as
+     * well as future requests. Cancelled/Rejected are excluded; CancelRequested
+     * is included because the employee should see it is still being processed.
+     *
+     * @return list<LeaveRequest>
+     */
+    public function findActiveAndUpcomingByEmployee(
+        Employee $employee,
+        \DateTimeImmutable $asOf,
+        int $limit = 5,
+    ): array {
+        /** @var list<LeaveRequest> $result */
+        $result = $this->createQueryBuilder('r')
+            ->where('r.employee = :employee')
+            ->andWhere('r.endDate >= :today')
+            ->andWhere('r.status NOT IN (:excluded)')
+            ->setParameter('employee', $employee)
+            ->setParameter('today', $asOf->setTime(0, 0))
+            ->setParameter('excluded', [
+                LeaveRequestStatus::Cancelled->value,
+                LeaveRequestStatus::Rejected->value,
+            ])
+            ->orderBy('r.startDate', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
 }
