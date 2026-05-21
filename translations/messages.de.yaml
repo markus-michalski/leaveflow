@@ -338,6 +338,7 @@ admin:
             pay_out: "Bitte die Abgeltung manuell mit dem Mitarbeitenden klären."
             mandatory_consumption: "Der Urlaub muss vor dem Austrittsdatum genommen werden."
             freistellung: "Den Restanspruch bitte als Freistellung einbuchen."
+        pro_rata_reminder: "Zwölftelregel (BUrlG §5): Eintritt am %joinedAt% → %effectiveMonths%/12 anrechenbare Monate für %year%. Bitte Urlaubskonto für %year% anteilig anlegen."
         error:
             duplicate_number: "Personalnummer %number% ist im Unternehmen bereits vergeben."
         import:

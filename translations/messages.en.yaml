@@ -338,6 +338,7 @@ admin:
             pay_out: "Please arrange the payout directly with the employee."
             mandatory_consumption: "The remaining leave must be taken before the exit date."
             freistellung: "Please book the remaining entitlement as Freistellung."
+        pro_rata_reminder: "Twelfths rule (BUrlG §5): Joined on %joinedAt% → %effectiveMonths%/12 countable months for %year%. Please create the leave entitlement for %year% proportionally."
         error:
             duplicate_number: "Employee number %number% is already taken in this company."
         import:

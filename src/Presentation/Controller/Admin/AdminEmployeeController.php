@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presentation\Controller\Admin;
 
 use App\Application\Employee\EmployeeExitService;
+use App\Domain\Calculator\ProRataEntitlementCalculator;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
@@ -36,6 +37,7 @@ final class AdminEmployeeController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
         private readonly EmployeeExitService $exitService,
+        private readonly ProRataEntitlementCalculator $proRataCalculator,
     ) {
     }
 
@@ -103,6 +105,7 @@ final class AdminEmployeeController extends AbstractController
         return $this->render('admin/employees/form.html.twig', [
             'form' => $form,
             'is_new' => true,
+            'proRataHint' => null,
         ]);
     }
 
@@ -135,8 +138,8 @@ final class AdminEmployeeController extends AbstractController
                     $employee->updateSchedule($this->buildSchedule($form));
 
                     $leftAt = $this->optionalDate($form, 'leftAt');
-                    $wasExiting = null === $employee->getLeftAt() && null !== $leftAt;
-                    if ($wasExiting) {
+                    $exitSummary = null;
+                    if (null === $employee->getLeftAt() && null !== $leftAt) {
                         $exitSummary = $this->exitService->execute($employee, $leftAt);
                     } elseif (null !== $leftAt) {
                         $employee->markLeft($leftAt);
@@ -153,7 +156,7 @@ final class AdminEmployeeController extends AbstractController
 
                     $this->entityManager->flush();
 
-                    if ($wasExiting) {
+                    if (null !== $exitSummary) {
                         $this->addFlash('success', $this->translator->trans(
                             'admin.employees.flash.exited',
                             ['%name%' => $employee->getFullName(), '%date%' => $exitSummary->exitDate->format('d.m.Y')],
@@ -187,6 +190,7 @@ final class AdminEmployeeController extends AbstractController
             'form' => $form,
             'is_new' => false,
             'employee' => $employee,
+            'proRataHint' => $this->buildEmployeeProRataHint($employee),
         ]);
     }
 
@@ -410,5 +414,32 @@ final class AdminEmployeeController extends AbstractController
         }
 
         return true;
+    }
+
+    /**
+     * Returns pro-rata hint data for the employee edit form when the employee
+     * joined mid-year and the Zwölftelregel (BUrlG §5) applies for their join year.
+     *
+     * @return array{joinedAt: \DateTimeImmutable, effectiveMonths: int, year: int}|null
+     */
+    private function buildEmployeeProRataHint(Employee $employee): ?array
+    {
+        $joinedAt = $employee->getJoinedAt();
+        $joinYear = (int) $joinedAt->format('Y');
+
+        if (!$this->proRataCalculator->isReducedEntitlement($joinedAt, $joinYear)) {
+            return null;
+        }
+
+        $joinDay = (int) $joinedAt->format('j');
+        $joinMonth = (int) $joinedAt->format('n');
+        $firstCounted = $joinDay <= 15 ? $joinMonth : $joinMonth + 1;
+        $effectiveMonths = max(0, 12 - $firstCounted + 1);
+
+        return [
+            'joinedAt' => $joinedAt,
+            'effectiveMonths' => $effectiveMonths,
+            'year' => $joinYear,
+        ];
     }
 }
