@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
-use App\Application\Security\EncryptionService;
+use App\Application\Security\EncryptionServiceInterface;
 use App\Application\Security\LdapUserData;
 use App\Application\Security\LdapUserResolver;
 use App\Domain\Enum\AuthSource;
 use App\Domain\Repository\CompanyRepository;
 use App\Domain\Repository\UserRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -36,7 +37,8 @@ final class LdapAuthenticator extends AbstractAuthenticator
         private readonly UserRepository $userRepository,
         private readonly LdapUserResolver $userResolver,
         private readonly RouterInterface $router,
-        private readonly EncryptionService $encryption,
+        private readonly EncryptionServiceInterface $encryption,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -77,16 +79,23 @@ final class LdapAuthenticator extends AbstractAuthenticator
         $scheme = 'ssl' === $encryption ? 'ldaps' : 'ldap';
         $connectionString = \sprintf('%s://%s:%d', $scheme, $host, $port);
 
+        // Decrypt bind password before opening the LDAP connection.
+        // A null result for a stored encrypted value means the key changed — fail loudly.
+        $bindDn = $company->getLdapBindDn();
+        $encryptedPassword = $company->getLdapBindPassword();
+        $bindPassword = null !== $encryptedPassword ? $this->encryption->tryDecrypt($encryptedPassword) : null;
+
+        if (null !== $encryptedPassword && null === $bindPassword) {
+            $this->logger->critical('APP_LDAP_ENCRYPTION_KEY may have changed — cannot decrypt stored LDAP bind password');
+            throw new AuthenticationException('ldap_connection_error');
+        }
+
         try {
             $ldap = Ldap::create('ext_ldap', [
                 'connection_string' => $connectionString,
                 'encryption' => 'tls' === $encryption ? 'tls' : 'none',
             ]);
 
-            // Service-account bind for user search (anonymous if no bind DN configured)
-            $bindDn = $company->getLdapBindDn();
-            $encryptedPassword = $company->getLdapBindPassword();
-            $bindPassword = null !== $encryptedPassword ? $this->encryption->tryDecrypt($encryptedPassword) : null;
             if (null !== $bindDn) {
                 $ldap->bind($bindDn, (string) $bindPassword);
             } else {
