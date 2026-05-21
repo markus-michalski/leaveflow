@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Presentation\Form;
 
 use App\Domain\Entity\Company;
+use App\Domain\Enum\ExitLeaveHandling;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ColorType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -74,6 +76,13 @@ final class CompanyProfileFormType extends AbstractType
                     new Assert\NotBlank(),
                     new Assert\Range(min: 1, max: 90),
                 ],
+            ])
+            ->add('exitLeaveHandling', EnumType::class, [
+                'class' => ExitLeaveHandling::class,
+                'label' => 'admin.company_settings.profile.exit_leave_handling',
+                'choice_label' => static fn (ExitLeaveHandling $e) => $e->translationKey(),
+                'choice_translation_domain' => 'messages',
+                'constraints' => [new Assert\NotNull()],
             ])
             ->add('logo', FileType::class, [
                 'label' => 'admin.company_settings.profile.logo',

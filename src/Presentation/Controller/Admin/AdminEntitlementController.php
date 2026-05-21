@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Admin;
 
+use App\Domain\Calculator\ProRataEntitlementCalculator;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
@@ -40,6 +41,7 @@ final class AdminEntitlementController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
         private readonly ClockInterface $clock,
+        private readonly ProRataEntitlementCalculator $proRataCalculator,
     ) {
     }
 
@@ -149,6 +151,12 @@ final class AdminEntitlementController extends AbstractController
         $form->get('type')->setData(LeaveEntitlementType::Regular);
         $form->handleRequest($request);
 
+        $proRataHint = $this->buildProRataHint(
+            $form->get('employee')->getData(),
+            $form->get('year')->getData(),
+            $form->get('type')->getData(),
+        );
+
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var Employee $employee */
             $employee = $form->get('employee')->getData();
@@ -171,12 +179,14 @@ final class AdminEntitlementController extends AbstractController
 
                 return $this->render('admin/entitlements/form.html.twig', [
                     'form' => $form,
+                    'proRataHint' => $proRataHint,
                 ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
             } catch (\InvalidArgumentException $e) {
                 $form->addError(new FormError($e->getMessage()));
 
                 return $this->render('admin/entitlements/form.html.twig', [
                     'form' => $form,
+                    'proRataHint' => $proRataHint,
                 ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
             }
 
@@ -187,6 +197,7 @@ final class AdminEntitlementController extends AbstractController
 
         return $this->render('admin/entitlements/form.html.twig', [
             'form' => $form,
+            'proRataHint' => $proRataHint,
         ]);
     }
 
@@ -365,6 +376,34 @@ final class AdminEntitlementController extends AbstractController
         $this->addFlash('success', $this->translator->trans('admin.entitlements.flash.deleted'));
 
         return $this->redirectToRoute('app_admin_entitlement_index', ['year' => $year]);
+    }
+
+    /**
+     * Returns pro-rata hint data when an employee joined mid-year and a Regular
+     * entitlement is being created for that year. Returns null otherwise so the
+     * template can skip the banner entirely.
+     *
+     * @return array{joinedAt: \DateTimeImmutable, effectiveMonths: int, year: int}|null
+     */
+    private function buildProRataHint(mixed $employee, mixed $year, mixed $type): ?array
+    {
+        if (!$employee instanceof Employee || !\is_int($year) || LeaveEntitlementType::Regular !== $type) {
+            return null;
+        }
+        if (!$this->proRataCalculator->isReducedEntitlement($employee->getJoinedAt(), $year)) {
+            return null;
+        }
+
+        $joinDay = (int) $employee->getJoinedAt()->format('j');
+        $joinMonth = (int) $employee->getJoinedAt()->format('n');
+        $firstCounted = $joinDay <= 15 ? $joinMonth : $joinMonth + 1;
+        $effectiveMonths = max(0, 12 - $firstCounted + 1);
+
+        return [
+            'joinedAt' => $employee->getJoinedAt(),
+            'effectiveMonths' => $effectiveMonths,
+            'year' => $year,
+        ];
     }
 
     private function requireCompany(): Company

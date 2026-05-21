@@ -20,6 +20,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\GreaterThan;
 use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\LessThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
@@ -186,6 +187,7 @@ final class EmployeeType extends AbstractType
                 'input' => 'datetime_immutable',
                 'attr' => ['placeholder' => 'TT.MM.JJJJ', 'inputmode' => 'numeric'],
                 'required' => false,
+                'constraints' => [new LessThanOrEqual('today')],
             ])
             ->add('user', EntityType::class, [
                 'label' => 'admin.employees.user',

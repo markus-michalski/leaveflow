@@ -18,6 +18,15 @@
         {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'admin-entitlement-form' } }) }}
             <p class="text-xs text-gray-500">{{ 'form.required_legend'|trans }}</p>
             <p class="rounded-md bg-blue-50 p-3 text-xs text-blue-800">{{ 'admin.entitlements.new.hint'|trans }}</p>
+            {% if proRataHint %}
+            <div class="rounded-md bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+                {{ 'admin.entitlements.new.pro_rata_hint'|trans({
+                    '%joinedAt%': proRataHint.joinedAt|date('d.m.Y'),
+                    '%effectiveMonths%': proRataHint.effectiveMonths,
+                    '%year%': proRataHint.year
+                }) }}
+            </div>
+            {% endif %}
             {{ form_errors(form) }}
 
             {{ form_row(form.employee, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}

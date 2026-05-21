@@ -332,6 +332,12 @@ admin:
         flash:
             created: Mitarbeiter %name% wurde angelegt.
             updated: Mitarbeiter %name% wurde aktualisiert.
+            exited: "%name% wurde zum %date% ausgetreten und der Account wurde deaktiviert."
+            exit_remaining_balance: "Verbleibende Stunden: %hours% h. Konfigurierte Regelung: %handling%. %handlingNote%"
+        exit_handling_note:
+            pay_out: "Bitte die Abgeltung manuell mit dem Mitarbeitenden klären."
+            mandatory_consumption: "Der Urlaub muss vor dem Austrittsdatum genommen werden."
+            freistellung: "Den Restanspruch bitte als Freistellung einbuchen."
         error:
             duplicate_number: "Personalnummer %number% ist im Unternehmen bereits vergeben."
         import:
@@ -543,6 +549,7 @@ admin:
         new:
             title: "Urlaubsanspruch anlegen"
             hint: "Richtwert: 30 Urlaubstage × Stunden/Tag laut Arbeitszeitmodell (z. B. Vollzeit 40 h/5 Tage → 240 h). Bei Resturlaub zusätzlich Ablauffrist setzen (Standard: 31.03. Folgejahr)."
+            pro_rata_hint: "Zwölftelregel (BUrlG §5): Eintrittsdatum %joinedAt% ergibt %effectiveMonths%/12 anrechenbare Monate in %year%. Bitte den anteiligen Stundenwert eintragen (Jahresstunden × %effectiveMonths%/12, aufgerundet auf 0,5 h)."
         edit_view:
             title: "Urlaubsanspruch bearbeiten"
             hint: "Identitätsfelder (Mitarbeiter / Jahr / Art) sind gesperrt — bei falscher Zuordnung den Eintrag löschen und neu anlegen. Stunden lassen sich nicht unter den bereits verbrauchten Wert senken."
@@ -567,6 +574,7 @@ admin:
             logo_remove_confirm: "Wirklich das aktuelle Logo entfernen?"
             retention_months: "DSGVO-Aufbewahrungsdauer (Monate)"
             escalation_days: "Eskalations-Schwelle (Tage)"
+            exit_leave_handling: "Verbleibender Urlaub bei Austritt"
             save: "Speichern"
         google:
             heading: "Google Workspace Login"
@@ -835,6 +843,11 @@ admin:
             duplicate_placeholder: "Der Filter darf den Platzhalter {username} nur einmal enthalten."
             unbalanced_parens: "Die Klammern im LDAP-Filter sind nicht korrekt geschlossen."
             illegal_chars: "Der Filter darf keine NUL-Bytes oder Zeilenumbrüche enthalten."
+admin.exit_handling:
+    label:
+        pay_out: "Urlaubsabgeltung (Auszahlung)"
+        mandatory_consumption: "Pflichtentnahme vor Austritt"
+        freistellung: "Freistellung unter Anrechnung"
 holiday:
     neujahr: Neujahr
     heilige_drei_koenige: Heilige Drei Könige

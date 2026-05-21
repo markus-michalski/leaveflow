@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Admin;
 
+use App\Application\Employee\EmployeeExitService;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
+use App\Domain\Enum\ExitLeaveHandling;
 use App\Domain\Enum\Weekday;
 use App\Domain\Repository\CompanyRepository;
 use App\Domain\Repository\EmployeeRepository;
@@ -33,6 +35,7 @@ final class AdminEmployeeController extends AbstractController
         private readonly LeaveRequestRepository $leaveRequestRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
+        private readonly EmployeeExitService $exitService,
     ) {
     }
 
@@ -132,7 +135,10 @@ final class AdminEmployeeController extends AbstractController
                     $employee->updateSchedule($this->buildSchedule($form));
 
                     $leftAt = $this->optionalDate($form, 'leftAt');
-                    if (null !== $leftAt) {
+                    $wasExiting = null === $employee->getLeftAt() && null !== $leftAt;
+                    if ($wasExiting) {
+                        $exitSummary = $this->exitService->execute($employee, $leftAt);
+                    } elseif (null !== $leftAt) {
                         $employee->markLeft($leftAt);
                     }
 
@@ -147,10 +153,28 @@ final class AdminEmployeeController extends AbstractController
 
                     $this->entityManager->flush();
 
-                    $this->addFlash('success', $this->translator->trans(
-                        'admin.employees.flash.updated',
-                        ['%name%' => $employee->getFullName()],
-                    ));
+                    if ($wasExiting) {
+                        $this->addFlash('success', $this->translator->trans(
+                            'admin.employees.flash.exited',
+                            ['%name%' => $employee->getFullName(), '%date%' => $exitSummary->exitDate->format('d.m.Y')],
+                        ));
+                        if ($exitSummary->hasRemainingBalance()) {
+                            $handlingLabel = $this->translator->trans($exitSummary->exitLeaveHandling->translationKey());
+                            $this->addFlash('warning', $this->translator->trans(
+                                'admin.employees.flash.exit_remaining_balance',
+                                [
+                                    '%hours%' => number_format($exitSummary->totalRemainingHours, 2, ',', '.'),
+                                    '%handling%' => $handlingLabel,
+                                    '%handlingNote%' => $this->exitHandlingNote($exitSummary->exitLeaveHandling),
+                                ],
+                            ));
+                        }
+                    } else {
+                        $this->addFlash('success', $this->translator->trans(
+                            'admin.employees.flash.updated',
+                            ['%name%' => $employee->getFullName()],
+                        ));
+                    }
 
                     return $this->redirectToRoute('app_admin_employee_index');
                 } catch (\InvalidArgumentException $e) {
@@ -270,6 +294,15 @@ final class AdminEmployeeController extends AbstractController
         }
 
         return \DateTimeImmutable::createFromInterface($raw);
+    }
+
+    private function exitHandlingNote(ExitLeaveHandling $handling): string
+    {
+        return match ($handling) {
+            ExitLeaveHandling::PayOut => $this->translator->trans('admin.employees.exit_handling_note.pay_out'),
+            ExitLeaveHandling::MandatoryConsumption => $this->translator->trans('admin.employees.exit_handling_note.mandatory_consumption'),
+            ExitLeaveHandling::Freistellung => $this->translator->trans('admin.employees.exit_handling_note.freistellung'),
+        };
     }
 
     /**
