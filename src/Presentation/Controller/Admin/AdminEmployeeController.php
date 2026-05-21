@@ -419,9 +419,9 @@ final class AdminEmployeeController extends AbstractController
     /**
      * Returns pro-rata hint data for the employee edit form.
      *
-     * Accounts for both a mid-year join date and a same-year exit date so that
-     * the displayed month count reflects the actual employment period, not just
-     * the join-side months.
+     * Delegates month counting to ProRataEntitlementCalculator so both the
+     * join-side and same-year exit-side are handled consistently and tested.
+     * Probation is checked against actual elapsed days, not Zwölftel months.
      *
      * @return array{joinedAt: \DateTimeImmutable, effectiveMonths: int, year: int, probation: bool}|null
      */
@@ -431,37 +431,21 @@ final class AdminEmployeeController extends AbstractController
         $joinYear = (int) $joinedAt->format('Y');
         $leftAt = $employee->getLeftAt();
 
-        $joinReduced = $this->proRataCalculator->isReducedEntitlement($joinedAt, $joinYear);
-        $exitSameYear = null !== $leftAt && (int) $leftAt->format('Y') === $joinYear;
+        $effectiveMonths = $this->proRataCalculator->effectiveMonthsForPeriod($joinedAt, $leftAt, $joinYear);
 
-        if (!$joinReduced && !$exitSameYear) {
+        if ($effectiveMonths >= 12 || 0 === $effectiveMonths) {
             return null;
         }
 
-        $joinDay = (int) $joinedAt->format('j');
-        $joinMonth = (int) $joinedAt->format('n');
-        $firstCounted = $joinDay <= 15 ? $joinMonth : $joinMonth + 1;
-
-        // When exit falls in the same join year, cap the last counted month.
-        // Symmetric to the entry rule: exit on/before the 15th → that month does
-        // not count (employee barely worked it); exit on the 16th or later → it counts.
-        $lastCounted = 12;
-        if ($exitSameYear) {
-            $exitDay = (int) $leftAt->format('j');
-            $exitMonth = (int) $leftAt->format('n');
-            $lastCounted = $exitDay <= 15 ? $exitMonth - 1 : $exitMonth;
-        }
-
-        $effectiveMonths = max(0, $lastCounted - $firstCounted + 1);
-        if (0 === $effectiveMonths) {
-            return null;
-        }
+        // Probation warning only when exit is known; based on actual calendar days
+        // (≤ 183 ≈ 6 months), not on pro-rata Zwölftel months.
+        $probation = null !== $leftAt && $joinedAt->diff($leftAt)->days <= 183;
 
         return [
             'joinedAt' => $joinedAt,
             'effectiveMonths' => $effectiveMonths,
             'year' => $joinYear,
-            'probation' => $effectiveMonths <= 6,
+            'probation' => $probation,
         ];
     }
 }

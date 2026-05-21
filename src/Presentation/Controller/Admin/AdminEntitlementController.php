@@ -409,14 +409,16 @@ final class AdminEntitlementController extends AbstractController
         if (!$employee instanceof Employee || !\is_int($year) || LeaveEntitlementType::Regular !== $type) {
             return null;
         }
-        if (!$this->proRataCalculator->isReducedEntitlement($employee->getJoinedAt(), $year)) {
+
+        $effectiveMonths = $this->proRataCalculator->effectiveMonthsForPeriod(
+            $employee->getJoinedAt(),
+            null,
+            $year,
+        );
+
+        if ($effectiveMonths >= 12 || 0 === $effectiveMonths) {
             return null;
         }
-
-        $joinDay = (int) $employee->getJoinedAt()->format('j');
-        $joinMonth = (int) $employee->getJoinedAt()->format('n');
-        $firstCounted = $joinDay <= 15 ? $joinMonth : $joinMonth + 1;
-        $effectiveMonths = max(0, 12 - $firstCounted + 1);
 
         return [
             'joinedAt' => $employee->getJoinedAt(),

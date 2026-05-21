@@ -21,6 +21,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 
 #[CoversClass(EmployeeExitService::class)]
 #[CoversClass(ExitSummary::class)]
@@ -46,8 +47,11 @@ final class EmployeeExitServiceTest extends TestCase
         );
 
         $this->repository = $this->createStub(LeaveEntitlementRepository::class);
+        // Clock fixed to 2025-07-16 so tests can distinguish past (2025-07-15),
+        // today (2025-07-16), and future (2026-01-01) exit dates.
         $this->service = new EmployeeExitService(
             new EntitlementBalanceReader($this->repository),
+            new MockClock(new \DateTimeImmutable('2025-07-16')),
         );
     }
 
@@ -105,7 +109,7 @@ final class EmployeeExitServiceTest extends TestCase
 
         $this->repository
             ->method('findByEmployeeAndYear')
-            ->willReturnCallback(static function (Employee $emp, int $year) use ($currentYearEntitlement, $carryoverEntitlement): array {
+            ->willReturnCallback(static function (Employee $_emp, int $year) use ($currentYearEntitlement, $carryoverEntitlement): array {
                 return match ($year) {
                     2025 => [$currentYearEntitlement, $carryoverEntitlement],
                     default => [],
@@ -153,14 +157,26 @@ final class EmployeeExitServiceTest extends TestCase
     }
 
     #[Test]
+    public function executeDeactivatesUserWhenExitDateIsToday(): void
+    {
+        $this->repository->method('findByEmployeeAndYear')->willReturn([]);
+        $user = new User($this->company, 'hannah@example.com', UserRole::Employee);
+        $this->employee->linkUser($user);
+
+        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-16'));
+
+        self::assertFalse($user->isActive());
+        self::assertTrue($summary->userDeactivated);
+    }
+
+    #[Test]
     public function executeDoesNotDeactivateUserForFutureExitDate(): void
     {
         $this->repository->method('findByEmployeeAndYear')->willReturn([]);
         $user = new User($this->company, 'hannah@example.com', UserRole::Employee);
         $this->employee->linkUser($user);
 
-        $futureDate = new \DateTimeImmutable('+1 year');
-        $summary = $this->service->execute($this->employee, $futureDate);
+        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2026-01-01'));
 
         self::assertTrue($user->isActive(), 'User must stay active until the exit date arrives');
         self::assertFalse($summary->userDeactivated);

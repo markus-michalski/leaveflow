@@ -5,6 +5,8 @@ export default class extends Controller {
     static values = { baseUrl: String };
 
     reload() {
+        if (!this.baseUrlValue) return;
+
         const frame = document.getElementById('pro-rata-hint');
         if (!frame) return;
 

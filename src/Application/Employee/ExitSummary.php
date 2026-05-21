@@ -14,6 +14,8 @@ use App\Domain\Enum\ExitLeaveHandling;
  */
 final readonly class ExitSummary
 {
+    private const float BALANCE_EPSILON = 0.01;
+
     public function __construct(
         public float $totalRemainingHours,
         public ExitLeaveHandling $exitLeaveHandling,
@@ -24,6 +26,6 @@ final readonly class ExitSummary
 
     public function hasRemainingBalance(): bool
     {
-        return $this->totalRemainingHours > 0.001;
+        return $this->totalRemainingHours > self::BALANCE_EPSILON;
     }
 }

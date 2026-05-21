@@ -120,4 +120,66 @@ final class ProRataEntitlementCalculatorTest extends TestCase
             'Joined prior year — not reduced' => ['2022-07-01', 2024, false],
         ];
     }
+
+    #[Test]
+    public function isReducedEntitlementWithSameYearExitDetectsReduction(): void
+    {
+        // Joined Jan 1 (full join side) but exits in June — still reduced overall.
+        $joined = new \DateTimeImmutable('2024-01-01');
+        $leftAt = new \DateTimeImmutable('2024-06-30');
+
+        self::assertTrue($this->calculator->isReducedEntitlement($joined, 2024, $leftAt));
+    }
+
+    // ── effectiveMonthsForPeriod ───────────────────────────────────────────
+
+    #[Test]
+    #[DataProvider('effectiveMonthsProvider')]
+    public function effectiveMonthsForPeriodReturnsExpected(
+        string $joinedAt,
+        ?string $leftAt,
+        int $year,
+        int $expectedMonths,
+    ): void {
+        $joined = new \DateTimeImmutable($joinedAt);
+        $left = null !== $leftAt ? new \DateTimeImmutable($leftAt) : null;
+
+        self::assertSame($expectedMonths, $this->calculator->effectiveMonthsForPeriod($joined, $left, $year));
+    }
+
+    /**
+     * Covers: join-only, exit-only cap, combined join+exit, edge months, prior-year join.
+     *
+     * Exit rule: exit on/before the 15th → month does not count.
+     *            Exit on the 16th or later → month counts.
+     *
+     * @return array<string, array{string, string|null, int, int}>
+     */
+    public static function effectiveMonthsProvider(): array
+    {
+        return [
+            // Join only (no exit)
+            'join Mar 1, no exit → 10 months (Mar–Dec)' => ['2024-03-01', null, 2024, 10],
+            'join Jan 1, no exit → 12 months' => ['2024-01-01', null, 2024, 12],
+            'join Jan 15, no exit → 12 months' => ['2024-01-15', null, 2024, 12],
+            'join Jan 16, no exit → 11 months (Feb–Dec)' => ['2024-01-16', null, 2024, 11],
+            'join Dec 15, no exit → 1 month (Dec)' => ['2024-12-15', null, 2024, 1],
+            'join Dec 16, no exit → 0 months' => ['2024-12-16', null, 2024, 0],
+
+            // Exit only cap (joined prior year, full first-counted = Jan)
+            'prior-year join, exit Jun 30 (day 30 > 15) → 6 months (Jan–Jun)' => ['2023-01-01', '2024-06-30', 2024, 6],
+            'prior-year join, exit Jun 15 (day 15 ≤ 15) → 5 months (Jan–May)' => ['2023-01-01', '2024-06-15', 2024, 5],
+            'prior-year join, exit Jan 1 (day 1 ≤ 15) → 0 months (lastCounted=0)' => ['2023-01-01', '2024-01-01', 2024, 0],
+            'prior-year join, exit Dec 31 (day 31 > 15) → 12 months' => ['2023-01-01', '2024-12-31', 2024, 12],
+
+            // Combined join + exit in same year
+            'join Mar 1, exit Jul 1 (day 1 ≤ 15) → 4 months (Mar–Jun)' => ['2024-03-01', '2024-07-01', 2024, 4],
+            'join Mar 1, exit Jul 16 (day 16 > 15) → 5 months (Mar–Jul)' => ['2024-03-01', '2024-07-16', 2024, 5],
+            'join Mar 16, exit Jul 1 (day 1 ≤ 15) → 3 months (Apr–Jun)' => ['2024-03-16', '2024-07-01', 2024, 3],
+            'join Jan 1, exit Jun 30 (day 30 > 15) → 6 months' => ['2024-01-01', '2024-06-30', 2024, 6],
+
+            // Exit in a different year — exit does not cap
+            'join Mar 1 2024, exit Jan 2025 → 10 months (exit year mismatch)' => ['2024-03-01', '2025-01-15', 2024, 10],
+        ];
+    }
 }

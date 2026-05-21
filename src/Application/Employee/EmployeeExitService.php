@@ -6,6 +6,7 @@ namespace App\Application\Employee;
 
 use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Domain\Entity\Employee;
+use Symfony\Component\Clock\ClockInterface;
 
 /**
  * Orchestrates the employee exit workflow.
@@ -18,6 +19,7 @@ final readonly class EmployeeExitService
 {
     public function __construct(
         private EntitlementBalanceReader $balanceReader,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -30,7 +32,7 @@ final readonly class EmployeeExitService
         // handles deactivation on the actual exit date.
         $userDeactivated = false;
         $user = $employee->getUser();
-        if (null !== $user && $exitDate <= new \DateTimeImmutable('today')) {
+        if (null !== $user && $exitDate <= $this->clock->now()) {
             $user->deactivate();
             $userDeactivated = true;
         }
