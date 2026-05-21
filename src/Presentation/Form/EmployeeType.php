@@ -20,7 +20,6 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\GreaterThan;
 use Symfony\Component\Validator\Constraints\Length;
-use Symfony\Component\Validator\Constraints\LessThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
@@ -187,23 +186,31 @@ final class EmployeeType extends AbstractType
                 'input' => 'datetime_immutable',
                 'attr' => ['placeholder' => 'TT.MM.JJJJ', 'inputmode' => 'numeric'],
                 'required' => false,
-                'constraints' => [new LessThanOrEqual('today')],
             ])
             ->add('user', EntityType::class, [
                 'label' => 'admin.employees.user',
                 'help' => 'admin.employees.user_help',
                 'mapped' => false,
                 'class' => User::class,
-                // Only offer users that are active AND not already linked to another
-                // employee. In edit mode, the currently-linked user stays visible
-                // (otherwise the form would drop the existing link on re-submit).
+                // Offer active users not yet linked to another employee. In edit
+                // mode the currently-linked user is always included — even when
+                // deactivated (e.g. after the exit workflow ran) — so the existing
+                // link is shown correctly and can be cleared if needed.
                 'query_builder' => static function ($repo) use ($company, $currentEmployee) {
+                    $linkedUser = $currentEmployee?->getUser();
+
                     $qb = $repo->createQueryBuilder('u')
                         ->leftJoin('u.employee', 'e')
                         ->andWhere('u.company = :company')
-                        ->andWhere('u.active = true')
                         ->setParameter('company', $company)
                         ->orderBy('u.email', 'ASC');
+
+                    if (null !== $linkedUser) {
+                        $qb->andWhere('u.active = true OR u.id = :linkedUserId')
+                            ->setParameter('linkedUserId', $linkedUser->getId());
+                    } else {
+                        $qb->andWhere('u.active = true');
+                    }
 
                     if (null !== $currentEmployee && null !== $currentEmployee->getId()) {
                         $qb->andWhere('e.id IS NULL OR e.id = :currentEmployeeId')

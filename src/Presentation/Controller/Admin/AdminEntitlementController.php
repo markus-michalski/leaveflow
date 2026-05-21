@@ -141,6 +141,25 @@ final class AdminEntitlementController extends AbstractController
         );
     }
 
+    #[Route('/pro-rata-hint', name: 'pro_rata_hint', methods: ['GET'])]
+    public function proRataHintFragment(Request $request): Response
+    {
+        $company = $this->requireCompany();
+        $employeeId = $request->query->getInt('employee');
+        $year = $request->query->getInt('year');
+        $typeRaw = $request->query->getString('type', '');
+
+        $employee = $employeeId > 0
+            ? $this->employeeRepository->findOneBy(['id' => $employeeId, 'company' => $company])
+            : null;
+
+        $type = '' !== $typeRaw ? LeaveEntitlementType::tryFrom($typeRaw) : null;
+
+        return $this->render('admin/entitlements/_pro_rata_hint.html.twig', [
+            'proRataHint' => $this->buildProRataHint($employee, $year, $type),
+        ]);
+    }
+
     #[Route('/new', name: 'new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {

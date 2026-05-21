@@ -25,9 +25,12 @@ final readonly class EmployeeExitService
     {
         $employee->markLeft($exitDate);
 
+        // Deactivate immediately only when the exit date is today or in the past.
+        // Future-dated exits keep the user active; a daily scheduled job (#82)
+        // handles deactivation on the actual exit date.
         $userDeactivated = false;
         $user = $employee->getUser();
-        if (null !== $user) {
+        if (null !== $user && $exitDate <= new \DateTimeImmutable('today')) {
             $user->deactivate();
             $userDeactivated = true;
         }

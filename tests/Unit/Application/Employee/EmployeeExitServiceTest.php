@@ -152,6 +152,20 @@ final class EmployeeExitServiceTest extends TestCase
         self::assertTrue($summary->userDeactivated);
     }
 
+    #[Test]
+    public function executeDoesNotDeactivateUserForFutureExitDate(): void
+    {
+        $this->repository->method('findByEmployeeAndYear')->willReturn([]);
+        $user = new User($this->company, 'hannah@example.com', UserRole::Employee);
+        $this->employee->linkUser($user);
+
+        $futureDate = new \DateTimeImmutable('+1 year');
+        $summary = $this->service->execute($this->employee, $futureDate);
+
+        self::assertTrue($user->isActive(), 'User must stay active until the exit date arrives');
+        self::assertFalse($summary->userDeactivated);
+    }
+
     private function makeRegularEntitlement(int $year, float $granted, float $used): LeaveEntitlement
     {
         $entry = new LeaveEntitlement($this->employee, $year, LeaveEntitlementType::Regular, $granted);
