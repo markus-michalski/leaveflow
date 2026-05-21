@@ -417,29 +417,51 @@ final class AdminEmployeeController extends AbstractController
     }
 
     /**
-     * Returns pro-rata hint data for the employee edit form when the employee
-     * joined mid-year and the Zwölftelregel (BUrlG §5) applies for their join year.
+     * Returns pro-rata hint data for the employee edit form.
      *
-     * @return array{joinedAt: \DateTimeImmutable, effectiveMonths: int, year: int}|null
+     * Accounts for both a mid-year join date and a same-year exit date so that
+     * the displayed month count reflects the actual employment period, not just
+     * the join-side months.
+     *
+     * @return array{joinedAt: \DateTimeImmutable, effectiveMonths: int, year: int, probation: bool}|null
      */
     private function buildEmployeeProRataHint(Employee $employee): ?array
     {
         $joinedAt = $employee->getJoinedAt();
         $joinYear = (int) $joinedAt->format('Y');
+        $leftAt = $employee->getLeftAt();
 
-        if (!$this->proRataCalculator->isReducedEntitlement($joinedAt, $joinYear)) {
+        $joinReduced = $this->proRataCalculator->isReducedEntitlement($joinedAt, $joinYear);
+        $exitSameYear = null !== $leftAt && (int) $leftAt->format('Y') === $joinYear;
+
+        if (!$joinReduced && !$exitSameYear) {
             return null;
         }
 
         $joinDay = (int) $joinedAt->format('j');
         $joinMonth = (int) $joinedAt->format('n');
         $firstCounted = $joinDay <= 15 ? $joinMonth : $joinMonth + 1;
-        $effectiveMonths = max(0, 12 - $firstCounted + 1);
+
+        // When exit falls in the same join year, cap the last counted month.
+        // Symmetric to the entry rule: exit on/before the 15th → that month does
+        // not count (employee barely worked it); exit on the 16th or later → it counts.
+        $lastCounted = 12;
+        if ($exitSameYear) {
+            $exitDay = (int) $leftAt->format('j');
+            $exitMonth = (int) $leftAt->format('n');
+            $lastCounted = $exitDay <= 15 ? $exitMonth - 1 : $exitMonth;
+        }
+
+        $effectiveMonths = max(0, $lastCounted - $firstCounted + 1);
+        if (0 === $effectiveMonths) {
+            return null;
+        }
 
         return [
             'joinedAt' => $joinedAt,
             'effectiveMonths' => $effectiveMonths,
             'year' => $joinYear,
+            'probation' => $effectiveMonths <= 6,
         ];
     }
 }

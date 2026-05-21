@@ -339,6 +339,7 @@ admin:
             mandatory_consumption: "Der Urlaub muss vor dem Austrittsdatum genommen werden."
             freistellung: "Den Restanspruch bitte als Freistellung einbuchen."
         pro_rata_reminder: "Zwölftelregel (BUrlG §5): Eintritt am %joinedAt% → %effectiveMonths%/12 anrechenbare Monate für %year%. Bitte Urlaubskonto für %year% anteilig anlegen."
+        probation_hint: "Beschäftigungsdauer beträgt nur %months% Monate – möglicher Austritt in der Probezeit (i.d.R. 6 Monate). Bitte prüfen, ob lediglich anteilige Urlaubsansprüche bestehen."
         error:
             duplicate_number: "Personalnummer %number% ist im Unternehmen bereits vergeben."
         import:

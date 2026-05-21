@@ -339,6 +339,7 @@ admin:
             mandatory_consumption: "The remaining leave must be taken before the exit date."
             freistellung: "Please book the remaining entitlement as Freistellung."
         pro_rata_reminder: "Twelfths rule (BUrlG §5): Joined on %joinedAt% → %effectiveMonths%/12 countable months for %year%. Please create the leave entitlement for %year% proportionally."
+        probation_hint: "Employment duration is only %months% months – possible exit during the probationary period (typically 6 months). Please verify that only pro-rata leave entitlements apply."
         error:
             duplicate_number: "Employee number %number% is already taken in this company."
         import:
