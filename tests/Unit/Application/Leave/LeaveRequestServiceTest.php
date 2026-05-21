@@ -15,7 +15,6 @@ use App\Application\Leave\LeaveRequestService;
 use App\Application\Leave\MultiDayHalfDayException;
 use App\Application\Leave\NoEntitlementForYearException;
 use App\Application\Notification\NotificationDispatcherInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use App\Domain\Calculator\HolidayCalculator;
 use App\Domain\Calculator\LeaveCalculator;
 use App\Domain\Entity\AbsenceType;
@@ -41,6 +40,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 #[CoversClass(LeaveRequestService::class)]
 #[AllowMockObjectsWithoutExpectations]

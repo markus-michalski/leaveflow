@@ -38,9 +38,7 @@ class TeamsNotifierTest extends TestCase
 
         $this->httpClient->expects($this->once())
             ->method('request')
-            ->with('POST', $webhookUrl, $this->callback(static function (array $options): bool {
-                return isset($options['json']) && isset($options['headers']['Content-Type']);
-            }))
+            ->with('POST', $webhookUrl, $this->callback(static fn (array $options): bool => isset($options['json']) && isset($options['headers']['Content-Type'])))
             ->willReturn($response);
 
         $this->logger->expects($this->never())->method('warning');
