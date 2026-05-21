@@ -95,6 +95,18 @@
                 {{ form_row(form.joinedAt, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
                 {{ form_row(form.leftAt, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
             </div>
+            {% if proRataHint %}
+            <div class="rounded-md bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 space-y-1">
+                <p>{{ 'admin.employees.pro_rata_reminder'|trans({
+                    '%joinedAt%': proRataHint.joinedAt|date('d.m.Y'),
+                    '%effectiveMonths%': proRataHint.effectiveMonths,
+                    '%year%': proRataHint.year
+                }) }}</p>
+                {% if proRataHint.probation %}
+                <p class="font-medium">{{ 'admin.employees.probation_hint'|trans({'%months%': proRataHint.effectiveMonths}) }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
 
             {{ form_row(form.user, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
 

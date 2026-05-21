@@ -15,16 +15,45 @@
     </header>
 
     <div class="rounded-xl bg-white p-6 shadow-sm">
-        {{ form_start(form, { attr: { class: 'space-y-4', 'data-testid': 'admin-entitlement-form' } }) }}
+        {{ form_start(form, { attr: {
+            class: 'space-y-4',
+            'data-testid': 'admin-entitlement-form',
+            'data-controller': 'entitlement-hint',
+            'data-entitlement-hint-base-url-value': path('app_admin_entitlement_pro_rata_hint')
+        } }) }}
             <p class="text-xs text-gray-500">{{ 'form.required_legend'|trans }}</p>
             <p class="rounded-md bg-blue-50 p-3 text-xs text-blue-800">{{ 'admin.entitlements.new.hint'|trans }}</p>
+
+            {% include 'admin/entitlements/_pro_rata_hint.html.twig' with { proRataHint: proRataHint } %}
+
             {{ form_errors(form) }}
 
-            {{ form_row(form.employee, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+            {{ form_row(form.employee, {
+                label_attr: { class: 'block text-sm font-medium text-gray-700' },
+                attr: {
+                    class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2',
+                    'data-entitlement-hint-target': 'employee',
+                    'data-action': 'change->entitlement-hint#reload'
+                }
+            }) }}
 
             <div class="grid grid-cols-2 gap-4">
-                {{ form_row(form.year, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
-                {{ form_row(form.type, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+                {{ form_row(form.year, {
+                    label_attr: { class: 'block text-sm font-medium text-gray-700' },
+                    attr: {
+                        class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2',
+                        'data-entitlement-hint-target': 'year',
+                        'data-action': 'change->entitlement-hint#reload'
+                    }
+                }) }}
+                {{ form_row(form.type, {
+                    label_attr: { class: 'block text-sm font-medium text-gray-700' },
+                    attr: {
+                        class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2',
+                        'data-entitlement-hint-target': 'type',
+                        'data-action': 'change->entitlement-hint#reload'
+                    }
+                }) }}
             </div>
 
             {{ form_row(form.hoursGranted, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}

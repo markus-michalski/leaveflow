@@ -332,6 +332,14 @@ admin:
         flash:
             created: Employee %name% has been created.
             updated: Employee %name% has been updated.
+            exited: "%name% has exited on %date% and the account has been deactivated."
+            exit_remaining_balance: "Remaining balance: %hours% h. Configured handling: %handling%. %handlingNote%"
+        exit_handling_note:
+            pay_out: "Please arrange the payout directly with the employee."
+            mandatory_consumption: "The remaining leave must be taken before the exit date."
+            freistellung: "Please book the remaining entitlement as Freistellung."
+        pro_rata_reminder: "Twelfths rule (BUrlG §5): Joined on %joinedAt% → %effectiveMonths%/12 countable months for %year%. Please create the leave entitlement for %year% proportionally."
+        probation_hint: "Employment duration is only %months% months – possible exit during the probationary period (typically 6 months). Please verify that only pro-rata leave entitlements apply."
         error:
             duplicate_number: "Employee number %number% is already taken in this company."
         import:
@@ -540,6 +548,7 @@ admin:
         new:
             title: "Create leave entitlement"
             hint: "Rule of thumb: 30 vacation days × hours/day from the work schedule (e.g. full-time 40h/5d = 240h). For carryover entries also set an expiry (default: 31.03. of the following year)."
+            pro_rata_hint: "Twelfths rule (BUrlG §5): join date %joinedAt% yields %effectiveMonths%/12 countable months in %year%. Please enter the proportional hours (annual hours × %effectiveMonths%/12, rounded up to 0.5h)."
         edit_view:
             title: "Edit leave entitlement"
             hint: "Identity fields (employee / year / type) are locked — for wrong assignments delete the entry and recreate. Hours cannot be lowered below the already-consumed amount."
@@ -564,6 +573,7 @@ admin:
             logo_remove_confirm: "Really remove the current logo?"
             retention_months: "GDPR retention period (months)"
             escalation_days: "Approval escalation threshold (days)"
+            exit_leave_handling: "Remaining leave on employee exit"
             save: "Save"
         google:
             heading: "Google Workspace Login"
@@ -832,6 +842,11 @@ admin:
             duplicate_placeholder: "The filter must not contain the {username} placeholder more than once."
             unbalanced_parens: "The LDAP filter has unbalanced parentheses."
             illegal_chars: "The filter must not contain NUL bytes or line breaks."
+admin.exit_handling:
+    label:
+        pay_out: "Leave payout (Urlaubsabgeltung)"
+        mandatory_consumption: "Mandatory leave consumption before exit"
+        freistellung: "Paid release from work (Freistellung)"
 holiday:
     neujahr: "New Year's Day"
     heilige_drei_koenige: Epiphany

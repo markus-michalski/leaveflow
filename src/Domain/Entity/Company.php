@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity;
 
+use App\Domain\Enum\ExitLeaveHandling;
 use App\Domain\Repository\CompanyRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -66,6 +67,13 @@ class Company
     #[ORM\Column(name: 'commercial_register', length: 100, nullable: true)]
     private ?string $commercialRegister = null;
 
+    /**
+     * How unused leave balance is handled when an employee exits mid-year.
+     * PayOut is the statutory default (§7 Abs. 4 BUrlG).
+     */
+    #[ORM\Column(name: 'exit_leave_handling', length: 30, enumType: ExitLeaveHandling::class, options: ['default' => 'pay_out'])]
+    private ExitLeaveHandling $exitLeaveHandling = ExitLeaveHandling::PayOut;
+
     public function __construct(
         #[ORM\Column(length: 200)]
         private string $name,
@@ -79,6 +87,16 @@ class Company
         #[ORM\Column(name: 'approval_escalation_days', options: ['default' => 3])]
         private int $approvalEscalationDays = 3,
     ) {
+    }
+
+    public function getExitLeaveHandling(): ExitLeaveHandling
+    {
+        return $this->exitLeaveHandling;
+    }
+
+    public function setExitLeaveHandling(ExitLeaveHandling $handling): void
+    {
+        $this->exitLeaveHandling = $handling;
     }
 
     public function getId(): ?int

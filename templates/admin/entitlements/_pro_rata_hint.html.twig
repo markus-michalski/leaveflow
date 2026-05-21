@@ -1,0 +1,11 @@
+<turbo-frame id="pro-rata-hint">
+    {% if proRataHint %}
+    <div class="rounded-md bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+        {{ 'admin.entitlements.new.pro_rata_hint'|trans({
+            '%joinedAt%': proRataHint.joinedAt|date('d.m.Y'),
+            '%effectiveMonths%': proRataHint.effectiveMonths,
+            '%year%': proRataHint.year
+        }) }}
+    </div>
+    {% endif %}
+</turbo-frame>

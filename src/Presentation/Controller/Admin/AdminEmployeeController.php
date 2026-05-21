@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Admin;
 
+use App\Application\Employee\EmployeeExitService;
+use App\Domain\Calculator\ProRataEntitlementCalculator;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
+use App\Domain\Enum\ExitLeaveHandling;
 use App\Domain\Enum\Weekday;
 use App\Domain\Repository\CompanyRepository;
 use App\Domain\Repository\EmployeeRepository;
@@ -33,6 +36,8 @@ final class AdminEmployeeController extends AbstractController
         private readonly LeaveRequestRepository $leaveRequestRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
+        private readonly EmployeeExitService $exitService,
+        private readonly ProRataEntitlementCalculator $proRataCalculator,
     ) {
     }
 
@@ -100,6 +105,7 @@ final class AdminEmployeeController extends AbstractController
         return $this->render('admin/employees/form.html.twig', [
             'form' => $form,
             'is_new' => true,
+            'proRataHint' => null,
         ]);
     }
 
@@ -132,7 +138,10 @@ final class AdminEmployeeController extends AbstractController
                     $employee->updateSchedule($this->buildSchedule($form));
 
                     $leftAt = $this->optionalDate($form, 'leftAt');
-                    if (null !== $leftAt) {
+                    $exitSummary = null;
+                    if (null === $employee->getLeftAt() && null !== $leftAt) {
+                        $exitSummary = $this->exitService->execute($employee, $leftAt);
+                    } elseif (null !== $leftAt) {
                         $employee->markLeft($leftAt);
                     }
 
@@ -147,10 +156,28 @@ final class AdminEmployeeController extends AbstractController
 
                     $this->entityManager->flush();
 
-                    $this->addFlash('success', $this->translator->trans(
-                        'admin.employees.flash.updated',
-                        ['%name%' => $employee->getFullName()],
-                    ));
+                    if (null !== $exitSummary) {
+                        $this->addFlash('success', $this->translator->trans(
+                            'admin.employees.flash.exited',
+                            ['%name%' => $employee->getFullName(), '%date%' => $exitSummary->exitDate->format('d.m.Y')],
+                        ));
+                        if ($exitSummary->hasRemainingBalance()) {
+                            $handlingLabel = $this->translator->trans($exitSummary->exitLeaveHandling->translationKey());
+                            $this->addFlash('warning', $this->translator->trans(
+                                'admin.employees.flash.exit_remaining_balance',
+                                [
+                                    '%hours%' => number_format($exitSummary->totalRemainingHours, 2, ',', '.'),
+                                    '%handling%' => $handlingLabel,
+                                    '%handlingNote%' => $this->exitHandlingNote($exitSummary->exitLeaveHandling),
+                                ],
+                            ));
+                        }
+                    } else {
+                        $this->addFlash('success', $this->translator->trans(
+                            'admin.employees.flash.updated',
+                            ['%name%' => $employee->getFullName()],
+                        ));
+                    }
 
                     return $this->redirectToRoute('app_admin_employee_index');
                 } catch (\InvalidArgumentException $e) {
@@ -163,6 +190,7 @@ final class AdminEmployeeController extends AbstractController
             'form' => $form,
             'is_new' => false,
             'employee' => $employee,
+            'proRataHint' => $this->buildEmployeeProRataHint($employee),
         ]);
     }
 
@@ -272,6 +300,15 @@ final class AdminEmployeeController extends AbstractController
         return \DateTimeImmutable::createFromInterface($raw);
     }
 
+    private function exitHandlingNote(ExitLeaveHandling $handling): string
+    {
+        return match ($handling) {
+            ExitLeaveHandling::PayOut => $this->translator->trans('admin.employees.exit_handling_note.pay_out'),
+            ExitLeaveHandling::MandatoryConsumption => $this->translator->trans('admin.employees.exit_handling_note.mandatory_consumption'),
+            ExitLeaveHandling::Freistellung => $this->translator->trans('admin.employees.exit_handling_note.freistellung'),
+        };
+    }
+
     /**
      * @param FormInterface<mixed> $form
      */
@@ -377,5 +414,38 @@ final class AdminEmployeeController extends AbstractController
         }
 
         return true;
+    }
+
+    /**
+     * Returns pro-rata hint data for the employee edit form.
+     *
+     * Delegates month counting to ProRataEntitlementCalculator so both the
+     * join-side and same-year exit-side are handled consistently and tested.
+     * Probation is checked against actual elapsed days, not Zwölftel months.
+     *
+     * @return array{joinedAt: \DateTimeImmutable, effectiveMonths: int, year: int, probation: bool}|null
+     */
+    private function buildEmployeeProRataHint(Employee $employee): ?array
+    {
+        $joinedAt = $employee->getJoinedAt();
+        $joinYear = (int) $joinedAt->format('Y');
+        $leftAt = $employee->getLeftAt();
+
+        $effectiveMonths = $this->proRataCalculator->effectiveMonthsForPeriod($joinedAt, $leftAt, $joinYear);
+
+        if ($effectiveMonths >= 12 || 0 === $effectiveMonths) {
+            return null;
+        }
+
+        // Probation warning only when exit is known; based on actual calendar days
+        // (≤ 183 ≈ 6 months), not on pro-rata Zwölftel months.
+        $probation = null !== $leftAt && $joinedAt->diff($leftAt)->days <= 183;
+
+        return [
+            'joinedAt' => $joinedAt,
+            'effectiveMonths' => $effectiveMonths,
+            'year' => $joinYear,
+            'probation' => $probation,
+        ];
     }
 }

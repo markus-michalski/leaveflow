@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Admin;
 
+use App\Domain\Calculator\ProRataEntitlementCalculator;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
@@ -40,6 +41,7 @@ final class AdminEntitlementController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
         private readonly ClockInterface $clock,
+        private readonly ProRataEntitlementCalculator $proRataCalculator,
     ) {
     }
 
@@ -139,6 +141,25 @@ final class AdminEntitlementController extends AbstractController
         );
     }
 
+    #[Route('/pro-rata-hint', name: 'pro_rata_hint', methods: ['GET'])]
+    public function proRataHintFragment(Request $request): Response
+    {
+        $company = $this->requireCompany();
+        $employeeId = $request->query->getInt('employee');
+        $year = $request->query->getInt('year');
+        $typeRaw = $request->query->getString('type', '');
+
+        $employee = $employeeId > 0
+            ? $this->employeeRepository->findOneBy(['id' => $employeeId, 'company' => $company])
+            : null;
+
+        $type = '' !== $typeRaw ? LeaveEntitlementType::tryFrom($typeRaw) : null;
+
+        return $this->render('admin/entitlements/_pro_rata_hint.html.twig', [
+            'proRataHint' => $this->buildProRataHint($employee, $year, $type),
+        ]);
+    }
+
     #[Route('/new', name: 'new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
@@ -148,6 +169,12 @@ final class AdminEntitlementController extends AbstractController
         $form->get('year')->setData((int) (new \DateTimeImmutable())->format('Y'));
         $form->get('type')->setData(LeaveEntitlementType::Regular);
         $form->handleRequest($request);
+
+        $proRataHint = $this->buildProRataHint(
+            $form->get('employee')->getData(),
+            $form->get('year')->getData(),
+            $form->get('type')->getData(),
+        );
 
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var Employee $employee */
@@ -171,12 +198,14 @@ final class AdminEntitlementController extends AbstractController
 
                 return $this->render('admin/entitlements/form.html.twig', [
                     'form' => $form,
+                    'proRataHint' => $proRataHint,
                 ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
             } catch (\InvalidArgumentException $e) {
                 $form->addError(new FormError($e->getMessage()));
 
                 return $this->render('admin/entitlements/form.html.twig', [
                     'form' => $form,
+                    'proRataHint' => $proRataHint,
                 ], new Response('', Response::HTTP_UNPROCESSABLE_ENTITY));
             }
 
@@ -187,6 +216,7 @@ final class AdminEntitlementController extends AbstractController
 
         return $this->render('admin/entitlements/form.html.twig', [
             'form' => $form,
+            'proRataHint' => $proRataHint,
         ]);
     }
 
@@ -365,6 +395,36 @@ final class AdminEntitlementController extends AbstractController
         $this->addFlash('success', $this->translator->trans('admin.entitlements.flash.deleted'));
 
         return $this->redirectToRoute('app_admin_entitlement_index', ['year' => $year]);
+    }
+
+    /**
+     * Returns pro-rata hint data when an employee joined mid-year and a Regular
+     * entitlement is being created for that year. Returns null otherwise so the
+     * template can skip the banner entirely.
+     *
+     * @return array{joinedAt: \DateTimeImmutable, effectiveMonths: int, year: int}|null
+     */
+    private function buildProRataHint(mixed $employee, mixed $year, mixed $type): ?array
+    {
+        if (!$employee instanceof Employee || !\is_int($year) || LeaveEntitlementType::Regular !== $type) {
+            return null;
+        }
+
+        $effectiveMonths = $this->proRataCalculator->effectiveMonthsForPeriod(
+            $employee->getJoinedAt(),
+            null,
+            $year,
+        );
+
+        if ($effectiveMonths >= 12 || 0 === $effectiveMonths) {
+            return null;
+        }
+
+        return [
+            'joinedAt' => $employee->getJoinedAt(),
+            'effectiveMonths' => $effectiveMonths,
+            'year' => $year,
+        ];
     }
 
     private function requireCompany(): Company
