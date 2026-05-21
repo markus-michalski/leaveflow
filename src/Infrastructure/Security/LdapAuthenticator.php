@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+use App\Application\Security\EncryptionService;
 use App\Application\Security\LdapUserData;
 use App\Application\Security\LdapUserResolver;
 use App\Domain\Enum\AuthSource;
@@ -35,6 +36,7 @@ final class LdapAuthenticator extends AbstractAuthenticator
         private readonly UserRepository $userRepository,
         private readonly LdapUserResolver $userResolver,
         private readonly RouterInterface $router,
+        private readonly EncryptionService $encryption,
     ) {
     }
 
@@ -83,7 +85,8 @@ final class LdapAuthenticator extends AbstractAuthenticator
 
             // Service-account bind for user search (anonymous if no bind DN configured)
             $bindDn = $company->getLdapBindDn();
-            $bindPassword = $company->getLdapBindPassword();
+            $encryptedPassword = $company->getLdapBindPassword();
+            $bindPassword = null !== $encryptedPassword ? $this->encryption->tryDecrypt($encryptedPassword) : null;
             if (null !== $bindDn) {
                 $ldap->bind($bindDn, (string) $bindPassword);
             } else {

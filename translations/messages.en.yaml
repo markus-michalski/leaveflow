@@ -791,6 +791,12 @@ admin:
                 only_approved: "Reclassification is only available for approved requests."
                 same_type: "Selected type matches the current one — nothing to change."
                 overdraft: "This change would overdraw the leave balance. Check the balance first."
+    ldap_filter:
+        error:
+            no_placeholder: "The filter must contain the {username} placeholder exactly once."
+            duplicate_placeholder: "The filter must not contain the {username} placeholder more than once."
+            unbalanced_parens: "The LDAP filter has unbalanced parentheses."
+            illegal_chars: "The filter must not contain NUL bytes or line breaks."
 holiday:
     neujahr: "New Year's Day"
     heilige_drei_koenige: Epiphany

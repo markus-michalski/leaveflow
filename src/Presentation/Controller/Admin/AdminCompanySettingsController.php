@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Admin;
 
+use App\Application\Security\EncryptionService;
+use App\Application\Validator\ValidLdapFilter;
 use App\Domain\Entity\Company;
 use App\Domain\Repository\CompanyRepository;
 use App\Presentation\Form\CompanyProfileFormType;
@@ -18,6 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/admin/company/settings', name: 'app_admin_company_settings_')]
@@ -32,6 +35,8 @@ final class AdminCompanySettingsController extends AbstractController
         private readonly TranslatorInterface $translator,
         private readonly ClockInterface $clock,
         private readonly SluggerInterface $slugger,
+        private readonly ValidatorInterface $validator,
+        private readonly EncryptionService $encryption,
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire('%kernel.project_dir%/public')]
         private readonly string $publicDir,
     ) {
@@ -220,10 +225,21 @@ final class AdminCompanySettingsController extends AbstractController
         $company->setLdapBindDn(trim((string) $request->request->get('ldap_bind_dn', '')) ?: null);
         $rawPassword = (string) $request->request->get('ldap_bind_password', '');
         if ('' !== $rawPassword) {
-            $company->setLdapBindPassword($rawPassword);
+            $company->setLdapBindPassword($this->encryption->encrypt($rawPassword));
         }
         $company->setLdapBaseDn(trim((string) $request->request->get('ldap_base_dn', '')) ?: null);
-        $company->setLdapUserFilter(trim((string) $request->request->get('ldap_user_filter', '')) ?: null);
+        $rawFilter = trim((string) $request->request->get('ldap_user_filter', '')) ?: null;
+        if (null !== $rawFilter) {
+            $violations = $this->validator->validate($rawFilter, new ValidLdapFilter());
+            if (\count($violations) > 0) {
+                foreach ($violations as $violation) {
+                    $this->addFlash('error', $this->translator->trans((string) $violation->getMessage()));
+                }
+
+                return $this->redirectToRoute('app_admin_company_settings_index');
+            }
+        }
+        $company->setLdapUserFilter($rawFilter);
         $company->setLdapGroupManagerDn(trim((string) $request->request->get('ldap_group_manager_dn', '')) ?: null);
         $company->setLdapGroupAdminDn(trim((string) $request->request->get('ldap_group_admin_dn', '')) ?: null);
 
