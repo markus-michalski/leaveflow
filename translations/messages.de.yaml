@@ -794,6 +794,12 @@ admin:
                 only_approved: "Reklassifizierung ist nur für genehmigte Anträge möglich."
                 same_type: "Der gewählte Typ entspricht dem aktuellen — keine Änderung."
                 overdraft: "Reklassifizierung würde das Resturlaubskonto überziehen. Bitte erst Saldo prüfen."
+    ldap_filter:
+        error:
+            no_placeholder: "Der Filter muss genau einmal den Platzhalter {username} enthalten."
+            duplicate_placeholder: "Der Filter darf den Platzhalter {username} nur einmal enthalten."
+            unbalanced_parens: "Die Klammern im LDAP-Filter sind nicht korrekt geschlossen."
+            illegal_chars: "Der Filter darf keine NUL-Bytes oder Zeilenumbrüche enthalten."
 holiday:
     neujahr: Neujahr
     heilige_drei_koenige: Heilige Drei Könige

@@ -336,7 +336,7 @@ class Company
     #[ORM\Column(name: 'ldap_bind_dn', length: 512, nullable: true)]
     private ?string $ldapBindDn = null;
 
-    #[ORM\Column(name: 'ldap_bind_password', length: 255, nullable: true)]
+    #[ORM\Column(name: 'ldap_bind_password', type: Types::TEXT, nullable: true)]
     private ?string $ldapBindPassword = null;
 
     /** Base DN for user searches, e.g. "ou=users,dc=example,dc=com". */
