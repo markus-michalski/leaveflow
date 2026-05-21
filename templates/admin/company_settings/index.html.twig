@@ -387,6 +387,123 @@
         </div>
     </section>
 
+    {# Slack #}
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-slack">
+        <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.slack.heading'|trans }}</h2>
+        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.slack.description'|trans }}</p>
+
+        <div class="mt-4 space-y-4">
+            {% if company.isSlackEnabled() %}
+                <p class="inline-flex items-center gap-2 text-sm font-medium text-green-700">
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    {{ 'admin.company_settings.slack.status.enabled'|trans }}
+                </p>
+
+                {# Update Slack credentials (keep enabled) #}
+                <form method="post"
+                      action="{{ path('app_admin_company_settings_set_slack') }}"
+                      data-testid="company-settings-slack-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('company_settings_slack') }}">
+                    <input type="hidden" name="enable" value="1">
+                    <div class="space-y-3">
+                        <div>
+                            <label for="slack_bot_token_edit" class="block text-sm font-medium text-gray-700">
+                                {{ 'admin.company_settings.slack.bot_token_label'|trans }}
+                            </label>
+                            <input id="slack_bot_token_edit" type="password" name="slack_bot_token"
+                                   placeholder="{{ 'admin.company_settings.slack.bot_token_placeholder'|trans }}"
+                                   autocomplete="off"
+                                   class="mt-1 block w-full max-w-xl rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.slack.bot_token_hint'|trans }}</p>
+                        </div>
+                        <div>
+                            <label for="slack_signing_secret_edit" class="block text-sm font-medium text-gray-700">
+                                {{ 'admin.company_settings.slack.signing_secret_label'|trans }}
+                            </label>
+                            <input id="slack_signing_secret_edit" type="password" name="slack_signing_secret"
+                                   placeholder="{{ 'admin.company_settings.slack.signing_secret_placeholder'|trans }}"
+                                   autocomplete="off"
+                                   class="mt-1 block w-full max-w-xl rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.slack.signing_secret_hint'|trans }}</p>
+                        </div>
+                        <div>
+                            <label for="slack_channel_id_edit" class="block text-sm font-medium text-gray-700">
+                                {{ 'admin.company_settings.slack.channel_id_label'|trans }}
+                            </label>
+                            <input id="slack_channel_id_edit" type="text" name="slack_channel_id"
+                                   value="{{ company.slackChannelId ?? '' }}"
+                                   placeholder="{{ 'admin.company_settings.slack.channel_id_placeholder'|trans }}"
+                                   class="mt-1 block w-full max-w-xl rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.slack.channel_id_hint'|trans }}</p>
+                        </div>
+                    </div>
+                    <button type="submit"
+                            class="mt-3 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        {{ 'admin.company_settings.slack.save_button'|trans }}
+                    </button>
+                </form>
+
+                {# Disable Slack #}
+                <form method="post" action="{{ path('app_admin_company_settings_set_slack') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('company_settings_slack') }}">
+                    <input type="hidden" name="enable" value="0">
+                    <button type="submit"
+                            class="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100">
+                        {{ 'admin.company_settings.slack.disable_button'|trans }}
+                    </button>
+                </form>
+            {% else %}
+                <p class="text-sm text-gray-500">{{ 'admin.company_settings.slack.status.disabled'|trans }}</p>
+
+                {# Enable Slack #}
+                <form method="post"
+                      action="{{ path('app_admin_company_settings_set_slack') }}"
+                      data-testid="company-settings-slack-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('company_settings_slack') }}">
+                    <input type="hidden" name="enable" value="1">
+                    <div class="space-y-3">
+                        <div>
+                            <label for="slack_bot_token" class="block text-sm font-medium text-gray-700">
+                                {{ 'admin.company_settings.slack.bot_token_label'|trans }}
+                            </label>
+                            <input id="slack_bot_token" type="password" name="slack_bot_token"
+                                   placeholder="{{ 'admin.company_settings.slack.bot_token_placeholder'|trans }}"
+                                   autocomplete="off"
+                                   required
+                                   class="mt-1 block w-full max-w-xl rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.slack.bot_token_hint'|trans }}</p>
+                        </div>
+                        <div>
+                            <label for="slack_signing_secret" class="block text-sm font-medium text-gray-700">
+                                {{ 'admin.company_settings.slack.signing_secret_label'|trans }}
+                            </label>
+                            <input id="slack_signing_secret" type="password" name="slack_signing_secret"
+                                   placeholder="{{ 'admin.company_settings.slack.signing_secret_placeholder'|trans }}"
+                                   autocomplete="off"
+                                   required
+                                   class="mt-1 block w-full max-w-xl rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.slack.signing_secret_hint'|trans }}</p>
+                        </div>
+                        <div>
+                            <label for="slack_channel_id" class="block text-sm font-medium text-gray-700">
+                                {{ 'admin.company_settings.slack.channel_id_label'|trans }}
+                            </label>
+                            <input id="slack_channel_id" type="text" name="slack_channel_id"
+                                   placeholder="{{ 'admin.company_settings.slack.channel_id_placeholder'|trans }}"
+                                   required
+                                   class="mt-1 block w-full max-w-xl rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.slack.channel_id_hint'|trans }}</p>
+                        </div>
+                    </div>
+                    <button type="submit"
+                            class="mt-3 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        {{ 'admin.company_settings.slack.enable_button'|trans }}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </section>
+
     {# LDAP / Active Directory #}
     <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-ldap">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.ldap.heading'|trans }}</h2>

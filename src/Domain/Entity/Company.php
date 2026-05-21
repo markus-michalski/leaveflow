@@ -366,6 +366,23 @@ class Company
     #[ORM\Column(name: 'teams_webhook_url', type: Types::TEXT, nullable: true)]
     private ?string $teamsWebhookUrl = null;
 
+    // ── Slack Bot ───────────────────────────────────────────────────────────
+
+    #[ORM\Column(name: 'slack_enabled', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $slackEnabled = false;
+
+    /** Bot token (xoxb-…). Stored encrypted via EncryptionService. */
+    #[ORM\Column(name: 'slack_bot_token', length: 512, nullable: true)]
+    private ?string $slackBotToken = null;
+
+    /** Signing secret for HMAC-SHA256 request verification. Stored encrypted. */
+    #[ORM\Column(name: 'slack_signing_secret', length: 512, nullable: true)]
+    private ?string $slackSigningSecret = null;
+
+    /** Default channel to post leave notifications (e.g. C0123456789). */
+    #[ORM\Column(name: 'slack_channel_id', length: 32, nullable: true)]
+    private ?string $slackChannelId = null;
+
     public function isLdapEnabled(): bool
     {
         return $this->ldapEnabled;
@@ -515,5 +532,53 @@ class Company
         }
 
         $this->teamsWebhookUrl = $url;
+    }
+
+    public function isSlackEnabled(): bool
+    {
+        return $this->slackEnabled;
+    }
+
+    public function enableSlack(): void
+    {
+        $this->slackEnabled = true;
+    }
+
+    public function disableSlack(): void
+    {
+        $this->slackEnabled = false;
+    }
+
+    public function getSlackBotToken(): ?string
+    {
+        return $this->slackBotToken;
+    }
+
+    public function setSlackBotToken(?string $encryptedToken): void
+    {
+        $encryptedToken = null === $encryptedToken ? null : trim($encryptedToken);
+        $this->slackBotToken = ('' === $encryptedToken) ? null : $encryptedToken;
+    }
+
+    public function getSlackSigningSecret(): ?string
+    {
+        return $this->slackSigningSecret;
+    }
+
+    public function setSlackSigningSecret(?string $encryptedSecret): void
+    {
+        $encryptedSecret = null === $encryptedSecret ? null : trim($encryptedSecret);
+        $this->slackSigningSecret = ('' === $encryptedSecret) ? null : $encryptedSecret;
+    }
+
+    public function getSlackChannelId(): ?string
+    {
+        return $this->slackChannelId;
+    }
+
+    public function setSlackChannelId(?string $channelId): void
+    {
+        $channelId = null === $channelId ? null : trim($channelId);
+        $this->slackChannelId = ('' === $channelId) ? null : $channelId;
     }
 }

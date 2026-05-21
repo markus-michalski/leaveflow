@@ -638,6 +638,24 @@ admin:
             status:
                 enabled: "Teams-Integration ist aktiv"
                 disabled: "Teams-Integration ist nicht aktiv"
+        slack:
+            heading: "Slack-Integration"
+            description: "Benachrichtigungen für neue Urlaubsanträge und Genehmigungsentscheidungen direkt in Slack. Slash-Commands (/urlaub, /team-abwesend) und interaktive Genehmigungsbuttons inklusive."
+            bot_token_label: "Bot-Token (xoxb-…)"
+            bot_token_placeholder: "xoxb-…"
+            bot_token_hint: "Den Bot-Token findest du in deiner Slack-App unter 'OAuth & Permissions'."
+            signing_secret_label: "Signing Secret"
+            signing_secret_placeholder: "Eintippen zum Überschreiben"
+            signing_secret_hint: "Das Signing Secret findest du unter 'Basic Information' deiner Slack-App."
+            channel_id_label: "Standard-Kanal-ID (C…)"
+            channel_id_placeholder: "C0123456789"
+            channel_id_hint: "Die Kanal-ID (nicht den Namen) findest du in den Kanaldetails am Ende der URL."
+            enable_button: "Slack-Integration aktivieren"
+            disable_button: "Slack-Integration deaktivieren"
+            save_button: "Konfiguration speichern"
+            status:
+                enabled: "Slack-Integration ist aktiv"
+                disabled: "Slack-Integration ist nicht aktiv"
         2fa:
             heading: "Zwei-Faktor-Authentifizierung verpflichtend machen"
             description: "Wenn aktiviert, müssen alle Mitarbeitenden 2FA bis zu der unten gewählten Frist aktivieren. Bis dahin sehen sie einen Hinweis. Nach Ablauf der Frist können sie sich nicht mehr ohne 2FA einloggen."
@@ -667,6 +685,8 @@ admin:
             teams_enabled: "Teams-Integration wurde aktiviert."
             teams_disabled: "Teams-Integration wurde deaktiviert."
             teams_invalid_url: "Die Webhook-URL muss mit https:// beginnen."
+            slack_enabled: "Slack-Integration wurde aktiviert."
+            slack_disabled: "Slack-Integration wurde deaktiviert."
     statistics:
         title: Statistik
         heading: Statistik-Dashboard
