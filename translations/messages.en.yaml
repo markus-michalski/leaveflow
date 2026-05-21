@@ -635,6 +635,24 @@ admin:
             status:
                 enabled: "Teams integration is active"
                 disabled: "Teams integration is not active"
+        slack:
+            heading: "Slack Integration"
+            description: "Send notifications for new leave requests and approval decisions directly to Slack. Includes slash commands (/urlaub, /team-abwesend) and inline approve/reject buttons."
+            bot_token_label: "Bot token (xoxb-…)"
+            bot_token_placeholder: "xoxb-…"
+            bot_token_hint: "Find the bot token in your Slack app under 'OAuth & Permissions'."
+            signing_secret_label: "Signing secret"
+            signing_secret_placeholder: "Type to overwrite"
+            signing_secret_hint: "Find the signing secret under 'Basic Information' in your Slack app."
+            channel_id_label: "Default channel ID (C…)"
+            channel_id_placeholder: "C0123456789"
+            channel_id_hint: "Use the channel ID (not name) — visible at the end of the channel's URL."
+            enable_button: "Enable Slack integration"
+            disable_button: "Disable Slack integration"
+            save_button: "Save configuration"
+            status:
+                enabled: "Slack integration is active"
+                disabled: "Slack integration is not active"
         2fa:
             heading: "Require two-factor authentication"
             description: "When enabled, every employee must activate 2FA by the deadline below. Until then they see a reminder banner. After the deadline, sign-in is blocked for anyone without 2FA."
@@ -664,6 +682,8 @@ admin:
             teams_enabled: "Teams integration enabled."
             teams_disabled: "Teams integration disabled."
             teams_invalid_url: "The webhook URL must start with https://."
+            slack_enabled: "Slack integration enabled."
+            slack_disabled: "Slack integration disabled."
     statistics:
         title: Statistics
         heading: Statistics dashboard

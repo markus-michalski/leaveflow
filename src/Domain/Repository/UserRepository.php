@@ -140,6 +140,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return $qb;
     }
 
+    public function findOneBySlackUserId(string $slackUserId): ?User
+    {
+        return $this->findOneBy(['slackUserId' => $slackUserId]);
+    }
+
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (!$user instanceof User) {

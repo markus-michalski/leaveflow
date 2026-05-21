@@ -80,6 +80,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     #[ORM\Column(name: 'backup_codes', type: Types::JSON, options: ['default' => '[]'])]
     private array $backupCodes = [];
 
+    /** Slack member ID (e.g. U0123456789). Null when not linked. */
+    #[ORM\Column(name: 'slack_user_id', length: 32, nullable: true)]
+    private ?string $slackUserId = null;
+
     public function __construct(
         #[ORM\ManyToOne]
         #[ORM\JoinColumn(name: 'company_id', nullable: false)]
@@ -334,6 +338,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
             $this->backupCodes,
             static fn (string $stored): bool => $stored !== $hashed,
         ));
+    }
+
+    public function getSlackUserId(): ?string
+    {
+        return $this->slackUserId;
+    }
+
+    public function setSlackUserId(?string $slackUserId): void
+    {
+        $slackUserId = null === $slackUserId ? null : trim($slackUserId);
+        $this->slackUserId = ('' === $slackUserId) ? null : $slackUserId;
     }
 
     private function hashBackupCode(string $code): string

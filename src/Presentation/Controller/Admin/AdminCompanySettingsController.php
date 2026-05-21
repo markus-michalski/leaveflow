@@ -238,6 +238,43 @@ final class AdminCompanySettingsController extends AbstractController
         return $this->redirectToRoute('app_admin_company_settings_index');
     }
 
+    #[Route('/slack', name: 'set_slack', methods: ['POST'])]
+    public function setSlack(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('company_settings_slack', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $company = $this->requireCompany();
+        $enable = '1' === $request->request->get('enable');
+
+        if ($enable) {
+            $rawToken = (string) $request->request->get('slack_bot_token', '');
+            $rawSecret = (string) $request->request->get('slack_signing_secret', '');
+            $channelId = trim((string) $request->request->get('slack_channel_id', ''));
+
+            if ('' !== $rawToken) {
+                $company->setSlackBotToken($this->encryption->encrypt($rawToken));
+            }
+            if ('' !== $rawSecret) {
+                $company->setSlackSigningSecret($this->encryption->encrypt($rawSecret));
+            }
+            $company->setSlackChannelId('' !== $channelId ? $channelId : null);
+            $company->enableSlack();
+        } else {
+            $company->disableSlack();
+        }
+
+        $this->entityManager->flush();
+
+        $key = $enable
+            ? 'admin.company_settings.flash.slack_enabled'
+            : 'admin.company_settings.flash.slack_disabled';
+        $this->addFlash('success', $this->translator->trans($key));
+
+        return $this->redirectToRoute('app_admin_company_settings_index');
+    }
+
     #[Route('/ldap', name: 'set_ldap', methods: ['POST'])]
     public function setLdap(Request $request): Response
     {

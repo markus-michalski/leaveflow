@@ -72,6 +72,9 @@ security:
         # iCal feeds authenticate via URL token, not session cookie —
         # calendar apps never send cookies on their refresh requests.
         - { path: ^/ical/, roles: PUBLIC_ACCESS }
+        # Slack incoming webhooks are authenticated via HMAC-SHA256 signature —
+        # Slack cannot send a session cookie or CSRF token.
+        - { path: ^/webhook/slack/, roles: PUBLIC_ACCESS }
         # During a 2FA challenge the user holds an intermediate token —
         # IS_AUTHENTICATED_2FA_IN_PROGRESS — that only the 2FA route accepts.
         - { path: ^/2fa, roles: IS_AUTHENTICATED_2FA_IN_PROGRESS }
