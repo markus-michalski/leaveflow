@@ -47,6 +47,45 @@ class EmployeeRepository extends ServiceEntityRepository
     }
 
     /**
+     * Employees that have already been anonymized, scoped to one company.
+     *
+     * @return list<Employee>
+     */
+    public function findAlreadyAnonymizedByCompany(Company $company): array
+    {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.company = :company')
+            ->andWhere('e.anonymizedAt IS NOT NULL')
+            ->setParameter('company', $company)
+            ->orderBy('e.anonymizedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Employees whose DSGVO retention period has elapsed and who have not
+     * yet been anonymized. The retention window is computed per company:
+     * leftAt + company.retentionPeriodMonths <= asOf.
+     *
+     * Uses DATE_ADD DQL function so the comparison stays in the DB and
+     * does not load the full employee set into memory.
+     *
+     * @return list<Employee>
+     */
+    public function findDueForAnonymization(\DateTimeImmutable $asOf): array
+    {
+        return $this->createQueryBuilder('e')
+            ->join('e.company', 'c')
+            ->andWhere('e.leftAt IS NOT NULL')
+            ->andWhere('e.anonymizedAt IS NULL')
+            ->andWhere('DATE_ADD(e.leftAt, c.retentionPeriodMonths, \'MONTH\') <= :asOf')
+            ->setParameter('asOf', $asOf)
+            ->orderBy('e.leftAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Active employees (joinedAt has passed, no leftAt or leftAt in the
      * future). Drives cross-company sweeps such as the 6-week illness
      * alert.

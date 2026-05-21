@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.anonymization.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-7xl p-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.anonymization.heading'|trans }}</h1>
+            <p class="mt-1 max-w-3xl text-sm text-gray-500">
+                {{ 'admin.anonymization.description'|trans({'%months%': retention_months}) }}
+            </p>
+        </div>
+        <a href="{{ path('app_dashboard') }}"
+           class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ 'nav.home'|trans }}
+        </a>
+    </header>
+
+    {# ── Due for anonymization ─────────────────────────────────────────── #}
+    <section class="mb-10">
+        <h2 class="mb-3 text-lg font-medium text-gray-800">{{ 'admin.anonymization.section.due'|trans }}</h2>
+
+        {% if due is empty %}
+            <div class="rounded-xl border border-green-200 bg-green-50 px-6 py-4 text-sm text-green-700">
+                {{ 'admin.anonymization.empty.due'|trans }}
+            </div>
+        {% else %}
+            <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            <th class="px-6 py-3">{{ 'admin.anonymization.field.name'|trans }}</th>
+                            <th class="px-6 py-3">{{ 'admin.anonymization.field.employee_number'|trans }}</th>
+                            <th class="px-6 py-3">{{ 'admin.anonymization.field.left_at'|trans }}</th>
+                            <th class="px-6 py-3">{{ 'admin.anonymization.field.due_since'|trans }}</th>
+                            <th class="px-6 py-3 text-right">{{ 'admin.anonymization.field.actions'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700" data-testid="anonymization-due-list">
+                        {% for employee in due %}
+                        <tr>
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ employee.fullName }}</td>
+                            <td class="px-6 py-4 text-gray-500">{{ employee.employeeNumber }}</td>
+                            <td class="px-6 py-4">{{ employee.leftAt|date('d.m.Y') }}</td>
+                            <td class="px-6 py-4 text-red-600 font-medium">
+                                {{ employee.leftAt|date_modify('+' ~ retention_months ~ ' months')|date('d.m.Y') }}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                {# Confirmation dialog via native dialog element #}
+                                <button type="button"
+                                        onclick="document.getElementById('confirm-{{ employee.id }}').showModal()"
+                                        class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700">
+                                    {{ 'admin.anonymization.action.anonymize'|trans }}
+                                </button>
+
+                                <dialog id="confirm-{{ employee.id }}"
+                                        class="rounded-xl shadow-xl p-0 backdrop:bg-black/40 w-full max-w-md">
+                                    <div class="p-6">
+                                        <h3 class="mb-2 text-lg font-semibold text-gray-900">
+                                            {{ 'admin.anonymization.confirm.title'|trans }}
+                                        </h3>
+                                        <p class="mb-5 text-sm text-gray-600">
+                                            {{ 'admin.anonymization.confirm.body'|trans({'%name%': employee.fullName}) }}
+                                        </p>
+                                        <div class="flex justify-end gap-3">
+                                            <button type="button"
+                                                    onclick="document.getElementById('confirm-{{ employee.id }}').close()"
+                                                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                {{ 'admin.anonymization.confirm.cancel'|trans }}
+                                            </button>
+                                            <form method="post"
+                                                  action="{{ path('app_admin_anonymization_anonymize', {id: employee.id}) }}">
+                                                <input type="hidden" name="_token"
+                                                       value="{{ csrf_token('anonymize-employee-' ~ employee.id) }}">
+                                                <button type="submit"
+                                                        class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                                                    {{ 'admin.anonymization.confirm.submit'|trans }}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </dialog>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+
+    {# ── Already anonymized ────────────────────────────────────────────── #}
+    <section>
+        <h2 class="mb-3 text-lg font-medium text-gray-800">{{ 'admin.anonymization.section.done'|trans }}</h2>
+
+        {% if already_anonymized is empty %}
+            <div class="rounded-xl border border-gray-200 bg-gray-50 px-6 py-4 text-sm text-gray-500">
+                {{ 'admin.anonymization.empty.done'|trans }}
+            </div>
+        {% else %}
+            <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            <th class="px-6 py-3">{{ 'admin.anonymization.field.name'|trans }}</th>
+                            <th class="px-6 py-3">{{ 'admin.anonymization.field.employee_number'|trans }}</th>
+                            <th class="px-6 py-3">{{ 'admin.anonymization.field.left_at'|trans }}</th>
+                            <th class="px-6 py-3">{{ 'admin.anonymization.field.anonymized_at'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-500 italic" data-testid="anonymization-done-list">
+                        {% for employee in already_anonymized %}
+                        <tr>
+                            <td class="px-6 py-4">{{ employee.fullName }}</td>
+                            <td class="px-6 py-4">{{ employee.employeeNumber }}</td>
+                            <td class="px-6 py-4">{{ employee.leftAt|date('d.m.Y') }}</td>
+                            <td class="px-6 py-4">{{ employee.anonymizedAt|date('d.m.Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

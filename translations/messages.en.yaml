@@ -48,6 +48,7 @@ nav:
         scheduled_jobs: "Cron jobs"
         statistics: Statistics
         company_settings: "Company settings"
+        anonymization: "GDPR Anonymization"
     manager:
         approvals: Approvals
     team:
@@ -842,6 +843,32 @@ admin:
             duplicate_placeholder: "The filter must not contain the {username} placeholder more than once."
             unbalanced_parens: "The LDAP filter has unbalanced parentheses."
             illegal_chars: "The filter must not contain NUL bytes or line breaks."
+    anonymization:
+        title: "GDPR Anonymization"
+        heading: "GDPR Anonymization"
+        description: "Former employees whose %months%-month retention period has elapsed are anonymized here. Name and email are replaced with placeholders; absence data is kept for statistical purposes."
+        section:
+            due: "Due for anonymization"
+            done: "Already anonymized"
+        empty:
+            due: "No records due."
+            done: "No anonymizations performed yet."
+        field:
+            name: "Name"
+            employee_number: "Employee number"
+            left_at: "Exit date"
+            due_since: "Due since"
+            anonymized_at: "Anonymized on"
+            actions: "Actions"
+        action:
+            anonymize: "Anonymize"
+        confirm:
+            title: "Confirm anonymization"
+            body: "Permanently anonymize \"%name%\"? This action cannot be undone."
+            cancel: "Cancel"
+            submit: "Anonymize now"
+        flash:
+            success: "Employee #%id% has been successfully anonymized."
 admin.exit_handling:
     label:
         pay_out: "Leave payout (Urlaubsabgeltung)"
