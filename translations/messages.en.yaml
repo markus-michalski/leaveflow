@@ -623,6 +623,18 @@ admin:
             status:
                 enabled: "LDAP login is active"
                 disabled: "LDAP login is not active"
+        teams:
+            heading: "Microsoft Teams Integration"
+            description: "Send notifications for new leave requests and approval decisions directly to Microsoft Teams. Requires an incoming webhook URL from Teams."
+            webhook_url_label: "Incoming webhook URL"
+            webhook_url_placeholder: "https://outlook.office.com/webhook/..."
+            webhook_url_hint: "Create an incoming webhook in Teams and paste the URL here."
+            enable_button: "Enable Teams integration"
+            disable_button: "Disable Teams integration"
+            save_button: "Save configuration"
+            status:
+                enabled: "Teams integration is active"
+                disabled: "Teams integration is not active"
         2fa:
             heading: "Require two-factor authentication"
             description: "When enabled, every employee must activate 2FA by the deadline below. Until then they see a reminder banner. After the deadline, sign-in is blocked for anyone without 2FA."
@@ -649,6 +661,9 @@ admin:
             entra_oauth_disabled: "Microsoft login (Entra ID) disabled."
             ldap_enabled: "LDAP login enabled."
             ldap_disabled: "LDAP login disabled."
+            teams_enabled: "Teams integration enabled."
+            teams_disabled: "Teams integration disabled."
+            teams_invalid_url: "The webhook URL must start with https://."
     statistics:
         title: Statistics
         heading: Statistics dashboard

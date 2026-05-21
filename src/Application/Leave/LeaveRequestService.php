@@ -17,12 +17,14 @@ use App\Domain\Enum\LeaveDayStatus;
 use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveRequestStatus;
 use App\Domain\Enum\NotificationType;
+use App\Domain\Event\LeaveRequestSubmittedEvent;
 use App\Domain\Repository\LeaveEntitlementRepository;
 use App\Domain\Repository\LeaveRequestDayRepository;
 use App\Domain\ValueObject\Holiday;
 use App\Domain\ValueObject\LeaveBreakdown;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Clock\ClockInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Application-layer orchestrator for the LeaveRequest write path.
@@ -56,6 +58,7 @@ final readonly class LeaveRequestService
         private BlackoutPeriodChecker $blackoutChecker,
         private NotificationDispatcherInterface $notificationDispatcher,
         private ApproverResolverInterface $approverResolver,
+        private EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
@@ -100,6 +103,7 @@ final readonly class LeaveRequestService
         $this->entityManager->flush();
 
         $this->notifyApprovalRequested($request);
+        $this->eventDispatcher->dispatch(new LeaveRequestSubmittedEvent($request));
 
         return $request;
     }

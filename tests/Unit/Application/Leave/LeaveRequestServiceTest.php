@@ -40,6 +40,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 #[CoversClass(LeaveRequestService::class)]
 #[AllowMockObjectsWithoutExpectations]
@@ -621,6 +622,7 @@ final class LeaveRequestServiceTest extends TestCase
             new BlackoutPeriodChecker($this->blackoutRepository),
             $this->notificationDispatcher,
             $this->approverResolver,
+            $this->createStub(EventDispatcherInterface::class),
         );
     }
 

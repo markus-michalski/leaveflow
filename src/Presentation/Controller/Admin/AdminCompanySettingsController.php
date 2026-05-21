@@ -202,6 +202,42 @@ final class AdminCompanySettingsController extends AbstractController
         return $this->redirectToRoute('app_admin_company_settings_index');
     }
 
+    #[Route('/teams', name: 'set_teams', methods: ['POST'])]
+    public function setTeams(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('company_settings_teams', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $company = $this->requireCompany();
+        $enable = '1' === $request->request->get('enable');
+
+        if ($enable) {
+            $rawUrl = trim((string) $request->request->get('teams_webhook_url', ''));
+            if ('' !== $rawUrl) {
+                try {
+                    $company->setTeamsWebhookUrl($rawUrl);
+                } catch (\InvalidArgumentException) {
+                    $this->addFlash('error', $this->translator->trans('admin.company_settings.flash.teams_invalid_url'));
+
+                    return $this->redirectToRoute('app_admin_company_settings_index');
+                }
+            }
+            $company->enableTeams();
+        } else {
+            $company->disableTeams();
+        }
+
+        $this->entityManager->flush();
+
+        $key = $enable
+            ? 'admin.company_settings.flash.teams_enabled'
+            : 'admin.company_settings.flash.teams_disabled';
+        $this->addFlash('success', $this->translator->trans($key));
+
+        return $this->redirectToRoute('app_admin_company_settings_index');
+    }
+
     #[Route('/ldap', name: 'set_ldap', methods: ['POST'])]
     public function setLdap(Request $request): Response
     {
