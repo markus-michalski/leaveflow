@@ -15,6 +15,7 @@ use App\Application\Leave\LeaveRequestService;
 use App\Application\Leave\MultiDayHalfDayException;
 use App\Application\Leave\NoEntitlementForYearException;
 use App\Application\Notification\NotificationDispatcherInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use App\Domain\Calculator\HolidayCalculator;
 use App\Domain\Calculator\LeaveCalculator;
 use App\Domain\Entity\AbsenceType;
@@ -621,6 +622,7 @@ final class LeaveRequestServiceTest extends TestCase
             new BlackoutPeriodChecker($this->blackoutRepository),
             $this->notificationDispatcher,
             $this->approverResolver,
+            $this->createStub(EventDispatcherInterface::class),
         );
     }
 

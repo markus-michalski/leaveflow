@@ -359,6 +359,13 @@ class Company
     #[ORM\Column(name: 'ldap_group_admin_dn', length: 512, nullable: true)]
     private ?string $ldapGroupAdminDn = null;
 
+    #[ORM\Column(name: 'teams_enabled', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $teamsEnabled = false;
+
+    /** Incoming webhook URL provided by Teams — not a secret, no encryption needed. */
+    #[ORM\Column(name: 'teams_webhook_url', type: Types::TEXT, nullable: true)]
+    private ?string $teamsWebhookUrl = null;
+
     public function isLdapEnabled(): bool
     {
         return $this->ldapEnabled;
@@ -469,5 +476,44 @@ class Company
     {
         $dn = null === $dn ? null : trim($dn);
         $this->ldapGroupAdminDn = ('' === $dn) ? null : $dn;
+    }
+
+    public function isTeamsEnabled(): bool
+    {
+        return $this->teamsEnabled;
+    }
+
+    public function enableTeams(): void
+    {
+        $this->teamsEnabled = true;
+    }
+
+    public function disableTeams(): void
+    {
+        $this->teamsEnabled = false;
+    }
+
+    public function getTeamsWebhookUrl(): ?string
+    {
+        return $this->teamsWebhookUrl;
+    }
+
+    public function setTeamsWebhookUrl(?string $url): void
+    {
+        if (null === $url || '' === trim($url)) {
+            $this->teamsWebhookUrl = null;
+
+            return;
+        }
+
+        $url = trim($url);
+
+        // Require https:// — Teams incoming webhooks and Power Automate workflow URLs are always HTTPS.
+        // This also prevents SSRF via plaintext http:// to internal services.
+        if (!str_starts_with($url, 'https://')) {
+            throw new \InvalidArgumentException('Teams webhook URL must use https://.');
+        }
+
+        $this->teamsWebhookUrl = $url;
     }
 }

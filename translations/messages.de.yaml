@@ -626,6 +626,18 @@ admin:
             status:
                 enabled: "LDAP-Login ist aktiv"
                 disabled: "LDAP-Login ist nicht aktiv"
+        teams:
+            heading: "Microsoft Teams Integration"
+            description: "Benachrichtigungen für neue Urlaubsanträge und Genehmigungsentscheidungen direkt in Microsoft Teams. Benötigt eine eingehende Webhook-URL aus Teams."
+            webhook_url_label: "Eingehende Webhook-URL"
+            webhook_url_placeholder: "https://outlook.office.com/webhook/..."
+            webhook_url_hint: "Erstelle in Teams einen eingehenden Webhook und füge die URL hier ein."
+            enable_button: "Teams-Integration aktivieren"
+            disable_button: "Teams-Integration deaktivieren"
+            save_button: "Konfiguration speichern"
+            status:
+                enabled: "Teams-Integration ist aktiv"
+                disabled: "Teams-Integration ist nicht aktiv"
         2fa:
             heading: "Zwei-Faktor-Authentifizierung verpflichtend machen"
             description: "Wenn aktiviert, müssen alle Mitarbeitenden 2FA bis zu der unten gewählten Frist aktivieren. Bis dahin sehen sie einen Hinweis. Nach Ablauf der Frist können sie sich nicht mehr ohne 2FA einloggen."
@@ -652,6 +664,9 @@ admin:
             entra_oauth_disabled: "Microsoft-Login (Entra ID) wurde deaktiviert."
             ldap_enabled: "LDAP-Login wurde aktiviert."
             ldap_disabled: "LDAP-Login wurde deaktiviert."
+            teams_enabled: "Teams-Integration wurde aktiviert."
+            teams_disabled: "Teams-Integration wurde deaktiviert."
+            teams_invalid_url: "Die Webhook-URL muss mit https:// beginnen."
     statistics:
         title: Statistik
         heading: Statistik-Dashboard
