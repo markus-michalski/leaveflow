@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Admin;
 
-use App\Application\Security\EncryptionService;
+use App\Application\Security\EncryptionServiceInterface;
 use App\Application\Validator\ValidLdapFilter;
 use App\Domain\Entity\Company;
 use App\Domain\Repository\CompanyRepository;
@@ -36,7 +36,7 @@ final class AdminCompanySettingsController extends AbstractController
         private readonly ClockInterface $clock,
         private readonly SluggerInterface $slugger,
         private readonly ValidatorInterface $validator,
-        private readonly EncryptionService $encryption,
+        private readonly EncryptionServiceInterface $encryption,
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire('%kernel.project_dir%/public')]
         private readonly string $publicDir,
     ) {
@@ -212,24 +212,19 @@ final class AdminCompanySettingsController extends AbstractController
         $company = $this->requireCompany();
         $enable = '1' === $request->request->get('enable');
 
-        if ($enable) {
-            $company->enableLdap();
-        } else {
-            $company->disableLdap();
-        }
-
-        $company->setLdapHost(trim((string) $request->request->get('ldap_host', '')) ?: null);
+        // Read all inputs before touching the entity
+        $host = trim((string) $request->request->get('ldap_host', '')) ?: null;
         $port = (int) $request->request->get('ldap_port', 389);
-        $company->setLdapPort($port > 0 ? $port : null);
-        $company->setLdapEncryption(trim((string) $request->request->get('ldap_encryption', 'none')) ?: null);
-        $company->setLdapBindDn(trim((string) $request->request->get('ldap_bind_dn', '')) ?: null);
+        $encryption = trim((string) $request->request->get('ldap_encryption', 'none')) ?: null;
+        $bindDn = trim((string) $request->request->get('ldap_bind_dn', '')) ?: null;
         $rawPassword = (string) $request->request->get('ldap_bind_password', '');
-        if ('' !== $rawPassword) {
-            $company->setLdapBindPassword($this->encryption->encrypt($rawPassword));
-        }
-        $company->setLdapBaseDn(trim((string) $request->request->get('ldap_base_dn', '')) ?: null);
+        $baseDn = trim((string) $request->request->get('ldap_base_dn', '')) ?: null;
         $rawFilter = trim((string) $request->request->get('ldap_user_filter', '')) ?: null;
-        if (null !== $rawFilter) {
+        $groupManagerDn = trim((string) $request->request->get('ldap_group_manager_dn', '')) ?: null;
+        $groupAdminDn = trim((string) $request->request->get('ldap_group_admin_dn', '')) ?: null;
+
+        // Validate before mutating; skip when disabling LDAP so a stored invalid filter never blocks the disable action
+        if ($enable && null !== $rawFilter) {
             $violations = $this->validator->validate($rawFilter, new ValidLdapFilter());
             if (\count($violations) > 0) {
                 foreach ($violations as $violation) {
@@ -239,9 +234,23 @@ final class AdminCompanySettingsController extends AbstractController
                 return $this->redirectToRoute('app_admin_company_settings_index');
             }
         }
+
+        if ($enable) {
+            $company->enableLdap();
+        } else {
+            $company->disableLdap();
+        }
+        $company->setLdapHost($host);
+        $company->setLdapPort($port > 0 ? $port : null);
+        $company->setLdapEncryption($encryption);
+        $company->setLdapBindDn($bindDn);
+        if ('' !== $rawPassword) {
+            $company->setLdapBindPassword($this->encryption->encrypt($rawPassword));
+        }
+        $company->setLdapBaseDn($baseDn);
         $company->setLdapUserFilter($rawFilter);
-        $company->setLdapGroupManagerDn(trim((string) $request->request->get('ldap_group_manager_dn', '')) ?: null);
-        $company->setLdapGroupAdminDn(trim((string) $request->request->get('ldap_group_admin_dn', '')) ?: null);
+        $company->setLdapGroupManagerDn($groupManagerDn);
+        $company->setLdapGroupAdminDn($groupAdminDn);
 
         $this->entityManager->flush();
 

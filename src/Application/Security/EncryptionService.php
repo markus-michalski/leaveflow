@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Security;
 
-final class EncryptionService
+final class EncryptionService implements EncryptionServiceInterface
 {
     public function __construct(
         #[\Symfony\Component\DependencyInjection\Attribute\Autowire(env: 'APP_LDAP_ENCRYPTION_KEY')]
