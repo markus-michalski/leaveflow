@@ -12,6 +12,7 @@
         </a>
     </header>
 
+    {# 1. Urlaubskonto #}
     {% if employee and balance %}
         <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-balance">
             <div class="flex items-center justify-between mb-3">
@@ -56,75 +57,87 @@
         </section>
     {% endif %}
 
-    {% if icalToken is not null %}
-        <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-ical">
-            <h2 class="mb-2 text-lg font-semibold text-gray-900">{{ 'profile.ical.heading'|trans }}</h2>
-            <p class="mb-4 text-sm text-gray-600">{{ 'profile.ical.description'|trans }}</p>
+    {# 2. Profilübersicht #}
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm space-y-4">
+        <dl class="grid grid-cols-3 gap-y-3 text-sm">
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.email'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900" data-testid="profile-email">{{ user.email }}</dd>
 
-            <div class="space-y-4">
-                {# Each URL gets its own Stimulus scope so the copy-to-clipboard
-                   target stays unambiguous when two source targets coexist. #}
-                <div data-controller="copy-to-clipboard">
-                    <p class="text-sm font-medium text-gray-900">{{ 'profile.ical.personal.label'|trans }}</p>
-                    <p class="mt-0.5 text-xs text-gray-500">{{ 'profile.ical.personal.description'|trans }}</p>
-                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                        <input
-                            type="text"
-                            readonly
-                            value="{{ url('app_ical_personal', { token: icalToken }) }}"
-                            class="flex-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700"
-                            data-copy-to-clipboard-target="source"
-                            data-testid="profile-ical-personal-url"
-                            onclick="this.select()">
-                        <button type="button"
-                                class="whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                                data-action="copy-to-clipboard#copy">
-                            {{ 'profile.ical.copy'|trans }}
-                        </button>
-                    </div>
-                </div>
+            <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.role'|trans }}</dt>
+            <dd class="col-span-2 text-gray-900">{{ user.role.label|trans }}</dd>
 
-                {% if icalHasTeam %}
-                    <div data-controller="copy-to-clipboard">
-                        <p class="text-sm font-medium text-gray-900">{{ 'profile.ical.team.label'|trans }}</p>
-                        <p class="mt-0.5 text-xs text-gray-500">{{ 'profile.ical.team.description'|trans }}</p>
-                        <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                            <input
-                                type="text"
-                                readonly
-                                value="{{ url('app_ical_team', { token: icalToken }) }}"
-                                class="flex-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700"
-                                data-copy-to-clipboard-target="source"
-                                data-testid="profile-ical-team-url"
-                                onclick="this.select()">
-                            <button type="button"
-                                    class="whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                                    data-action="copy-to-clipboard#copy">
-                                {{ 'profile.ical.copy'|trans }}
-                            </button>
-                        </div>
-                    </div>
+            {% if employee %}
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.full_name'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900" data-testid="profile-full-name">{{ employee.fullName }}</dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.employee_number'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">{{ employee.employeeNumber }}</dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.location'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">
+                    {{ employee.location.name }}
+                    <span class="text-xs text-gray-500">({{ employee.location.city }}, {{ employee.location.federalState }})</span>
+                </dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.weekly_hours'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">{{ employee.workSchedule.weeklyHours }} h</dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.working_days'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">
+                    {% for day in employee.workSchedule.workingDays %}
+                        <span class="inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">{{ ('weekday.' ~ day.name|lower)|trans }}</span>
+                    {% endfor %}
+                </dd>
+
+                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.joined_at'|trans }}</dt>
+                <dd class="col-span-2 text-gray-900">{{ employee.joinedAt|date('Y-m-d') }}</dd>
+
+                {% if employee.leftAt %}
+                    <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.left_at'|trans }}</dt>
+                    <dd class="col-span-2 text-gray-900">{{ employee.leftAt|date('Y-m-d') }}</dd>
                 {% endif %}
+            {% else %}
+                <dt class="col-span-3 mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid="profile-no-employee">
+                    {{ 'profile.no_employee_record'|trans }}
+                </dt>
+            {% endif %}
+        </dl>
+    </section>
 
-                <details class="mt-2 text-xs text-gray-500">
-                    <summary class="cursor-pointer text-gray-600 hover:text-gray-900">{{ 'profile.ical.reset.summary'|trans }}</summary>
-                    <p class="mt-2">{{ 'profile.ical.reset.description'|trans }}</p>
-                    <form method="post"
-                          action="{{ path('app_profile_ical_reset') }}"
-                          class="mt-3"
-                          onsubmit="return confirm('{{ 'profile.ical.reset.confirm'|trans|e('js') }}');"
-                          data-testid="profile-ical-reset-form">
-                        <input type="hidden" name="_token" value="{{ csrf_token('profile_ical_reset') }}">
-                        <button type="submit"
-                                class="inline-flex items-center whitespace-nowrap rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100">
-                            {{ 'profile.ical.reset.button'|trans }}
-                        </button>
-                    </form>
-                </details>
+    {# 3. Sprache #}
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-locale">
+        <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'profile.locale.heading'|trans }}</h2>
+        {{ form_start(localeForm, { action: path('app_profile_locale'), method: 'POST', attr: { class: 'flex items-center gap-4' } }) }}
+            <div class="flex-1">
+                {{ form_widget(localeForm.locale, { attr: { class: 'rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500' } }) }}
             </div>
-        </section>
-    {% endif %}
+            <button type="submit"
+                    class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                    data-testid="profile-locale-save">
+                {{ 'profile.settings.adjust'|trans }}
+            </button>
+        {{ form_end(localeForm) }}
+    </section>
 
+    {# 4. Einstellungen #}
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-settings">
+        <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'profile.settings.heading'|trans }}</h2>
+        <ul class="divide-y divide-gray-100">
+            <li class="flex items-center justify-between gap-4 py-3">
+                <div>
+                    <p class="text-sm font-medium text-gray-900">{{ 'profile.settings.notifications.label'|trans }}</p>
+                    <p class="mt-0.5 text-xs text-gray-600">{{ 'profile.settings.notifications.description'|trans }}</p>
+                </div>
+                <a href="{{ path('app_my_notification_preferences') }}"
+                   class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                   data-testid="profile-settings-notifications">
+                    {{ 'profile.settings.adjust'|trans }}
+                </a>
+            </li>
+        </ul>
+    </section>
+
+    {# 5. 2FA #}
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-2fa">
         <h2 class="mb-2 text-lg font-semibold text-gray-900">{{ 'profile.2fa.heading'|trans }}</h2>
         <p class="mb-4 text-sm text-gray-600">{{ 'profile.2fa.description'|trans }}</p>
@@ -216,67 +229,74 @@
         {% endif %}
     </section>
 
-    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-settings">
-        <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'profile.settings.heading'|trans }}</h2>
-        <ul class="divide-y divide-gray-100">
-            <li class="flex items-center justify-between gap-4 py-3">
-                <div>
-                    <p class="text-sm font-medium text-gray-900">{{ 'profile.settings.notifications.label'|trans }}</p>
-                    <p class="mt-0.5 text-xs text-gray-600">{{ 'profile.settings.notifications.description'|trans }}</p>
+    {# 6. Kalender abonnieren #}
+    {% if icalToken is not null %}
+        <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-ical">
+            <h2 class="mb-2 text-lg font-semibold text-gray-900">{{ 'profile.ical.heading'|trans }}</h2>
+            <p class="mb-4 text-sm text-gray-600">{{ 'profile.ical.description'|trans }}</p>
+
+            <div class="space-y-4">
+                {# Each URL gets its own Stimulus scope so the copy-to-clipboard
+                   target stays unambiguous when two source targets coexist. #}
+                <div data-controller="copy-to-clipboard">
+                    <p class="text-sm font-medium text-gray-900">{{ 'profile.ical.personal.label'|trans }}</p>
+                    <p class="mt-0.5 text-xs text-gray-500">{{ 'profile.ical.personal.description'|trans }}</p>
+                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                        <input
+                            type="text"
+                            readonly
+                            value="{{ url('app_ical_personal', { token: icalToken }) }}"
+                            class="flex-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700"
+                            data-copy-to-clipboard-target="source"
+                            data-testid="profile-ical-personal-url"
+                            onclick="this.select()">
+                        <button type="button"
+                                class="whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                                data-action="copy-to-clipboard#copy">
+                            {{ 'profile.ical.copy'|trans }}
+                        </button>
+                    </div>
                 </div>
-                <a href="{{ path('app_my_notification_preferences') }}"
-                   class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
-                   data-testid="profile-settings-notifications">
-                    {{ 'profile.settings.adjust'|trans }}
-                </a>
-            </li>
-        </ul>
-    </section>
 
-    <section class="rounded-xl bg-white p-6 shadow-sm space-y-4">
-        <dl class="grid grid-cols-3 gap-y-3 text-sm">
-            <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.email'|trans }}</dt>
-            <dd class="col-span-2 text-gray-900" data-testid="profile-email">{{ user.email }}</dd>
-
-            <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.role'|trans }}</dt>
-            <dd class="col-span-2 text-gray-900">{{ user.role.label|trans }}</dd>
-
-            {% if employee %}
-                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.full_name'|trans }}</dt>
-                <dd class="col-span-2 text-gray-900" data-testid="profile-full-name">{{ employee.fullName }}</dd>
-
-                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.employee_number'|trans }}</dt>
-                <dd class="col-span-2 text-gray-900">{{ employee.employeeNumber }}</dd>
-
-                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.location'|trans }}</dt>
-                <dd class="col-span-2 text-gray-900">
-                    {{ employee.location.name }}
-                    <span class="text-xs text-gray-500">({{ employee.location.city }}, {{ employee.location.federalState }})</span>
-                </dd>
-
-                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.weekly_hours'|trans }}</dt>
-                <dd class="col-span-2 text-gray-900">{{ employee.workSchedule.weeklyHours }} h</dd>
-
-                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.working_days'|trans }}</dt>
-                <dd class="col-span-2 text-gray-900">
-                    {% for day in employee.workSchedule.workingDays %}
-                        <span class="inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">{{ ('weekday.' ~ day.name|lower)|trans }}</span>
-                    {% endfor %}
-                </dd>
-
-                <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.joined_at'|trans }}</dt>
-                <dd class="col-span-2 text-gray-900">{{ employee.joinedAt|date('Y-m-d') }}</dd>
-
-                {% if employee.leftAt %}
-                    <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.left_at'|trans }}</dt>
-                    <dd class="col-span-2 text-gray-900">{{ employee.leftAt|date('Y-m-d') }}</dd>
+                {% if icalHasTeam %}
+                    <div data-controller="copy-to-clipboard">
+                        <p class="text-sm font-medium text-gray-900">{{ 'profile.ical.team.label'|trans }}</p>
+                        <p class="mt-0.5 text-xs text-gray-500">{{ 'profile.ical.team.description'|trans }}</p>
+                        <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                            <input
+                                type="text"
+                                readonly
+                                value="{{ url('app_ical_team', { token: icalToken }) }}"
+                                class="flex-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700"
+                                data-copy-to-clipboard-target="source"
+                                data-testid="profile-ical-team-url"
+                                onclick="this.select()">
+                            <button type="button"
+                                    class="whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                                    data-action="copy-to-clipboard#copy">
+                                {{ 'profile.ical.copy'|trans }}
+                            </button>
+                        </div>
+                    </div>
                 {% endif %}
-            {% else %}
-                <dt class="col-span-3 mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid="profile-no-employee">
-                    {{ 'profile.no_employee_record'|trans }}
-                </dt>
-            {% endif %}
-        </dl>
-    </section>
+
+                <details class="mt-2 text-xs text-gray-500">
+                    <summary class="cursor-pointer text-gray-600 hover:text-gray-900">{{ 'profile.ical.reset.summary'|trans }}</summary>
+                    <p class="mt-2">{{ 'profile.ical.reset.description'|trans }}</p>
+                    <form method="post"
+                          action="{{ path('app_profile_ical_reset') }}"
+                          class="mt-3"
+                          onsubmit="return confirm('{{ 'profile.ical.reset.confirm'|trans|e('js') }}');"
+                          data-testid="profile-ical-reset-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token('profile_ical_reset') }}">
+                        <button type="submit"
+                                class="inline-flex items-center whitespace-nowrap rounded-md border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100">
+                            {{ 'profile.ical.reset.button'|trans }}
+                        </button>
+                    </form>
+                </details>
+            </div>
+        </section>
+    {% endif %}
 </div>
 {% endblock %}

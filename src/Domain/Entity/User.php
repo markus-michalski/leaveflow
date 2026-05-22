@@ -84,6 +84,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     #[ORM\Column(name: 'slack_user_id', length: 32, nullable: true)]
     private ?string $slackUserId = null;
 
+    /** @var list<string> */
+    public const array ALLOWED_LOCALES = ['de', 'en'];
+
+    /** Explicit UI locale preference. Null falls back to browser Accept-Language (via enabled_locales negotiation). */
+    #[ORM\Column(name: 'locale', length: 5, nullable: true)]
+    private ?string $locale = null;
+
     public function __construct(
         #[ORM\ManyToOne]
         #[ORM\JoinColumn(name: 'company_id', nullable: false)]
@@ -189,6 +196,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         $this->externalId = null;
         $this->authSource = AuthSource::Local;
         $this->slackUserId = null;
+        $this->locale = null;
     }
 
     public function eraseCredentials(): void
@@ -363,6 +371,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
     {
         $slackUserId = null === $slackUserId ? null : trim($slackUserId);
         $this->slackUserId = ('' === $slackUserId) ? null : $slackUserId;
+    }
+
+    public function getLocale(): ?string
+    {
+        return $this->locale;
+    }
+
+    public function setLocale(?string $locale): void
+    {
+        if (null !== $locale && !\in_array($locale, self::ALLOWED_LOCALES, true)) {
+            throw new \InvalidArgumentException(\sprintf('Unsupported locale "%s". Allowed: %s.', $locale, implode(', ', self::ALLOWED_LOCALES)));
+        }
+        $this->locale = $locale;
     }
 
     private function hashBackupCode(string $code): string

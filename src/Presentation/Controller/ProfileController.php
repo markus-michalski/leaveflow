@@ -7,6 +7,7 @@ namespace App\Presentation\Controller;
 use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Domain\Entity\User;
 use App\Domain\Repository\EmployeeRepository;
+use App\Presentation\Form\ProfileLocaleFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Clock\ClockInterface;
@@ -58,6 +59,8 @@ final class ProfileController extends AbstractController
             }
         }
 
+        $localeForm = $this->createForm(ProfileLocaleFormType::class, ['locale' => $user->getLocale()]);
+
         return $this->render('profile/show.html.twig', [
             'user' => $user,
             'employee' => $employee,
@@ -65,7 +68,31 @@ final class ProfileController extends AbstractController
             'balanceYear' => $balanceYear,
             'icalToken' => $icalToken,
             'icalHasTeam' => null !== $employee && null !== $employee->getDepartment(),
+            'localeForm' => $localeForm,
         ]);
+    }
+
+    #[Route('/profile/locale', name: 'app_profile_locale', methods: ['POST'])]
+    public function setLocale(Request $request): Response
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $form = $this->createForm(ProfileLocaleFormType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var string|null $locale */
+            $locale = $form->get('locale')->getData();
+            $user->setLocale($locale);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', $this->translator->trans('profile.locale.flash.saved'));
+        }
+
+        return $this->redirectToRoute('app_profile');
     }
 
     #[Route('/profile/ical/reset', name: 'app_profile_ical_reset', methods: ['POST'])]

@@ -149,6 +149,7 @@ admin:
         edit_heading: Benutzer bearbeiten
         email: E-Mail
         role: Rolle
+        locale: Sprache
         status: Status
         active: Aktiv
         inactive: Inaktiv
@@ -1020,6 +1021,15 @@ profile:
         notifications:
             label: Benachrichtigungen
             description: "Steuere, für welche Ereignisse du E-Mails erhältst. Die App-Inbox bleibt immer aktiv."
+    locale:
+        heading: Sprache
+        field_label: Anzeigesprache
+        choice:
+            browser: "Browser-Standard"
+            de: "Deutsch"
+            en: "English"
+        flash:
+            saved: "Deine Sprach-Einstellung wurde gespeichert."
 my:
     leave_requests:
         title: Meine Urlaubsanträge
