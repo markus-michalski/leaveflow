@@ -43,7 +43,6 @@ final class AdminEmployeeController extends AbstractController
     ) {
     }
 
-    /** @param 'active'|'inactive'|'all' $filter */
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(Request $request): Response
     {
@@ -246,6 +245,102 @@ final class AdminEmployeeController extends AbstractController
             'selectedYear' => $year,
             'yearAggregates' => $yearAggregates,
         ]);
+    }
+
+    #[Route('/export', name: 'export', methods: ['POST'])]
+    public function export(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('employee-export', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $company = $this->currentCompany();
+        $today = $this->clock->now();
+
+        $filter = $request->request->getString('filter', 'all');
+        if (!\in_array($filter, ['active', 'inactive', 'all'], true)) {
+            $filter = 'all';
+        }
+
+        $employees = $this->employeeRepository->findByCompanyAndStatus($company, $filter, $today);
+
+        $filename = match ($filter) {
+            'active' => 'mitarbeiter-aktive.csv',
+            'inactive' => 'mitarbeiter-inaktive.csv',
+            default => 'mitarbeiter-alle.csv',
+        };
+
+        return new Response(
+            $this->buildCsv($employees, $today),
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'text/csv; charset=utf-8',
+                'Content-Disposition' => \sprintf('attachment; filename="%s"', $filename),
+            ],
+        );
+    }
+
+    /**
+     * @param list<Employee> $employees
+     */
+    private function buildCsv(array $employees, \DateTimeImmutable $today): string
+    {
+        $day = $today->setTime(0, 0);
+
+        $output = fopen('php://temp', 'r+');
+        if (false === $output) {
+            throw new \RuntimeException('Failed to open temp stream.');
+        }
+
+        $content = '';
+        try {
+            fwrite($output, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+            fputcsv($output, [
+                $this->translator->trans('admin.employees.export.csv.name'),
+                $this->translator->trans('admin.employees.export.csv.number'),
+                $this->translator->trans('admin.employees.export.csv.location'),
+                $this->translator->trans('admin.employees.export.csv.status'),
+                $this->translator->trans('admin.employees.export.csv.weekly_hours'),
+                $this->translator->trans('admin.employees.export.csv.joined_at'),
+                $this->translator->trans('admin.employees.export.csv.left_at'),
+                $this->translator->trans('admin.employees.export.csv.login'),
+            ]);
+
+            foreach ($employees as $employee) {
+                $isInactive = null !== $employee->getLeftAt() && $employee->getLeftAt() <= $day;
+                fputcsv($output, array_map(
+                    $this->sanitizeCsvCell(...),
+                    [
+                        $employee->getFullName(),
+                        $employee->getEmployeeNumber(),
+                        $employee->getLocation()->getName(),
+                        $isInactive
+                            ? $this->translator->trans('admin.employees.status.inactive')
+                            : $this->translator->trans('admin.employees.status.active'),
+                        (string) $employee->getWorkSchedule()->weeklyHours(),
+                        $employee->getJoinedAt()->format('Y-m-d'),
+                        $employee->getLeftAt()?->format('Y-m-d') ?? '',
+                        $employee->getUser()?->getEmail() ?? '',
+                    ],
+                ));
+            }
+
+            rewind($output);
+            $content = (string) (stream_get_contents($output) ?: '');
+        } finally {
+            fclose($output);
+        }
+
+        return $content;
+    }
+
+    private function sanitizeCsvCell(string $value): string
+    {
+        if ('' !== $value && str_contains("=+-@\t\r", $value[0])) {
+            return "'".$value;
+        }
+
+        return $value;
     }
 
     private function currentCompany(): Company

@@ -57,6 +57,7 @@ class EmployeeRepository extends ServiceEntityRepository
      * definition (#81/#82) so the badge and deactivation stay in sync.
      *
      * @param 'active'|'inactive'|'all' $status
+     *
      * @return list<Employee>
      */
     public function findByCompanyAndStatus(

@@ -11,6 +11,12 @@
                class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 {{ 'nav.home'|trans }}
             </a>
+            <button type="button"
+                    onclick="document.getElementById('export-modal').showModal()"
+                    class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    data-testid="employee-export-button">
+                {{ 'admin.employees.export.button'|trans }}
+            </button>
             <a href="{{ path('app_admin_employee_import_index') }}"
                class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
                data-testid="employee-import-link">
@@ -117,4 +123,50 @@
         </table>
     </div>
 </div>
+
+{# CSV export filter modal #}
+<dialog id="export-modal"
+        class="fixed inset-0 m-auto h-fit rounded-xl shadow-xl p-0 backdrop:bg-black/40 w-full max-w-sm">
+    <form method="post" action="{{ path('app_admin_employee_export') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('employee-export') }}">
+        <div class="p-6">
+            <h3 class="mb-4 text-lg font-semibold text-gray-900">{{ 'admin.employees.export.title'|trans }}</h3>
+
+            <fieldset class="space-y-3">
+                <legend class="mb-2 text-sm font-medium text-gray-700">{{ 'admin.employees.export.scope_label'|trans }}</legend>
+
+                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50">
+                    <input type="radio" name="filter" value="all" checked
+                           class="text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm text-gray-700">{{ 'admin.employees.export.all'|trans }}</span>
+                </label>
+
+                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50">
+                    <input type="radio" name="filter" value="active"
+                           class="text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm text-gray-700">{{ 'admin.employees.export.active'|trans }}</span>
+                </label>
+
+                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50">
+                    <input type="radio" name="filter" value="inactive"
+                           class="text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm text-gray-700">{{ 'admin.employees.export.inactive'|trans }}</span>
+                </label>
+            </fieldset>
+        </div>
+
+        <div class="flex justify-end gap-3 border-t border-gray-100 px-6 py-4">
+            <button type="button"
+                    onclick="document.getElementById('export-modal').close()"
+                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'admin.employees.export.cancel'|trans }}
+            </button>
+            <button type="submit"
+                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    data-testid="export-modal-submit">
+                {{ 'admin.employees.export.submit'|trans }}
+            </button>
+        </div>
+    </form>
+</dialog>
 {% endblock %}

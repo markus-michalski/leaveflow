@@ -8,6 +8,7 @@ use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
 use App\Domain\Enum\LeaveEntitlementType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -22,7 +23,6 @@ use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\Range;
-use Symfony\Component\Clock\ClockInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**

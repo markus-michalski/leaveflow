@@ -339,6 +339,24 @@ admin:
             active: Nur Aktive
             inactive: Nur Inaktive
             all: Alle
+        export:
+            button: CSV exportieren
+            title: CSV-Export
+            scope_label: Welche Mitarbeiter exportieren?
+            all: Alle Mitarbeiter (Aktive + Inaktive)
+            active: Nur Aktive
+            inactive: Nur Inaktive
+            cancel: Abbrechen
+            submit: Exportieren
+            csv:
+                name: Name
+                number: Personalnummer
+                location: Standort
+                status: Status
+                weekly_hours: Wochenstunden
+                joined_at: Eintritt
+                left_at: Austritt
+                login: Login
         actions: Aktionen
         save: Speichern
         back: Zurück
