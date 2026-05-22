@@ -139,6 +139,12 @@ class Employee
         $this->workSchedule = $workSchedule;
     }
 
+    public function updateJoinedAt(\DateTimeImmutable $joinedAt): void
+    {
+        $this->assertLeftAfterJoined($joinedAt, $this->leftAt);
+        $this->joinedAt = $joinedAt;
+    }
+
     public function markLeft(\DateTimeImmutable $leftAt): void
     {
         $this->assertLeftAfterJoined($this->joinedAt, $leftAt);

@@ -57,8 +57,9 @@ final class AdminAnonymizationController extends AbstractController
         $this->assertSameCompany($employee);
 
         try {
-            $this->anonymizationService->anonymize($employee);
-            $this->entityManager->flush();
+            $this->entityManager->wrapInTransaction(function () use ($employee): void {
+                $this->anonymizationService->anonymize($employee);
+            });
 
             $this->addFlash(
                 'success',
