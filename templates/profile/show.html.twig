@@ -233,6 +233,20 @@
         </ul>
     </section>
 
+    <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-locale">
+        <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'profile.locale.heading'|trans }}</h2>
+        {{ form_start(localeForm, { action: path('app_profile_locale'), method: 'POST', attr: { class: 'flex items-center gap-4' } }) }}
+            <div class="flex-1">
+                {{ form_widget(localeForm.locale, { attr: { class: 'rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500' } }) }}
+            </div>
+            <button type="submit"
+                    class="inline-flex items-center whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                    data-testid="profile-locale-save">
+                {{ 'profile.settings.adjust'|trans }}
+            </button>
+        {{ form_end(localeForm) }}
+    </section>
+
     <section class="rounded-xl bg-white p-6 shadow-sm space-y-4">
         <dl class="grid grid-cols-3 gap-y-3 text-sm">
             <dt class="col-span-1 font-medium text-gray-500">{{ 'profile.email'|trans }}</dt>

@@ -7,6 +7,7 @@ namespace App\Presentation\Form;
 use App\Domain\Entity\User;
 use App\Domain\Enum\UserRole;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -39,6 +40,17 @@ final class AdminUserType extends AbstractType
             'label' => 'admin.users.role',
             'choice_label' => static fn (UserRole $role): string => $role->label(),
             'choice_value' => static fn (?UserRole $role): string => null === $role ? '' : $role->value,
+        ]);
+
+        $localeChoices = ['profile.locale.choice.browser' => null];
+        foreach (User::ALLOWED_LOCALES as $locale) {
+            $localeChoices['profile.locale.choice.'.$locale] = $locale;
+        }
+
+        $builder->add('locale', ChoiceType::class, [
+            'label' => 'admin.users.locale',
+            'choices' => $localeChoices,
+            'required' => false,
         ]);
     }
 

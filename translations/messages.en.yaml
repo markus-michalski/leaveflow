@@ -149,6 +149,7 @@ admin:
         edit_heading: Edit user
         email: Email
         role: Role
+        locale: Language
         status: Status
         active: Active
         inactive: Inactive
@@ -1017,6 +1018,15 @@ profile:
         notifications:
             label: Notifications
             description: "Control which events you receive emails for. The in-app inbox stays active for all events."
+    locale:
+        heading: Language
+        field_label: Display language
+        choice:
+            browser: "Browser default"
+            de: "Deutsch"
+            en: "English"
+        flash:
+            saved: "Your language preference has been saved."
 my:
     leave_requests:
         title: My leave requests

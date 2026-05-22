@@ -97,6 +97,9 @@ final class AdminUserController extends AbstractController
             $email = $form->get('email')->getData();
 
             $user = $this->userProvisioning->provisionLocal($company, $email, $user->getRole());
+            /** @var string|null $locale */
+            $locale = $form->get('locale')->getData();
+            $user->setLocale($locale);
             $this->entityManager->flush();
 
             $this->sendInvitationEmail($user);
