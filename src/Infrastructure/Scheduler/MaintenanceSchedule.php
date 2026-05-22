@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Scheduler;
 
+use App\Application\Employee\ExitDeactivationCheckMessage;
 use App\Application\Entitlement\YearTransitionMessage;
 use Symfony\Component\Scheduler\Attribute\AsSchedule;
 use Symfony\Component\Scheduler\RecurringMessage;
@@ -22,6 +23,8 @@ use Symfony\Component\Scheduler\ScheduleProviderInterface;
  * - YearTransition — January 1st at 01:00, rolls remaining Regular balances
  *   from year N-1 into Carryover entries for year N. Idempotent against
  *   repeated firings (existing carryovers are skipped).
+ * - ExitDeactivationCheck — daily 07:00, finds employees whose exit date has
+ *   been reached and deactivates their user accounts (#81, #82).
  *
  * Worker: `php bin/console messenger:consume scheduler_maintenance`.
  */
@@ -35,6 +38,7 @@ final class MaintenanceSchedule implements ScheduleProviderInterface
                 // Minute=0, Hour=1, Day-of-month=1, Month=1, Day-of-week=*
                 // → "January 1st at 01:00 every year".
                 RecurringMessage::cron('0 1 1 1 *', new YearTransitionMessage()),
+                RecurringMessage::cron('0 7 * * *', new ExitDeactivationCheckMessage()),
             );
     }
 }

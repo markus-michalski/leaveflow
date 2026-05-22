@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Scheduler;
 
+use App\Application\Employee\ExitDeactivationCheckHandler;
 use App\Application\Entitlement\YearTransitionHandler;
 use App\Application\Notification\ApprovalEscalationCheckHandler;
 use App\Application\Notification\EntitlementExpiryCheckHandler;
@@ -54,6 +55,12 @@ final readonly class ScheduledJobRegistry
                 cronExpression: '0 6 * * *',
                 labelKey: 'admin.scheduled_jobs.job.illness_alert_check.label',
                 descriptionKey: 'admin.scheduled_jobs.job.illness_alert_check.description',
+            ),
+            new ScheduledJobMetadata(
+                name: ExitDeactivationCheckHandler::JOB_NAME,
+                cronExpression: '0 7 * * *',
+                labelKey: 'admin.scheduled_jobs.job.exit_deactivation_check.label',
+                descriptionKey: 'admin.scheduled_jobs.job.exit_deactivation_check.description',
             ),
         ];
     }

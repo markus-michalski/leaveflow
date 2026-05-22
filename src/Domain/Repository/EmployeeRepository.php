@@ -86,6 +86,31 @@ class EmployeeRepository extends ServiceEntityRepository
     }
 
     /**
+     * Employees whose exit date has been reached and whose linked user
+     * account is still active. Used by the daily exit-deactivation sweep
+     * (#81, #82) to handle future-dated exits that were skipped at the
+     * time EmployeeExitService ran.
+     *
+     * Anonymized employees are excluded — their user link is already gone
+     * at that point anyway, but the guard keeps the query intent clear.
+     *
+     * @return list<Employee>
+     */
+    public function findExitedWithActiveUser(\DateTimeImmutable $asOf): array
+    {
+        return $this->createQueryBuilder('e')
+            ->join('e.user', 'u')
+            ->andWhere('e.leftAt IS NOT NULL')
+            ->andWhere('e.leftAt <= :asOf')
+            ->andWhere('u.active = true')
+            ->andWhere('e.anonymizedAt IS NULL')
+            ->setParameter('asOf', $asOf)
+            ->orderBy('e.leftAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Active employees (joinedAt has passed, no leftAt or leftAt in the
      * future). Drives cross-company sweeps such as the 6-week illness
      * alert.

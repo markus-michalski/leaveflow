@@ -254,6 +254,9 @@ admin:
             illness_alert_check:
                 label: "6-Wochen-Krankheits-Alarm"
                 description: "Prüft täglich um 06:00, ob ein Mitarbeiter durchgehend 42 Kalendertage krank gemeldet ist (Lohnfortzahlung läuft aus), und benachrichtigt die Team-Leitung mit Admin-Fallback."
+            exit_deactivation_check:
+                label: "Austritt-Deaktivierung"
+                description: "Prüft täglich um 07:00 nach Mitarbeitern, deren Austrittsdatum erreicht ist, und deaktiviert deren Benutzerkonto."
     blackout_periods:
         title: Sperrfristen
         heading: Sperrfristen

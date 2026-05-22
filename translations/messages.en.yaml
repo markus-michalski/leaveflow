@@ -254,6 +254,9 @@ admin:
             illness_alert_check:
                 label: "6-week illness sweep"
                 description: "Daily at 06:00 — checks for employees on continuous sick leave for 42 calendar days (statutory wage continuation ends) and notifies the team lead with an admin fallback."
+            exit_deactivation_check:
+                label: "Exit deactivation sweep"
+                description: "Daily at 07:00 — finds employees whose exit date has been reached and deactivates their user accounts."
     blackout_periods:
         title: Blackout periods
         heading: Blackout periods
