@@ -10,3 +10,7 @@ framework:
             - de
             - en
         providers:
+
+when@test:
+    framework:
+        set_locale_from_accept_language: false
