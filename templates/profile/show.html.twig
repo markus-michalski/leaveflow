@@ -140,7 +140,7 @@
     {# 5. 2FA #}
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-2fa">
         <h2 class="mb-2 text-lg font-semibold text-gray-900">{{ 'profile.2fa.heading'|trans }}</h2>
-        <p class="mb-4 text-sm text-gray-600">{{ 'profile.2fa.description'|trans }}</p>
+        <p class="mb-4 text-xs text-gray-600">{{ 'profile.2fa.description'|trans }}</p>
 
         {% if user.isTotpEnabled() %}
             <div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
@@ -233,7 +233,7 @@
     {% if icalToken is not null %}
         <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="profile-ical">
             <h2 class="mb-2 text-lg font-semibold text-gray-900">{{ 'profile.ical.heading'|trans }}</h2>
-            <p class="mb-4 text-sm text-gray-600">{{ 'profile.ical.description'|trans }}</p>
+            <p class="mb-4 text-xs text-gray-600">{{ 'profile.ical.description'|trans }}</p>
 
             <div class="space-y-4">
                 {# Each URL gets its own Stimulus scope so the copy-to-clipboard

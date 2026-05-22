@@ -11,6 +11,15 @@
     {{- parent() -}}
 {%- endblock date_widget -%}
 
+{%- block form_help -%}
+    {%- if help is not empty -%}
+        {%- set help_attr = help_attr|merge({class: ('mt-1 text-xs text-gray-500 ' ~ help_attr.class|default(''))|trim}) -%}
+        <{{ element|default('p') }} id="{{ id }}_help"{% with { attr: help_attr } %}{{ block('attributes') }}{% endwith %}>
+            {{- block('form_help_content') -}}
+        </{{ element|default('p') }}>
+    {%- endif -%}
+{%- endblock form_help -%}
+
 {%- block form_errors -%}
     {%- if errors|length > 0 -%}
         <div class="mt-1 flex items-start gap-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">

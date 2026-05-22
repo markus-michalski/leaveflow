@@ -6,13 +6,13 @@
 <div class="mx-auto max-w-3xl p-6">
     <header class="mb-6">
         <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.company_settings.heading'|trans }}</h1>
-        <p class="mt-1 text-sm text-gray-500">{{ 'admin.company_settings.description'|trans }}</p>
+        <p class="mt-1 text-xs text-gray-500">{{ 'admin.company_settings.description'|trans }}</p>
     </header>
 
     {# Profile section — name, address, branding, retention/escalation. #}
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-profile">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.profile.heading'|trans }}</h2>
-        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.profile.description'|trans }}</p>
+        <p class="mt-1 text-xs text-gray-600">{{ 'admin.company_settings.profile.description'|trans }}</p>
 
         {% if company.logoPath %}
             <div class="mt-4 flex flex-wrap items-center gap-4 rounded-md border border-gray-200 bg-gray-50 p-3">
@@ -101,7 +101,7 @@
     {# Existing 2FA-requirement section — separate form so file-upload state doesn't bleed into the toggle. #}
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-2fa">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.2fa.heading'|trans }}</h2>
-        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.2fa.description'|trans }}</p>
+        <p class="mt-1 text-xs text-gray-600">{{ 'admin.company_settings.2fa.description'|trans }}</p>
 
         {% if company.requiresTwoFactor() %}
             {% set enforced = company.isTwoFactorEnforced(today) %}
@@ -157,7 +157,7 @@
     {# Google Workspace OAuth section #}
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-google">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.google.heading'|trans }}</h2>
-        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.google.description'|trans }}</p>
+        <p class="mt-1 text-xs text-gray-600">{{ 'admin.company_settings.google.description'|trans }}</p>
 
         <div class="mt-4 space-y-4">
             {% if company.isGoogleOAuthEnabled() %}
@@ -233,7 +233,7 @@
     {# Microsoft Entra ID OAuth section #}
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-entra">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.entra.heading'|trans }}</h2>
-        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.entra.description'|trans }}</p>
+        <p class="mt-1 text-xs text-gray-600">{{ 'admin.company_settings.entra.description'|trans }}</p>
 
         <div class="mt-4 space-y-4">
             {% if company.isEntraOAuthEnabled() %}
@@ -315,7 +315,7 @@
     {# Microsoft Teams Integration #}
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-teams">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.teams.heading'|trans }}</h2>
-        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.teams.description'|trans }}</p>
+        <p class="mt-1 text-xs text-gray-600">{{ 'admin.company_settings.teams.description'|trans }}</p>
 
         <div class="mt-4 space-y-4">
             {% if company.isTeamsEnabled() %}
@@ -390,7 +390,7 @@
     {# Slack #}
     <section class="mb-6 rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-slack">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.slack.heading'|trans }}</h2>
-        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.slack.description'|trans }}</p>
+        <p class="mt-1 text-xs text-gray-600">{{ 'admin.company_settings.slack.description'|trans }}</p>
 
         <div class="mt-4 space-y-4">
             {% if company.isSlackEnabled() %}
@@ -507,7 +507,7 @@
     {# LDAP / Active Directory #}
     <section class="rounded-xl bg-white p-6 shadow-sm" data-testid="company-settings-ldap">
         <h2 class="text-lg font-semibold text-gray-900">{{ 'admin.company_settings.ldap.heading'|trans }}</h2>
-        <p class="mt-1 text-sm text-gray-600">{{ 'admin.company_settings.ldap.description'|trans }}</p>
+        <p class="mt-1 text-xs text-gray-600">{{ 'admin.company_settings.ldap.description'|trans }}</p>
 
         <div class="mt-4">
             {% if company.isLdapEnabled() %}

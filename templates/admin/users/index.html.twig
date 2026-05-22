@@ -7,7 +7,7 @@
     <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.users.heading'|trans }}</h1>
-            <p class="mt-1 text-sm text-gray-500" data-testid="admin-users-total">
+            <p class="mt-1 text-xs text-gray-500" data-testid="admin-users-total">
                 {% if total == 0 %}
                     {{ 'admin.users.total.zero'|trans }}
                 {% elseif total == 1 %}
