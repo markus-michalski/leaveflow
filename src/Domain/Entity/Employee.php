@@ -31,6 +31,9 @@ class Employee
     #[ORM\JoinColumn(name: 'department_id', nullable: true, onDelete: 'SET NULL')]
     private ?Department $department = null;
 
+    #[ORM\Column(name: 'anonymized_at', type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $anonymizedAt = null;
+
     public function __construct(
         #[ORM\ManyToOne]
         #[ORM\JoinColumn(name: 'company_id', nullable: false)]
@@ -151,6 +154,26 @@ class Employee
     public function unlinkUser(): void
     {
         $this->user = null;
+    }
+
+    public function isAnonymized(): bool
+    {
+        return null !== $this->anonymizedAt;
+    }
+
+    public function getAnonymizedAt(): ?\DateTimeImmutable
+    {
+        return $this->anonymizedAt;
+    }
+
+    public function anonymize(string $anonymizedName, \DateTimeImmutable $at): void
+    {
+        if ($this->isAnonymized()) {
+            throw new \LogicException(\sprintf('Employee #%d is already anonymized.', $this->id));
+        }
+
+        $this->fullName = $anonymizedName;
+        $this->anonymizedAt = $at;
     }
 
     public function getDepartment(): ?Department

@@ -48,6 +48,7 @@ nav:
         scheduled_jobs: "Cron-Jobs"
         statistics: Statistik
         company_settings: "Firmen-Einstellungen"
+        anonymization: "DSGVO-Anonymisierung"
     manager:
         approvals: Genehmigungen
     team:
@@ -845,6 +846,32 @@ admin:
             duplicate_placeholder: "Der Filter darf den Platzhalter {username} nur einmal enthalten."
             unbalanced_parens: "Die Klammern im LDAP-Filter sind nicht korrekt geschlossen."
             illegal_chars: "Der Filter darf keine NUL-Bytes oder Zeilenumbrüche enthalten."
+    anonymization:
+        title: "DSGVO-Anonymisierung"
+        heading: "DSGVO-Anonymisierung"
+        description: "Ehemalige Mitarbeiter, deren Aufbewahrungsfrist von %months% Monaten abgelaufen ist, werden hier anonymisiert. Name und E-Mail werden überschrieben, Abwesenheitsdaten bleiben für Statistiken erhalten."
+        section:
+            due: "Fällig zur Anonymisierung"
+            done: "Bereits anonymisiert"
+        empty:
+            due: "Keine Einträge fällig."
+            done: "Noch keine Anonymisierungen durchgeführt."
+        field:
+            name: "Name"
+            employee_number: "Personalnummer"
+            left_at: "Austritt"
+            due_since: "Fällig seit"
+            anonymized_at: "Anonymisiert am"
+            actions: "Aktionen"
+        action:
+            anonymize: "Anonymisieren"
+        confirm:
+            title: "Anonymisierung bestätigen"
+            body: "Soll \"%name%\" unwiderruflich anonymisiert werden? Diese Aktion kann nicht rückgängig gemacht werden."
+            cancel: "Abbrechen"
+            submit: "Jetzt anonymisieren"
+        flash:
+            success: "Mitarbeiter #%id% wurde erfolgreich anonymisiert."
 admin.exit_handling:
     label:
         pay_out: "Urlaubsabgeltung (Auszahlung)"

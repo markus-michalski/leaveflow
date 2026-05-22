@@ -177,6 +177,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         return null !== $this->employee;
     }
 
+    public function anonymize(string $anonymizedEmail): void
+    {
+        $this->email = strtolower(trim($anonymizedEmail));
+        $this->password = null;
+        $this->active = false;
+        $this->icalToken = null;
+        $this->totpSecret = null;
+        $this->totpEnabled = false;
+        $this->backupCodes = [];
+        $this->externalId = null;
+        $this->authSource = AuthSource::Local;
+        $this->slackUserId = null;
+    }
+
     public function eraseCredentials(): void
     {
         // No-op — plaintext credentials are never stored on the entity.
