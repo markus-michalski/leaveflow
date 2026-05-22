@@ -159,6 +159,61 @@ final class EmployeeTest extends TestCase
     }
 
     #[Test]
+    public function updateJoinedAtChangesJoinedDate(): void
+    {
+        $employee = new Employee(
+            $this->acme,
+            'Jane',
+            'EMP-001',
+            $this->hq,
+            WorkSchedule::standardFullTime(),
+            new \DateTimeImmutable('2024-01-01'),
+        );
+
+        $employee->updateJoinedAt(new \DateTimeImmutable('2023-03-01'));
+
+        self::assertSame('2023-03-01', $employee->getJoinedAt()->format('Y-m-d'));
+    }
+
+    #[Test]
+    public function updateJoinedAtRejectsDateAfterExistingLeftAt(): void
+    {
+        $employee = new Employee(
+            $this->acme,
+            'Jane',
+            'EMP-001',
+            $this->hq,
+            WorkSchedule::standardFullTime(),
+            new \DateTimeImmutable('2023-01-01'),
+            null,
+            new \DateTimeImmutable('2023-07-01'),
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $employee->updateJoinedAt(new \DateTimeImmutable('2023-08-01'));
+    }
+
+    #[Test]
+    public function updateJoinedAtAllowsDateBeforeExistingLeftAt(): void
+    {
+        $employee = new Employee(
+            $this->acme,
+            'Jane',
+            'EMP-001',
+            $this->hq,
+            WorkSchedule::standardFullTime(),
+            new \DateTimeImmutable('2024-01-01'),
+            null,
+            new \DateTimeImmutable('2024-07-01'),
+        );
+
+        $employee->updateJoinedAt(new \DateTimeImmutable('2023-03-01'));
+
+        self::assertSame('2023-03-01', $employee->getJoinedAt()->format('Y-m-d'));
+    }
+
+    #[Test]
     public function markLeftRejectsDateBeforeJoined(): void
     {
         $employee = new Employee(

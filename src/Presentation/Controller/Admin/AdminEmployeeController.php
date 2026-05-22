@@ -136,6 +136,7 @@ final class AdminEmployeeController extends AbstractController
                     $employee->rename((string) $form->get('fullName')->getData());
                     $employee->reassignLocation($this->requireLocation($form));
                     $employee->updateSchedule($this->buildSchedule($form));
+                    $employee->updateJoinedAt($this->requireDate($form, 'joinedAt'));
 
                     $leftAt = $this->optionalDate($form, 'leftAt');
                     $exitSummary = null;
