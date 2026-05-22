@@ -36,6 +36,9 @@ nav:
         menu_label: "Benutzermenü öffnen"
     admin:
         menu: Administration
+        group_organisation: Organisation
+        group_leave: "Urlaub & Abwesenheit"
+        group_system: System
         users: Benutzer
         locations: Standorte
         departments: Teams
@@ -1224,6 +1227,12 @@ team:
             team_all: Alle Teams
             type: Abwesenheitsart
             type_all: Alle Arten
+        btn:
+            today: Heute
+            month: Monat
+            week: Woche
+            day: Tag
+            list: Liste
 pagination:
     aria_label: Seitennavigation
     prev: Zurück

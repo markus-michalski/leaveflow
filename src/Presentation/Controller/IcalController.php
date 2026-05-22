@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Presentation\Controller;
 
 use App\Application\Ical\IcalFeedBuilder;
+use App\Domain\Entity\LeaveRequest;
+use App\Domain\Enum\LeaveRequestStatus;
 use App\Domain\Repository\LeaveRequestRepository;
 use App\Domain\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -87,12 +89,22 @@ final class IcalController extends AbstractController
         }
 
         [$rangeStart, $rangeEnd] = $this->buildRange();
-        $requests = $this->requestRepository->findApprovedOverlapping(
+        $all = $this->requestRepository->findActiveOverlapping(
             $user->getCompany(),
             $rangeStart,
             $rangeEnd,
             $department,
         );
+
+        // Exclude Recorded (illness) entries from the team feed: the iCal URL is
+        // token-authenticated and may be subscribed to by external calendar clients.
+        // Illness is health data — exposing it outside the authenticated web UI
+        // would conflict with the original privacy design. The team calendar web UI
+        // intentionally shows Recorded absences; the iCal feed does not.
+        $requests = array_values(array_filter(
+            $all,
+            static fn (LeaveRequest $r) => LeaveRequestStatus::Approved === $r->getStatus(),
+        ));
 
         return $this->makeIcsResponse(
             $this->builder->buildTeamFeed($requests),

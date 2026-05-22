@@ -36,6 +36,9 @@ nav:
         menu_label: "Open user menu"
     admin:
         menu: Admin
+        group_organisation: Organisation
+        group_leave: "Leave & absence"
+        group_system: System
         users: Users
         locations: Locations
         departments: Departments
@@ -1221,6 +1224,12 @@ team:
             team_all: All teams
             type: Absence type
             type_all: All types
+        btn:
+            today: Today
+            month: Month
+            week: Week
+            day: Day
+            list: List
 pagination:
     aria_label: Page navigation
     prev: Previous

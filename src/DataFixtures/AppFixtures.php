@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace App\DataFixtures;
 
 use App\Domain\Entity\AbsenceType;
+use App\Domain\Entity\BlackoutPeriod;
 use App\Domain\Entity\Company;
 use App\Domain\Entity\CompanyHoliday;
 use App\Domain\Entity\Department;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveEntitlement;
+use App\Domain\Entity\LeaveEntitlementAuditEntry;
 use App\Domain\Entity\LeaveRequest;
+use App\Domain\Entity\LeaveRequestAuditEntry;
 use App\Domain\Entity\Location;
 use App\Domain\Entity\Notification;
+use App\Domain\Entity\ScheduledJobConfig;
 use App\Domain\Entity\User;
 use App\Domain\Enum\ExclusionReason;
 use App\Domain\Enum\LeaveDayStatus;
@@ -20,6 +24,7 @@ use App\Domain\Enum\LeaveDayType;
 use App\Domain\Enum\LeaveEntitlementType;
 use App\Domain\Enum\LeaveRequestStatus;
 use App\Domain\Enum\NotificationType;
+use App\Domain\Enum\ScheduledJobRunStatus;
 use App\Domain\Enum\UserRole;
 use App\Domain\Enum\Weekday;
 use App\Domain\ValueObject\LeaveBreakdown;
@@ -88,6 +93,9 @@ final class AppFixtures extends Fixture
         $manager->persist($erik);
 
         // Demonstrates Employee without User (pre-go-live import / archived ex-employee).
+        // leftAt set to 2021-09-30 so the 36-month retention period (→ 2024-09-30) is
+        // already elapsed: Hannah shows up in the DSGVO anonymization "fällig" list right
+        // after `make fixtures`.
         $hannah = new Employee(
             $company,
             'Hannah History',
@@ -96,9 +104,39 @@ final class AppFixtures extends Fixture
             WorkSchedule::standardFullTime(),
             new \DateTimeImmutable('2019-05-01'),
             null,
-            new \DateTimeImmutable('2024-09-30'),
+            new \DateTimeImmutable('2021-09-30'),
         );
         $manager->persist($hannah);
+
+        // DSGVO demo #2: second eligible-for-anonymization employee (left 2020-06-30,
+        // retention elapsed 2023-06-30) — gives the anonymization page two rows in the
+        // "fällig" list so the UI doesn't look like a one-off edge case.
+        $klausKraft = new Employee(
+            $company,
+            'Klaus Kraft',
+            'EMP-0005',
+            $hq,
+            WorkSchedule::standardFullTime(),
+            new \DateTimeImmutable('2015-03-01'),
+            null,
+            new \DateTimeImmutable('2020-06-30'),
+        );
+        $manager->persist($klausKraft);
+
+        // DSGVO demo #3: already-anonymized employee — populates the "Bereits anonymisiert"
+        // section on /admin/anonymization so both halves of the page render after fixtures.
+        $preAnonymized = new Employee(
+            $company,
+            'Placeholder',
+            'EMP-0006',
+            $hq,
+            WorkSchedule::standardFullTime(),
+            new \DateTimeImmutable('2013-07-01'),
+            null,
+            new \DateTimeImmutable('2018-12-31'),
+        );
+        $manager->persist($preAnonymized);
+        $preAnonymized->anonymize('Ehemaliger Mitarbeiter (EMP-0006)', new \DateTimeImmutable('2022-03-15'));
 
         // Phase 10: two realistic departments so the statistics dashboard
         // shows non-empty department aggregates and the k-anonymity hide
@@ -172,6 +210,24 @@ final class AppFixtures extends Fixture
             }
         }
 
+        // BlackoutPeriods: two demo entries so the admin page is never empty.
+        // (1) Past company-wide freeze for year-end closing 2025.
+        // (2) Upcoming Engineering release-freeze (dept-scoped) so admins see both
+        //     scope variants side by side.
+        $manager->persist(new BlackoutPeriod(
+            $company,
+            new \DateTimeImmutable('2025-12-22'),
+            new \DateTimeImmutable('2025-12-23'),
+            'Jahresabschluss — Systemwartung und Buchhaltung (gesamtes Unternehmen)',
+        ));
+        $manager->persist(new BlackoutPeriod(
+            $company,
+            (new \DateTimeImmutable())->setDate($currentYear, 7, 13)->setTime(0, 0),
+            (new \DateTimeImmutable())->setDate($currentYear, 7, 18)->setTime(0, 0),
+            'Release-Freeze Q3 — kein Urlaub während der Produktionsstabilisierung',
+            $engineering,
+        ));
+
         // Phase 4: default AbsenceTypes (six entries mirroring the roadmap).
         /** @var array<string, AbsenceType> $absenceTypesByName */
         $absenceTypesByName = [];
@@ -211,12 +267,33 @@ final class AppFixtures extends Fixture
         // carryover regardless of when the fixtures are loaded. Admins can
         // edit the expiry via /admin/entitlements to simulate the abgelaufen-
         // case.
-        $manager->persist(new LeaveEntitlement(
+        $mayaCarryover = new LeaveEntitlement(
             $maya,
             $currentYear,
             LeaveEntitlementType::Carryover,
             16.0,
             (new \DateTimeImmutable())->setDate($currentYear + 1, 3, 31)->setTime(0, 0),
+        );
+        $manager->persist($mayaCarryover);
+
+        // LeaveEntitlementAuditEntry: two historical admin edits on Maya's carryover
+        // so the entitlement detail page renders a populated audit trail out-of-the-box.
+        $now = new \DateTimeImmutable();
+        $manager->persist(LeaveEntitlementAuditEntry::forHoursAdjustment(
+            entitlement: $mayaCarryover,
+            actor: null,
+            oldHoursGranted: 8.0,
+            newHoursGranted: 16.0,
+            occurredAt: $now->modify('-45 days')->setTime(10, 30),
+            reason: 'Korrektur: initiale Buchung war falsch (Tippfehler). Tatsächlicher Resturlaub 2025 beträgt 16 Stunden.',
+        ));
+        $manager->persist(LeaveEntitlementAuditEntry::forExpiryAdjustment(
+            entitlement: $mayaCarryover,
+            actor: null,
+            oldExpiresAt: (new \DateTimeImmutable())->setDate($currentYear + 1, 3, 31)->setTime(0, 0),
+            newExpiresAt: (new \DateTimeImmutable())->setDate($currentYear + 1, 6, 30)->setTime(0, 0),
+            occurredAt: $now->modify('-20 days')->setTime(14, 15),
+            reason: 'Verlängerung gem. BAG-Rechtsprechung: Mitarbeiterin war im Übertragungszeitraum krankgeschrieben (01.03.–28.03.). Verfall verschoben auf 30.06.',
         ));
 
         // Phase 5: demo leave requests so admins and employees see realistic
@@ -236,6 +313,29 @@ final class AppFixtures extends Fixture
             $erikCurrentYearEntitlement,
         );
         $manager->persist($approvedRequest);
+
+        // LeaveRequestAuditEntry: two entries for the approved request so the
+        // /admin/leave-requests detail page renders a populated audit trail.
+        // (1) Status transition: Maya approved the request 18 days ago.
+        $manager->persist(new LeaveRequestAuditEntry(
+            leaveRequest: $approvedRequest,
+            actor: $maya,
+            transition: 'approve',
+            fromStatus: LeaveRequestStatus::Pending,
+            toStatus: LeaveRequestStatus::Approved,
+            occurredAt: $now->modify('-18 days')->setTime(11, 0),
+            reason: null,
+        ));
+        // (2) Admin type-change: matches the AdminTypeChange notification already seeded
+        //     in the inbox — the audit row is the paper trail for that reclassification.
+        $manager->persist(LeaveRequestAuditEntry::forTypeChange(
+            leaveRequest: $approvedRequest,
+            actor: null,
+            fromAbsenceType: $absenceTypesByName['Urlaub'],
+            toAbsenceType: $absenceTypesByName['Sonderurlaub'],
+            occurredAt: $now->modify('-90 minutes'),
+            reason: 'Sonderurlaub gemäß BGB §616 — wurde versehentlich als Urlaub gebucht.',
+        ));
 
         // Phase 10 demo: realistic distribution of approved vacation +
         // sick recordings + one pending request across the extra
@@ -283,6 +383,22 @@ final class AppFixtures extends Fixture
                 // so this is purely a state-correctness detail.
                 $notification->markAsRead($notification->getCreatedAt()->modify('+30 minutes'));
             }
+        }
+
+        // ScheduledJobConfig: seed all five known jobs so /admin/scheduled-jobs
+        // renders a realistic table instead of an empty page right after `make fixtures`.
+        // exit-deactivation-check shows a failure so both the success and error
+        // display branches are visible without any manual interaction.
+        foreach ([
+            ['year-transition',           true,  $now->setDate($currentYear, 1, 1)->setTime(2, 0),   ScheduledJobRunStatus::Success, null],
+            ['entitlement-expiry-check',  true,  $now->modify('-1 day')->setTime(3, 10),              ScheduledJobRunStatus::Success, null],
+            ['approval-escalation-check', true,  $now->modify('-4 hours'),                            ScheduledJobRunStatus::Success, null],
+            ['illness-alert-check',       true,  $now->modify('-1 day')->setTime(3, 20),              ScheduledJobRunStatus::Success, null],
+            ['exit-deactivation-check',   true,  $now->modify('-6 hours'),                            ScheduledJobRunStatus::Failure, 'Doctrine\DBAL\Exception\ConnectionException: An exception occurred in the driver: SQLSTATE[HY000]: General error: 2006 MySQL server has gone away'],
+        ] as [$jobName, $enabled, $lastRunAt, $status, $error]) {
+            $job = new ScheduledJobConfig($jobName, $enabled);
+            $job->recordRun($lastRunAt, $status, $error);
+            $manager->persist($job);
         }
 
         $manager->flush();
@@ -750,6 +866,9 @@ final class AppFixtures extends Fixture
         // own wedding, birth, etc.) has to be verified.
         yield new AbsenceType($company, 'Sonderurlaub', false, true, '#F59E0B');
         yield new AbsenceType($company, 'Fortbildung', false, true, '#8B5CF6');
+        // No deduction, no approval — gets Recorded status immediately, appears in
+        // team calendar via the Approved|Recorded filter.
+        yield new AbsenceType($company, 'Berufsschule', false, false, '#06B6D4');
     }
 
     /**

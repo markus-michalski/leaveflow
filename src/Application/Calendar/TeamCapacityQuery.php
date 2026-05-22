@@ -32,7 +32,7 @@ final readonly class TeamCapacityQuery
             return 0;
         }
 
-        $overlapping = $this->leaveRequestRepository->findApprovedOverlapping(
+        $overlapping = $this->leaveRequestRepository->findActiveOverlapping(
             $employee->getCompany(),
             $startDate,
             $endDate,

@@ -202,7 +202,7 @@ class LeaveRequestRepository extends ServiceEntityRepository
      * Personal iCal feed source: approved and recorded leave for the
      * given employee that overlaps the date range. Recorded illness is
      * included because it shows up on the employee's own profile too;
-     * the team feed uses {@see findApprovedOverlapping} and excludes
+     * the team feed uses {@see findActiveOverlapping} and excludes
      * recorded entries for privacy.
      *
      * @return list<LeaveRequest>
@@ -349,8 +349,13 @@ class LeaveRequestRepository extends ServiceEntityRepository
     }
 
     /**
-     * Approved leave requests overlapping the given range. Optional filters
-     * narrow the result for the team-calendar view and capacity checks.
+     * Active (Approved + Recorded) leave requests overlapping the given range.
+     * Optional filters narrow the result for the team-calendar view and capacity checks.
+     *
+     * Recorded illness is included because sick employees are absent and must
+     * appear in the calendar, iCal feed, and capacity calculations just like
+     * approved vacation — excluding them creates a visible inconsistency with
+     * the "Aktuell abwesend" dashboard widget that uses both statuses.
      *
      * Two ranges overlap when start_a <= end_b AND end_a >= start_b. The
      * employee/department joins are always present so callers can rely on
@@ -358,7 +363,7 @@ class LeaveRequestRepository extends ServiceEntityRepository
      *
      * @return list<LeaveRequest>
      */
-    public function findApprovedOverlapping(
+    public function findActiveOverlapping(
         Company $company,
         \DateTimeImmutable $rangeStart,
         \DateTimeImmutable $rangeEnd,
@@ -368,11 +373,11 @@ class LeaveRequestRepository extends ServiceEntityRepository
     ): array {
         $qb = $this->createQueryBuilder('r')
             ->innerJoin('r.employee', 'e')
-            ->where('r.status = :approved')
+            ->where('r.status IN (:statuses)')
             ->andWhere('e.company = :company')
             ->andWhere('r.startDate <= :rangeEnd')
             ->andWhere('r.endDate >= :rangeStart')
-            ->setParameter('approved', LeaveRequestStatus::Approved->value)
+            ->setParameter('statuses', [LeaveRequestStatus::Approved->value, LeaveRequestStatus::Recorded->value])
             ->setParameter('company', $company)
             ->setParameter('rangeStart', $rangeStart->setTime(0, 0))
             ->setParameter('rangeEnd', $rangeEnd->setTime(0, 0))
