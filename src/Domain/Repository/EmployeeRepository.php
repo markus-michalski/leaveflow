@@ -47,6 +47,40 @@ class EmployeeRepository extends ServiceEntityRepository
     }
 
     /**
+     * Returns employees filtered by active/inactive status.
+     *
+     * Active:   leftAt IS NULL OR leftAt > asOf
+     * Inactive: leftAt IS NOT NULL AND leftAt <= asOf
+     * All:      no status filter
+     *
+     * Inactive = exit date has passed or is today, matching the exit-scheduler
+     * definition (#81/#82) so the badge and deactivation stay in sync.
+     *
+     * @param 'active'|'inactive'|'all' $status
+     * @return list<Employee>
+     */
+    public function findByCompanyAndStatus(
+        Company $company,
+        string $status,
+        \DateTimeImmutable $asOf,
+    ): array {
+        $qb = $this->createQueryBuilder('e')
+            ->andWhere('e.company = :company')
+            ->setParameter('company', $company)
+            ->orderBy('e.fullName', 'ASC');
+
+        $day = $asOf->setTime(0, 0);
+
+        if ('active' === $status) {
+            $qb->andWhere('e.leftAt IS NULL OR e.leftAt > :asOf')->setParameter('asOf', $day);
+        } elseif ('inactive' === $status) {
+            $qb->andWhere('e.leftAt IS NOT NULL AND e.leftAt <= :asOf')->setParameter('asOf', $day);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
      * Employees that have already been anonymized, scoped to one company.
      *
      * @return list<Employee>

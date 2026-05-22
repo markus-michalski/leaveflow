@@ -19,6 +19,7 @@ use App\Domain\Repository\LeaveRequestRepository;
 use App\Domain\ValueObject\WorkSchedule;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,16 +39,25 @@ final class AdminEmployeeController extends AbstractController
         private readonly TranslatorInterface $translator,
         private readonly EmployeeExitService $exitService,
         private readonly ProRataEntitlementCalculator $proRataCalculator,
+        private readonly ClockInterface $clock,
     ) {
     }
 
+    /** @param 'active'|'inactive'|'all' $filter */
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $company = $this->currentCompany();
+        $today = $this->clock->now();
+        $filter = $request->query->getString('filter', 'active');
+        if (!\in_array($filter, ['active', 'inactive', 'all'], true)) {
+            $filter = 'active';
+        }
 
         return $this->render('admin/employees/index.html.twig', [
-            'employees' => $this->employeeRepository->findAllByCompany($company),
+            'employees' => $this->employeeRepository->findByCompanyAndStatus($company, $filter, $today),
+            'filter' => $filter,
+            'today' => $today,
         ]);
     }
 

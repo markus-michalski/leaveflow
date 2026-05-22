@@ -330,6 +330,15 @@ admin:
         linked_user: Login
         no_user: kein Login
         days_suffix: " Tage"
+        status:
+            column: Status
+            active: Aktiv
+            inactive: Inaktiv
+        filter:
+            label: Mitarbeiter filtern
+            active: Nur Aktive
+            inactive: Nur Inaktive
+            all: Alle
         actions: Aktionen
         save: Speichern
         back: Zurück
