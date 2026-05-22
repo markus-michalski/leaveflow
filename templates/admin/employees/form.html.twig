@@ -108,6 +108,8 @@
             </div>
             {% endif %}
 
+            {{ form_row(form.probationEndsAt, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
+
             {{ form_row(form.user, { label_attr: { class: 'block text-sm font-medium text-gray-700' }, attr: { class: 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2' } }) }}
 
             <div class="flex items-center justify-end gap-3 pt-2">

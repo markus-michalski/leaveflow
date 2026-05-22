@@ -547,6 +547,9 @@ final class AdminEmployeeController extends AbstractController
         }
 
         $today = $this->clock->now()->setTime(0, 0);
+        if ($joinYear < (int) $today->format('Y')) {
+            return null;
+        }
         $probation = $employee->isInProbation($today);
 
         return [
