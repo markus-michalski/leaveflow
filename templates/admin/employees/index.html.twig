@@ -11,6 +11,12 @@
                class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 {{ 'nav.home'|trans }}
             </a>
+            <button type="button"
+                    onclick="document.getElementById('export-modal').showModal()"
+                    class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    data-testid="employee-export-button">
+                {{ 'admin.employees.export.button'|trans }}
+            </button>
             <a href="{{ path('app_admin_employee_import_index') }}"
                class="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
                data-testid="employee-import-link">
@@ -23,12 +29,31 @@
         </div>
     </header>
 
+    {# Filter tabs #}
+    <nav class="mb-4 flex gap-1 rounded-lg bg-gray-100 p-1 w-fit" aria-label="{{ 'admin.employees.filter.label'|trans }}">
+        {% for value, label in {
+            'active':   'admin.employees.filter.active',
+            'inactive': 'admin.employees.filter.inactive',
+            'all':      'admin.employees.filter.all'
+        } %}
+            <a href="{{ path('app_admin_employee_index', { filter: value }) }}"
+               class="rounded-md px-4 py-1.5 text-sm font-medium transition-colors
+                      {{ filter == value
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900' }}"
+               data-testid="employee-filter-{{ value }}">
+                {{ label|trans }}
+            </a>
+        {% endfor %}
+    </nav>
+
     <div class="overflow-hidden rounded-xl bg-white shadow-sm">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     <th class="px-6 py-3">{{ 'admin.employees.full_name'|trans }}</th>
                     <th class="px-6 py-3">{{ 'admin.employees.employee_number'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.employees.status.column'|trans }}</th>
                     <th class="px-6 py-3">{{ 'admin.employees.location'|trans }}</th>
                     <th class="px-6 py-3">{{ 'admin.employees.schedule'|trans }}</th>
                     <th class="px-6 py-3">{{ 'admin.employees.period'|trans }}</th>
@@ -38,9 +63,32 @@
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
                 {% for employee in employees %}
-                    <tr data-testid="employee-row-{{ employee.id }}">
-                        <td class="px-6 py-3 font-medium text-gray-900">{{ employee.fullName }}</td>
+                    {% set isInactive = employee.leftAt is not null and employee.leftAt <= today %}
+                    <tr data-testid="employee-row-{{ employee.id }}"
+                        class="{{ isInactive ? 'bg-gray-50 text-gray-400' : '' }}">
+                        <td class="px-6 py-3 font-medium {{ isInactive ? 'text-gray-500' : 'text-gray-900' }}">
+                            {{ employee.fullName }}
+                        </td>
                         <td class="px-6 py-3"><code class="rounded bg-gray-100 px-1 py-0.5 text-xs">{{ employee.employeeNumber }}</code></td>
+                        <td class="px-6 py-3">
+                            {% if isInactive %}
+                                <span class="inline-flex items-center rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600"
+                                      data-testid="employee-badge-inactive-{{ employee.id }}">
+                                    {{ 'admin.employees.status.inactive'|trans }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700"
+                                      data-testid="employee-badge-active-{{ employee.id }}">
+                                    {{ 'admin.employees.status.active'|trans }}
+                                </span>
+                                {% if employee.isInProbation(today) %}
+                                    <span class="ml-1 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700"
+                                          data-testid="employee-badge-probation-{{ employee.id }}">
+                                        {{ 'admin.employees.status.probation'|trans }}
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-3">{{ employee.location.name }}</td>
                         <td class="px-6 py-3">
                             {{ employee.workSchedule.weeklyHours }}h / {{ employee.workSchedule.workingDays|length }}{{ 'admin.employees.days_suffix'|trans }}
@@ -74,11 +122,57 @@
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="7" class="px-6 py-6 text-center text-gray-500">{{ 'admin.employees.empty'|trans }}</td>
+                        <td colspan="8" class="px-6 py-6 text-center text-gray-500">{{ 'admin.employees.empty'|trans }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
+{# CSV export filter modal #}
+<dialog id="export-modal"
+        class="fixed inset-0 m-auto h-fit rounded-xl shadow-xl p-0 backdrop:bg-black/40 w-full max-w-sm">
+    <form method="post" action="{{ path('app_admin_employee_export') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('employee-export') }}">
+        <div class="p-6">
+            <h3 class="mb-4 text-lg font-semibold text-gray-900">{{ 'admin.employees.export.title'|trans }}</h3>
+
+            <fieldset class="space-y-3">
+                <legend class="mb-2 text-sm font-medium text-gray-700">{{ 'admin.employees.export.scope_label'|trans }}</legend>
+
+                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50">
+                    <input type="radio" name="filter" value="all" checked
+                           class="text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm text-gray-700">{{ 'admin.employees.export.all'|trans }}</span>
+                </label>
+
+                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50">
+                    <input type="radio" name="filter" value="active"
+                           class="text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm text-gray-700">{{ 'admin.employees.export.active'|trans }}</span>
+                </label>
+
+                <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50">
+                    <input type="radio" name="filter" value="inactive"
+                           class="text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm text-gray-700">{{ 'admin.employees.export.inactive'|trans }}</span>
+                </label>
+            </fieldset>
+        </div>
+
+        <div class="flex justify-end gap-3 border-t border-gray-100 px-6 py-4">
+            <button type="button"
+                    onclick="document.getElementById('export-modal').close()"
+                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'admin.employees.export.cancel'|trans }}
+            </button>
+            <button type="submit"
+                    class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    data-testid="export-modal-submit">
+                {{ 'admin.employees.export.submit'|trans }}
+            </button>
+        </div>
+    </form>
+</dialog>
 {% endblock %}

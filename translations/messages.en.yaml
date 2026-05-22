@@ -319,6 +319,8 @@ admin:
         distribution_per_day: Hours per day
         distribution_per_day_help: "Enter hours for each weekday. Days with 0 hours are non-working. The sum must match weekly hours."
         joined_at: Joined
+        probation_ends_at: Probation ends (optional)
+        probation_ends_at_help: "Default: start date + 6 months (§ 1 KSchG). During probation only pro-rata earned leave hours are available."
         left_at: Left (optional)
         period: Period
         user: Linked user
@@ -330,6 +332,34 @@ admin:
         linked_user: Login
         no_user: no login
         days_suffix: " days"
+        status:
+            column: Status
+            active: Active
+            inactive: Inactive
+            probation: Probation
+        filter:
+            label: Filter employees
+            active: Active only
+            inactive: Inactive only
+            all: All
+        export:
+            button: Export CSV
+            title: CSV Export
+            scope_label: Which employees to export?
+            all: All employees (active + inactive)
+            active: Active only
+            inactive: Inactive only
+            cancel: Cancel
+            submit: Export
+            csv:
+                name: Full Name
+                number: Employee Number
+                location: Location
+                status: Status
+                weekly_hours: Weekly Hours
+                joined_at: Start Date
+                left_at: End Date
+                login: Login
         actions: Actions
         save: Save
         back: Back
@@ -1069,6 +1099,7 @@ my:
             title: New leave request
             heading: New leave request
             submit: Submit request
+        probation_warning: "You are still in your probationary period (until %date%). During probation only pro-rata earned leave hours are available."
         show:
             title: Leave request
             heading: Leave request

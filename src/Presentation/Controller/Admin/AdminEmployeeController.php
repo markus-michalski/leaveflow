@@ -19,6 +19,7 @@ use App\Domain\Repository\LeaveRequestRepository;
 use App\Domain\ValueObject\WorkSchedule;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,16 +39,24 @@ final class AdminEmployeeController extends AbstractController
         private readonly TranslatorInterface $translator,
         private readonly EmployeeExitService $exitService,
         private readonly ProRataEntitlementCalculator $proRataCalculator,
+        private readonly ClockInterface $clock,
     ) {
     }
 
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $company = $this->currentCompany();
+        $today = $this->clock->now();
+        $filter = $request->query->getString('filter', 'active');
+        if (!\in_array($filter, ['active', 'inactive', 'all'], true)) {
+            $filter = 'active';
+        }
 
         return $this->render('admin/employees/index.html.twig', [
-            'employees' => $this->employeeRepository->findAllByCompany($company),
+            'employees' => $this->employeeRepository->findByCompanyAndStatus($company, $filter, $today),
+            'filter' => $filter,
+            'today' => $today,
         ]);
     }
 
@@ -85,6 +94,7 @@ final class AdminEmployeeController extends AbstractController
                         $this->optionalDate($form, 'leftAt'),
                     );
 
+                    $employee->updateProbationEndsAt($this->optionalDate($form, 'probationEndsAt'));
                     $employee->assignToDepartment($this->optionalDepartment($form));
 
                     $this->entityManager->persist($employee);
@@ -153,6 +163,7 @@ final class AdminEmployeeController extends AbstractController
                         $employee->linkUser($user);
                     }
 
+                    $employee->updateProbationEndsAt($this->optionalDate($form, 'probationEndsAt'));
                     $employee->assignToDepartment($this->optionalDepartment($form));
 
                     $this->entityManager->flush();
@@ -236,6 +247,102 @@ final class AdminEmployeeController extends AbstractController
             'selectedYear' => $year,
             'yearAggregates' => $yearAggregates,
         ]);
+    }
+
+    #[Route('/export', name: 'export', methods: ['POST'])]
+    public function export(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('employee-export', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $company = $this->currentCompany();
+        $today = $this->clock->now();
+
+        $filter = $request->request->getString('filter', 'all');
+        if (!\in_array($filter, ['active', 'inactive', 'all'], true)) {
+            $filter = 'all';
+        }
+
+        $employees = $this->employeeRepository->findByCompanyAndStatus($company, $filter, $today);
+
+        $filename = match ($filter) {
+            'active' => 'mitarbeiter-aktive.csv',
+            'inactive' => 'mitarbeiter-inaktive.csv',
+            default => 'mitarbeiter-alle.csv',
+        };
+
+        return new Response(
+            $this->buildCsv($employees, $today),
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'text/csv; charset=utf-8',
+                'Content-Disposition' => \sprintf('attachment; filename="%s"', $filename),
+            ],
+        );
+    }
+
+    /**
+     * @param list<Employee> $employees
+     */
+    private function buildCsv(array $employees, \DateTimeImmutable $today): string
+    {
+        $day = $today->setTime(0, 0);
+
+        $output = fopen('php://temp', 'r+');
+        if (false === $output) {
+            throw new \RuntimeException('Failed to open temp stream.');
+        }
+
+        $content = '';
+        try {
+            fwrite($output, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
+            fputcsv($output, [
+                $this->translator->trans('admin.employees.export.csv.name'),
+                $this->translator->trans('admin.employees.export.csv.number'),
+                $this->translator->trans('admin.employees.export.csv.location'),
+                $this->translator->trans('admin.employees.export.csv.status'),
+                $this->translator->trans('admin.employees.export.csv.weekly_hours'),
+                $this->translator->trans('admin.employees.export.csv.joined_at'),
+                $this->translator->trans('admin.employees.export.csv.left_at'),
+                $this->translator->trans('admin.employees.export.csv.login'),
+            ]);
+
+            foreach ($employees as $employee) {
+                $isInactive = null !== $employee->getLeftAt() && $employee->getLeftAt() <= $day;
+                fputcsv($output, array_map(
+                    $this->sanitizeCsvCell(...),
+                    [
+                        $employee->getFullName(),
+                        $employee->getEmployeeNumber(),
+                        $employee->getLocation()->getName(),
+                        $isInactive
+                            ? $this->translator->trans('admin.employees.status.inactive')
+                            : $this->translator->trans('admin.employees.status.active'),
+                        (string) $employee->getWorkSchedule()->weeklyHours(),
+                        $employee->getJoinedAt()->format('Y-m-d'),
+                        $employee->getLeftAt()?->format('Y-m-d') ?? '',
+                        $employee->getUser()?->getEmail() ?? '',
+                    ],
+                ));
+            }
+
+            rewind($output);
+            $content = (string) (stream_get_contents($output) ?: '');
+        } finally {
+            fclose($output);
+        }
+
+        return $content;
+    }
+
+    private function sanitizeCsvCell(string $value): string
+    {
+        if ('' !== $value && str_contains("=+-@\t\r", $value[0])) {
+            return "'".$value;
+        }
+
+        return $value;
     }
 
     private function currentCompany(): Company
@@ -376,6 +483,7 @@ final class AdminEmployeeController extends AbstractController
             array_map(static fn (Weekday $d): int => $d->value, $schedule->workingDays()),
         );
         $form->get('joinedAt')->setData($employee->getJoinedAt());
+        $form->get('probationEndsAt')->setData($employee->getProbationEndsAt());
         $form->get('leftAt')->setData($employee->getLeftAt());
         $form->get('user')->setData($employee->getUser());
         $form->get('department')->setData($employee->getDepartment());
@@ -438,9 +546,11 @@ final class AdminEmployeeController extends AbstractController
             return null;
         }
 
-        // Probation warning only when exit is known; based on actual calendar days
-        // (≤ 183 ≈ 6 months), not on pro-rata Zwölftel months.
-        $probation = null !== $leftAt && $joinedAt->diff($leftAt)->days <= 183;
+        $today = $this->clock->now()->setTime(0, 0);
+        if ($joinYear < (int) $today->format('Y')) {
+            return null;
+        }
+        $probation = $employee->isInProbation($today);
 
         return [
             'joinedAt' => $joinedAt,

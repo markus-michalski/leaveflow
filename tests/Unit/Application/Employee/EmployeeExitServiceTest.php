@@ -123,6 +123,40 @@ final class EmployeeExitServiceTest extends TestCase
     }
 
     #[Test]
+    public function priorYearCarryoverStillValidAtExitDateIsIncludedInBalance(): void
+    {
+        // Carryover stored under year=2024, expires 2025-03-31; exit on 2025-02-01 (before expiry)
+        $exitDate = new \DateTimeImmutable('2025-02-01');
+        $regular = $this->makeRegularEntitlement(2025, 240.0, 80.0);
+        $priorYearCarryover = $this->makeCarryoverEntitlement(2024, 20.0, 0.0, new \DateTimeImmutable('2025-03-31'));
+
+        $this->repository->method('findByEmployeeAndYear')->willReturn([$regular]);
+        $this->repository->method('findUnexpiredCarryoversByEmployeeBeforeYear')->willReturn([$priorYearCarryover]);
+
+        $summary = $this->service->execute($this->employee, $exitDate);
+
+        // Regular: 240-80=160, prior-year carryover not yet expired: +20 → 180
+        self::assertEqualsWithDelta(180.0, $summary->totalRemainingHours, 0.01);
+    }
+
+    #[Test]
+    public function priorYearCarryoverAlreadyExpiredAtExitDateIsNotIncludedInBalance(): void
+    {
+        // Carryover stored under year=2024, expired 2025-01-31; exit on 2025-02-01 (day after expiry).
+        // The repository filters out expired rows, so the reader receives an empty list.
+        $exitDate = new \DateTimeImmutable('2025-02-01');
+        $regular = $this->makeRegularEntitlement(2025, 240.0, 80.0);
+
+        $this->repository->method('findByEmployeeAndYear')->willReturn([$regular]);
+        $this->repository->method('findUnexpiredCarryoversByEmployeeBeforeYear')->willReturn([]);
+
+        $summary = $this->service->execute($this->employee, $exitDate);
+
+        // Regular: 240-80=160, expired carryover filtered by repo → excluded
+        self::assertEqualsWithDelta(160.0, $summary->totalRemainingHours, 0.01);
+    }
+
+    #[Test]
     public function executeReturnsCompanyExitHandlingInSummary(): void
     {
         $this->repository->method('findByEmployeeAndYear')->willReturn([]);

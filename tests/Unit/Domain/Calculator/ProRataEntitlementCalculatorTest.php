@@ -147,6 +147,46 @@ final class ProRataEntitlementCalculatorTest extends TestCase
         self::assertSame($expectedMonths, $this->calculator->effectiveMonthsForPeriod($joined, $left, $year));
     }
 
+    // ── effectiveMonthsEarnedAsOf ─────────────────────────────────────────
+
+    #[Test]
+    #[DataProvider('effectiveMonthsEarnedAsOfProvider')]
+    public function effectiveMonthsEarnedAsOfReturnsExpected(
+        string $joinedAt,
+        string $asOf,
+        int $year,
+        int $expectedMonths,
+    ): void {
+        $joined = new \DateTimeImmutable($joinedAt);
+        $asOfDate = new \DateTimeImmutable($asOf);
+
+        self::assertSame($expectedMonths, $this->calculator->effectiveMonthsEarnedAsOf($joined, $asOfDate, $year));
+    }
+
+    /**
+     * asOf month always counts regardless of day (no exit-rule cutoff).
+     *
+     * @return array<string, array{string, string, int, int}>
+     */
+    public static function effectiveMonthsEarnedAsOfProvider(): array
+    {
+        return [
+            // Day ≤ 15 must count — this is the C1 regression case.
+            'joined Jan 1, asOf Mar 10 (day ≤ 15) → 3 months' => ['2025-01-01', '2025-03-10', 2025, 3],
+            'joined Jan 1, asOf Mar 15 (day = 15) → 3 months' => ['2025-01-01', '2025-03-15', 2025, 3],
+            // Day > 15 — same result as before.
+            'joined Jan 1, asOf Mar 17 (day > 15) → 3 months' => ['2025-01-01', '2025-03-17', 2025, 3],
+            // Entry rule still applies: joined after 15th means join month doesn't count.
+            'joined Mar 16, asOf Mar 20 → 0 months (join month excluded, asOf month = Mar = 3, firstCounted = Apr = 4)' => ['2025-03-16', '2025-03-20', 2025, 0],
+            'joined Mar 16, asOf Apr 1 → 1 month (Apr)' => ['2025-03-16', '2025-04-01', 2025, 1],
+            // Prior-year join → full year up to asOf month.
+            'prior-year join, asOf Jun 30 → 6 months (Jan–Jun)' => ['2024-01-01', '2025-06-30', 2025, 6],
+            // asOf in different year.
+            'asOf before year → 0' => ['2025-01-01', '2024-12-31', 2025, 0],
+            'asOf after year → 12' => ['2025-01-01', '2026-01-15', 2025, 12],
+        ];
+    }
+
     /**
      * Covers: join-only, exit-only cap, combined join+exit, edge months, prior-year join.
      *

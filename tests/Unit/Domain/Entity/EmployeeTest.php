@@ -332,6 +332,49 @@ final class EmployeeTest extends TestCase
         $employee->assignToDepartment($foreignDepartment);
     }
 
+    #[Test]
+    public function isNotInProbationWhenNoProbationEndDateIsSet(): void
+    {
+        $employee = $this->buildEmployee();
+
+        self::assertNull($employee->getProbationEndsAt());
+        self::assertFalse($employee->isInProbation(new \DateTimeImmutable('2026-03-01')));
+    }
+
+    #[Test]
+    public function isInProbationWhenOnDateIsBeforeOrEqualToProbationEnd(): void
+    {
+        $employee = $this->buildEmployee();
+        $employee->updateProbationEndsAt(new \DateTimeImmutable('2026-06-30'));
+
+        self::assertTrue($employee->isInProbation(new \DateTimeImmutable('2026-06-30')));
+        self::assertTrue($employee->isInProbation(new \DateTimeImmutable('2026-06-30 23:59:59')));
+        self::assertTrue($employee->isInProbation(new \DateTimeImmutable('2026-01-15 14:30:00')));
+        self::assertFalse($employee->isInProbation(new \DateTimeImmutable('2026-07-01')));
+    }
+
+    #[Test]
+    public function updateProbationEndsAtCanClearTheField(): void
+    {
+        $employee = $this->buildEmployee();
+        $employee->updateProbationEndsAt(new \DateTimeImmutable('2026-06-30'));
+        self::assertNotNull($employee->getProbationEndsAt());
+
+        $employee->updateProbationEndsAt(null);
+        self::assertNull($employee->getProbationEndsAt());
+        self::assertFalse($employee->isInProbation(new \DateTimeImmutable('2026-03-01')));
+    }
+
+    #[Test]
+    public function updateProbationEndsAtRejectsDateBeforeJoinDate(): void
+    {
+        $employee = $this->buildEmployee(); // joinedAt = 2026-01-01
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $employee->updateProbationEndsAt(new \DateTimeImmutable('2025-12-31'));
+    }
+
     private function buildEmployee(): Employee
     {
         return new Employee(

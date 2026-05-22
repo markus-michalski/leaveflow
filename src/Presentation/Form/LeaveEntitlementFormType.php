@@ -8,6 +8,7 @@ use App\Domain\Entity\Company;
 use App\Domain\Entity\Employee;
 use App\Domain\Enum\LeaveEntitlementType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -37,6 +38,7 @@ final class LeaveEntitlementFormType extends AbstractType
 {
     public function __construct(
         private readonly TranslatorInterface $translator,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -50,10 +52,11 @@ final class LeaveEntitlementFormType extends AbstractType
                 'label' => 'admin.entitlements.field.employee',
                 'mapped' => false,
                 'class' => Employee::class,
-                'query_builder' => static fn ($repo) => $repo->createQueryBuilder('e')
+                'query_builder' => fn ($repo) => $repo->createQueryBuilder('e')
                     ->andWhere('e.company = :company')
-                    ->andWhere('e.leftAt IS NULL')
+                    ->andWhere('e.leftAt IS NULL OR e.leftAt > :today')
                     ->setParameter('company', $company)
+                    ->setParameter('today', $this->clock->now()->setTime(0, 0))
                     ->orderBy('e.fullName', 'ASC'),
                 'choice_label' => static fn (Employee $e): string => \sprintf('%s (%s)', $e->getFullName(), $e->getEmployeeNumber()),
                 'placeholder' => 'admin.entitlements.field.employee_placeholder',

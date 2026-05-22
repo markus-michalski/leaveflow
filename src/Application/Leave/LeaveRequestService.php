@@ -10,6 +10,7 @@ use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Application\Holiday\HolidayService;
 use App\Application\Notification\NotificationDispatcherInterface;
 use App\Domain\Calculator\LeaveCalculator;
+use App\Domain\Calculator\ProRataEntitlementCalculator;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\Employee;
 use App\Domain\Entity\LeaveRequest;
@@ -59,6 +60,7 @@ final readonly class LeaveRequestService
         private NotificationDispatcherInterface $notificationDispatcher,
         private ApproverResolverInterface $approverResolver,
         private EventDispatcherInterface $eventDispatcher,
+        private ProRataEntitlementCalculator $proRataCalculator,
     ) {
     }
 
@@ -86,7 +88,7 @@ final readonly class LeaveRequestService
         $breakdown = $this->preview($employee, $startDate, $endDate, $dayType);
 
         if ($absenceType->deductsFromLeave()) {
-            $this->assertBalanceCoversBreakdown($employee, $breakdown);
+            $this->assertBalanceCoversBreakdown($employee, $breakdown, $startDate);
         }
 
         $request = new LeaveRequest(
@@ -158,8 +160,11 @@ final readonly class LeaveRequestService
      * we want the block to happen visibly at request time, not silently during
      * approval weeks later.
      */
-    private function assertBalanceCoversBreakdown(Employee $employee, LeaveBreakdown $breakdown): void
-    {
+    private function assertBalanceCoversBreakdown(
+        Employee $employee,
+        LeaveBreakdown $breakdown,
+        \DateTimeImmutable $startDate,
+    ): void {
         $hoursByYear = $this->hoursByYear($breakdown);
         if ([] === $hoursByYear) {
             return;
@@ -180,6 +185,22 @@ final readonly class LeaveRequestService
 
             $snapshot = $this->balanceReader->forEmployee($employee, $year, $asOf);
             $available = $snapshot->totalRemaining() - ($pendingByYear[$year] ?? 0.0);
+
+            // Probation cap: BUrlG §4 — full entitlement is only earned after
+            // 6 months. During probation only pro-rata earned hours are available.
+            // Prior-year carryover is already fully earned and is not capped.
+            if ($employee->isInProbation($startDate)) {
+                $months = $this->proRataCalculator->effectiveMonthsEarnedAsOf(
+                    $employee->getJoinedAt(),
+                    $startDate,
+                    $year
+                );
+                $earnedRegular = ceil($snapshot->regularGranted * $months / 12 * 2) / 2;
+                $probationGrossRemaining = max(0.0, $earnedRegular - $snapshot->regularUsed)
+                    + $snapshot->carryoverRemaining;
+                $probationAvailable = $probationGrossRemaining - ($pendingByYear[$year] ?? 0.0);
+                $available = min($available, max(0.0, $probationAvailable));
+            }
 
             if (($available + self::BALANCE_EPSILON) < $requestedHours) {
                 throw new InsufficientLeaveBalanceException($year, $requestedHours, max(0.0, $available));

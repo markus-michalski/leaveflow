@@ -177,6 +177,17 @@ final class EmployeeType extends AbstractType
                 'attr' => ['placeholder' => 'TT.MM.JJJJ', 'inputmode' => 'numeric'],
                 'constraints' => [new NotBlank()],
             ])
+            ->add('probationEndsAt', DateType::class, [
+                'label' => 'admin.employees.probation_ends_at',
+                'help' => 'admin.employees.probation_ends_at_help',
+                'mapped' => false,
+                'widget' => 'single_text',
+                'html5' => false,
+                'format' => 'dd.MM.yyyy',
+                'input' => 'datetime_immutable',
+                'attr' => ['placeholder' => 'TT.MM.JJJJ', 'inputmode' => 'numeric'],
+                'required' => false,
+            ])
             ->add('leftAt', DateType::class, [
                 'label' => 'admin.employees.left_at',
                 'mapped' => false,

@@ -134,6 +134,34 @@ class LeaveEntitlementRepository extends ServiceEntityRepository
     }
 
     /**
+     * Returns all Carryover entitlements granted before `$beforeYear` that
+     * have not yet expired at `$asOf`. Covers carryovers stored under any
+     * prior year — not just year-1 — so illness-extended or contractually
+     * prolonged carryovers (beyond the standard BUrlG 15-month window) are
+     * included without changing the caller.
+     *
+     * @return list<LeaveEntitlement>
+     */
+    public function findUnexpiredCarryoversByEmployeeBeforeYear(
+        Employee $employee,
+        int $beforeYear,
+        \DateTimeImmutable $asOf,
+    ): array {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.employee = :employee')
+            ->andWhere('e.year < :beforeYear')
+            ->andWhere('e.type = :type')
+            ->andWhere('e.expiresAt >= :asOf')
+            ->setParameter('employee', $employee)
+            ->setParameter('beforeYear', $beforeYear)
+            ->setParameter('type', LeaveEntitlementType::Carryover)
+            ->setParameter('asOf', $asOf->setTime(0, 0))
+            ->orderBy('e.expiresAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Drives the EntitlementExpiringSoon scheduler. Returns entitlements
      * whose expiresAt falls within [today, today+daysAhead] AND have not yet
      * triggered an expiry warning AND still have hours remaining (no point

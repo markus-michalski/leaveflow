@@ -27,6 +27,13 @@ final readonly class EntitlementBalanceReader
         /** @var list<LeaveEntitlement> $entitlements */
         $entitlements = $this->repository->findByEmployeeAndYear($employee, $year);
 
+        // Carryover rows are keyed to the year they were *granted*. A 2024
+        // carryover with expiresAt=2025-03-31 lives under year=2024 and is
+        // invisible to the year-exact query above. The repository filters by
+        // type=Carryover and expiresAt>=asOf, so no additional PHP-level
+        // filtering is needed here.
+        $priorCarryovers = $this->repository->findUnexpiredCarryoversByEmployeeBeforeYear($employee, $year, $asOf);
+
         $regularGranted = 0.0;
         $regularUsed = 0.0;
         $carryoverGranted = 0.0;
@@ -44,6 +51,17 @@ final readonly class EntitlementBalanceReader
                 continue;
             }
 
+            $carryoverGranted += $entitlement->getHoursGranted();
+            $carryoverUsed += $entitlement->getHoursUsed();
+
+            $expiry = $entitlement->getExpiresAt();
+            $remaining = $entitlement->getHoursRemaining();
+            if (null !== $expiry && $remaining > 0 && (null === $nextExpiry || $expiry < $nextExpiry)) {
+                $nextExpiry = $expiry;
+            }
+        }
+
+        foreach ($priorCarryovers as $entitlement) {
             $carryoverGranted += $entitlement->getHoursGranted();
             $carryoverUsed += $entitlement->getHoursUsed();
 

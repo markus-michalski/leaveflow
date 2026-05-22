@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Form;
 
+use App\Application\Validator\FreistellungAbsenceTypeExists;
 use App\Domain\Entity\Company;
 use App\Domain\Enum\ExitLeaveHandling;
 use Symfony\Component\Form\AbstractType;
@@ -102,6 +103,7 @@ final class CompanyProfileFormType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Company::class,
+            'constraints' => [new FreistellungAbsenceTypeExists()],
         ]);
     }
 }

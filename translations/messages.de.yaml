@@ -319,6 +319,8 @@ admin:
         distribution_per_day: Stunden pro Tag
         distribution_per_day_help: "Trage hier die Stunden pro Wochentag ein. Tage mit 0 Stunden sind freie Tage. Die Summe muss den Wochenstunden entsprechen."
         joined_at: Eintritt
+        probation_ends_at: Probezeit bis (optional)
+        probation_ends_at_help: "Standard: Eintrittsdatum + 6 Monate (§ 1 KSchG). Während der Probezeit stehen nur anteilig erworbene Urlaubsstunden zur Verfügung."
         left_at: Austritt (optional)
         period: Zeitraum
         user: Verknüpfter Benutzer
@@ -330,6 +332,34 @@ admin:
         linked_user: Login
         no_user: kein Login
         days_suffix: " Tage"
+        status:
+            column: Status
+            active: Aktiv
+            inactive: Inaktiv
+            probation: Probezeit
+        filter:
+            label: Mitarbeiter filtern
+            active: Nur Aktive
+            inactive: Nur Inaktive
+            all: Alle
+        export:
+            button: CSV exportieren
+            title: CSV-Export
+            scope_label: Welche Mitarbeiter exportieren?
+            all: Alle Mitarbeiter (Aktive + Inaktive)
+            active: Nur Aktive
+            inactive: Nur Inaktive
+            cancel: Abbrechen
+            submit: Exportieren
+            csv:
+                name: Name
+                number: Personalnummer
+                location: Standort
+                status: Status
+                weekly_hours: Wochenstunden
+                joined_at: Eintritt
+                left_at: Austritt
+                login: Login
         actions: Aktionen
         save: Speichern
         back: Zurück
@@ -1072,6 +1102,7 @@ my:
             title: Neuer Urlaubsantrag
             heading: Neuer Urlaubsantrag
             submit: Antrag einreichen
+        probation_warning: "Du befindest dich noch in der Probezeit (bis %date%). Während der Probezeit stehen nur anteilig erworbene Urlaubsstunden zur Verfügung."
         show:
             title: Urlaubsantrag
             heading: Urlaubsantrag
