@@ -169,6 +169,7 @@ final class MyLeaveRequestController extends AbstractController
         return $this->render('my/leave_request/new.html.twig', [
             'form' => $form,
             'employee' => $employee,
+            'isInProbation' => $employee->isInProbation($this->clock->now()),
         ]);
     }
 

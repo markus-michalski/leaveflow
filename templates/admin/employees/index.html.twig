@@ -81,6 +81,12 @@
                                       data-testid="employee-badge-active-{{ employee.id }}">
                                     {{ 'admin.employees.status.active'|trans }}
                                 </span>
+                                {% if employee.isInProbation(today) %}
+                                    <span class="ml-1 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700"
+                                          data-testid="employee-badge-probation-{{ employee.id }}">
+                                        {{ 'admin.employees.status.probation'|trans }}
+                                    </span>
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td class="px-6 py-3">{{ employee.location.name }}</td>

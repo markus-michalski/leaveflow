@@ -94,6 +94,7 @@ final class AdminEmployeeController extends AbstractController
                         $this->optionalDate($form, 'leftAt'),
                     );
 
+                    $employee->updateProbationEndsAt($this->optionalDate($form, 'probationEndsAt'));
                     $employee->assignToDepartment($this->optionalDepartment($form));
 
                     $this->entityManager->persist($employee);
@@ -162,6 +163,7 @@ final class AdminEmployeeController extends AbstractController
                         $employee->linkUser($user);
                     }
 
+                    $employee->updateProbationEndsAt($this->optionalDate($form, 'probationEndsAt'));
                     $employee->assignToDepartment($this->optionalDepartment($form));
 
                     $this->entityManager->flush();
@@ -481,6 +483,7 @@ final class AdminEmployeeController extends AbstractController
             array_map(static fn (Weekday $d): int => $d->value, $schedule->workingDays()),
         );
         $form->get('joinedAt')->setData($employee->getJoinedAt());
+        $form->get('probationEndsAt')->setData($employee->getProbationEndsAt());
         $form->get('leftAt')->setData($employee->getLeftAt());
         $form->get('user')->setData($employee->getUser());
         $form->get('department')->setData($employee->getDepartment());
@@ -543,9 +546,8 @@ final class AdminEmployeeController extends AbstractController
             return null;
         }
 
-        // Probation warning only when exit is known; based on actual calendar days
-        // (≤ 183 ≈ 6 months), not on pro-rata Zwölftel months.
-        $probation = null !== $leftAt && $joinedAt->diff($leftAt)->days <= 183;
+        $today = $this->clock->now()->setTime(0, 0);
+        $probation = $employee->isInProbation($today);
 
         return [
             'joinedAt' => $joinedAt,

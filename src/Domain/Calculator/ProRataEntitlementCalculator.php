@@ -86,6 +86,34 @@ final class ProRataEntitlementCalculator
         return max(0, $lastCounted - $firstCounted + 1);
     }
 
+    /**
+     * How many calendar months in `year` an employee has earned entitlement for,
+     * as of a reference date while still employed.
+     *
+     * Unlike effectiveMonthsForPeriod, which applies the symmetric exit rule
+     * (left on/before the 15th → that month does not count), this method treats
+     * `asOf` as a still-employed snapshot: the calendar month containing `asOf`
+     * always counts, regardless of the day. Use this for probation-cap
+     * calculations where the employee is active on `asOf`.
+     */
+    public function effectiveMonthsEarnedAsOf(
+        \DateTimeImmutable $joinedAt,
+        \DateTimeImmutable $asOf,
+        int $year,
+    ): int {
+        $joinYear = (int) $joinedAt->format('Y');
+        $firstCounted = $joinYear === $year ? $this->firstCountedMonth($joinedAt) : 1;
+
+        $asOfYear = (int) $asOf->format('Y');
+        $lastCounted = match (true) {
+            $asOfYear < $year => 0,
+            $asOfYear > $year => 12,
+            default => (int) $asOf->format('n'),
+        };
+
+        return max(0, $lastCounted - $firstCounted + 1);
+    }
+
     private function firstCountedMonth(\DateTimeImmutable $joinedAt): int
     {
         $joinDay = (int) $joinedAt->format('j');

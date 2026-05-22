@@ -17,6 +17,7 @@ use App\Application\Leave\NoEntitlementForYearException;
 use App\Application\Notification\NotificationDispatcherInterface;
 use App\Domain\Calculator\HolidayCalculator;
 use App\Domain\Calculator\LeaveCalculator;
+use App\Domain\Calculator\ProRataEntitlementCalculator;
 use App\Domain\Entity\AbsenceType;
 use App\Domain\Entity\BlackoutPeriod;
 use App\Domain\Entity\Company;
@@ -598,6 +599,165 @@ final class LeaveRequestServiceTest extends TestCase
     }
 
     // -----------------------------------------------------------------
+    // Probation cap
+    // -----------------------------------------------------------------
+
+    #[Test]
+    public function blocksLeaveRequestExceedingProbationProRataCap(): void
+    {
+        // Employee joined 2025-01-01, probation ends 2025-06-30.
+        // Leave starts 2025-03-17: effectiveMonthsEarnedAsOf → asOf month = March → months = 3.
+        // Pro-rata earned = ceil(120 * 3/12 * 2) / 2 = 30h. Used = 0. Cap = 30h.
+        // Requesting 32h (4 days * 8h) must throw.
+        $this->clock = new MockClock('2025-01-01 08:00:00');
+
+        $location = new Location($this->acme, 'Berlin', 'DE', 'DE-BE', 'Berlin');
+        $probationEmployee = new Employee(
+            company: $this->acme,
+            fullName: 'Bob Probation',
+            employeeNumber: 'EMP-P01',
+            location: $location,
+            workSchedule: WorkSchedule::standardFullTime(),
+            joinedAt: new \DateTimeImmutable('2025-01-01'),
+        );
+        $probationEmployee->updateProbationEndsAt(new \DateTimeImmutable('2025-06-30'));
+
+        $entitlement = new LeaveEntitlement($probationEmployee, 2025, LeaveEntitlementType::Regular, 120.0);
+        $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([$entitlement]);
+        $this->entitlementRepository->method('findUnexpiredCarryoversByEmployeeBeforeYear')->willReturn([]);
+        $this->dayRepository->method('sumPendingHoursByYear')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
+        $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
+
+        $this->expectException(InsufficientLeaveBalanceException::class);
+
+        $this->buildService()->create(
+            $probationEmployee,
+            $this->urlaub,
+            new \DateTimeImmutable('2025-03-17'),
+            new \DateTimeImmutable('2025-03-20'),
+            LeaveDayType::FullDay,
+        );
+    }
+
+    #[Test]
+    public function allowsLeaveRequestWithinProbationProRataCap(): void
+    {
+        // Same employee, same setup, but requesting only 24h (3 days). 24 <= 30h cap.
+        $this->clock = new MockClock('2025-01-01 08:00:00');
+
+        $location = new Location($this->acme, 'Berlin', 'DE', 'DE-BE', 'Berlin');
+        $probationEmployee = new Employee(
+            company: $this->acme,
+            fullName: 'Bob Probation',
+            employeeNumber: 'EMP-P02',
+            location: $location,
+            workSchedule: WorkSchedule::standardFullTime(),
+            joinedAt: new \DateTimeImmutable('2025-01-01'),
+        );
+        $probationEmployee->updateProbationEndsAt(new \DateTimeImmutable('2025-06-30'));
+
+        $entitlement = new LeaveEntitlement($probationEmployee, 2025, LeaveEntitlementType::Regular, 120.0);
+        $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([$entitlement]);
+        $this->entitlementRepository->method('findUnexpiredCarryoversByEmployeeBeforeYear')->willReturn([]);
+        $this->dayRepository->method('sumPendingHoursByYear')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
+        $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
+
+        // Mon 2025-03-17 to Wed 2025-03-19 = 3 working days = 24h, within 30h cap.
+        $result = $this->buildService()->create(
+            $probationEmployee,
+            $this->urlaub,
+            new \DateTimeImmutable('2025-03-17'),
+            new \DateTimeImmutable('2025-03-19'),
+            LeaveDayType::FullDay,
+        );
+
+        self::assertSame(24.0, $result->getTotalHours());
+    }
+
+    #[Test]
+    public function noProbationCapAppliesAfterProbationEnds(): void
+    {
+        // Same employee, leave starts 2025-07-01 — after probationEndsAt 2025-06-30.
+        // Full 120h balance must be available (no cap).
+        $this->clock = new MockClock('2025-01-01 08:00:00');
+
+        $location = new Location($this->acme, 'Berlin', 'DE', 'DE-BE', 'Berlin');
+        $probationEmployee = new Employee(
+            company: $this->acme,
+            fullName: 'Bob Probation',
+            employeeNumber: 'EMP-P03',
+            location: $location,
+            workSchedule: WorkSchedule::standardFullTime(),
+            joinedAt: new \DateTimeImmutable('2025-01-01'),
+        );
+        $probationEmployee->updateProbationEndsAt(new \DateTimeImmutable('2025-06-30'));
+
+        // Grant 120h, with 0 used — after probation ends, full 120h available.
+        $entitlement = new LeaveEntitlement($probationEmployee, 2025, LeaveEntitlementType::Regular, 120.0);
+        $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([$entitlement]);
+        $this->entitlementRepository->method('findUnexpiredCarryoversByEmployeeBeforeYear')->willReturn([]);
+        $this->dayRepository->method('sumPendingHoursByYear')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
+        $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
+
+        // Requesting 80h (10 days) starting 2025-07-01 — should succeed (80 <= 120).
+        $result = $this->buildService()->create(
+            $probationEmployee,
+            $this->urlaub,
+            new \DateTimeImmutable('2025-07-01'),
+            new \DateTimeImmutable('2025-07-14'),
+            LeaveDayType::FullDay,
+        );
+
+        // July 1 (Tue) to July 14 (Mon) 2025 = 10 working days = 80h.
+        self::assertSame(80.0, $result->getTotalHours());
+    }
+
+    #[Test]
+    public function probationCapCountsCurrentMonthWhenLeaveFallsOnOrBeforeDay15(): void
+    {
+        // Regression for C1: effectiveMonthsForPeriod with leftAt=startDate applied
+        // the symmetric exit rule and would deny the current month when day ≤ 15.
+        // effectiveMonthsEarnedAsOf always counts the calendar month of the request.
+        //
+        // Joined 2025-01-01, probation ends 2025-06-30, startDate 2025-03-10 (day ≤ 15).
+        // effectiveMonthsEarnedAsOf → asOf month = March → months = 3.
+        // Cap = ceil(120 * 3/12 * 2) / 2 = 30h. Request 24h → allowed.
+        $this->clock = new MockClock('2025-01-01 08:00:00');
+
+        $location = new Location($this->acme, 'Berlin', 'DE', 'DE-BE', 'Berlin');
+        $probationEmployee = new Employee(
+            company: $this->acme,
+            fullName: 'Bob Probation Early',
+            employeeNumber: 'EMP-P04',
+            location: $location,
+            workSchedule: WorkSchedule::standardFullTime(),
+            joinedAt: new \DateTimeImmutable('2025-01-01'),
+        );
+        $probationEmployee->updateProbationEndsAt(new \DateTimeImmutable('2025-06-30'));
+
+        $entitlement = new LeaveEntitlement($probationEmployee, 2025, LeaveEntitlementType::Regular, 120.0);
+        $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([$entitlement]);
+        $this->entitlementRepository->method('findUnexpiredCarryoversByEmployeeBeforeYear')->willReturn([]);
+        $this->dayRepository->method('sumPendingHoursByYear')->willReturn([]);
+        $this->overrideRepository->method('findByEmployeeAndYear')->willReturn([]);
+        $this->companyHolidayRepository->method('findByCompanyAndYear')->willReturn([]);
+
+        // Mon 2025-03-10 to Wed 2025-03-12 = 3 working days = 24h, within 30h cap.
+        $result = $this->buildService()->create(
+            $probationEmployee,
+            $this->urlaub,
+            new \DateTimeImmutable('2025-03-10'),
+            new \DateTimeImmutable('2025-03-12'),
+            LeaveDayType::FullDay,
+        );
+
+        self::assertSame(24.0, $result->getTotalHours());
+    }
+
+    // -----------------------------------------------------------------
     // Fixtures
     // -----------------------------------------------------------------
 
@@ -623,6 +783,7 @@ final class LeaveRequestServiceTest extends TestCase
             $this->notificationDispatcher,
             $this->approverResolver,
             $this->createStub(EventDispatcherInterface::class),
+            new ProRataEntitlementCalculator(),
         );
     }
 

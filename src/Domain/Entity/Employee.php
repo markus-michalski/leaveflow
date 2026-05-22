@@ -31,6 +31,9 @@ class Employee
     #[ORM\JoinColumn(name: 'department_id', nullable: true, onDelete: 'SET NULL')]
     private ?Department $department = null;
 
+    #[ORM\Column(name: 'probation_ends_at', type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $probationEndsAt = null;
+
     #[ORM\Column(name: 'anonymized_at', type: 'date_immutable', nullable: true)]
     private ?\DateTimeImmutable $anonymizedAt = null;
 
@@ -109,6 +112,28 @@ class Employee
     public function hasUser(): bool
     {
         return null !== $this->user;
+    }
+
+    public function getProbationEndsAt(): ?\DateTimeImmutable
+    {
+        return $this->probationEndsAt;
+    }
+
+    public function isInProbation(\DateTimeImmutable $on): bool
+    {
+        if (null === $this->probationEndsAt) {
+            return false;
+        }
+
+        return $on->setTime(0, 0) <= $this->probationEndsAt;
+    }
+
+    public function updateProbationEndsAt(?\DateTimeImmutable $probationEndsAt): void
+    {
+        if (null !== $probationEndsAt && $probationEndsAt < $this->joinedAt->setTime(0, 0)) {
+            throw new \InvalidArgumentException('Probation end date cannot be before the employee\'s join date.');
+        }
+        $this->probationEndsAt = $probationEndsAt;
     }
 
     public function isActiveOn(\DateTimeImmutable $date): bool
