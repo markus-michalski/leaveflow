@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 // Inline German locale — avoids a separate importmap entry for the locale file.
 const german = {
