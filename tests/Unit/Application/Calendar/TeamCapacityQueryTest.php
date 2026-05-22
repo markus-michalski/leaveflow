@@ -76,7 +76,7 @@ final class TeamCapacityQueryTest extends TestCase
         $req3 = $this->buildApprovedRequest($bob, '2026-06-02', '2026-06-04');
 
         $repo = $this->createStub(LeaveRequestRepository::class);
-        $repo->method('findApprovedOverlapping')->willReturn([$req1, $req2, $req3]);
+        $repo->method('findActiveOverlapping')->willReturn([$req1, $req2, $req3]);
 
         $query = new TeamCapacityQuery($repo);
 
@@ -91,7 +91,7 @@ final class TeamCapacityQueryTest extends TestCase
     public function returnsZeroWhenRepositoryReturnsNoOverlap(): void
     {
         $repo = $this->createStub(LeaveRequestRepository::class);
-        $repo->method('findApprovedOverlapping')->willReturn([]);
+        $repo->method('findActiveOverlapping')->willReturn([]);
 
         $query = new TeamCapacityQuery($repo);
 

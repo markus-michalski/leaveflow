@@ -285,6 +285,106 @@ final class AdminEmployeeControllerTest extends WebTestCase
         self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
     }
 
+    #[Test]
+    public function exportCsvAllReturnsFileWithBothActiveAndInactive(): void
+    {
+        $company = $this->em->getRepository(Company::class)->findOneBy([]);
+        \assert($company instanceof Company);
+
+        $active = new Employee($company, 'Anna Aktiv', 'EMP-A01', $this->hq, WorkSchedule::standardFullTime(), new \DateTimeImmutable('2024-01-01'));
+        $inactive = new Employee($company, 'Berta Beendet', 'EMP-I01', $this->hq, WorkSchedule::standardFullTime(), new \DateTimeImmutable('2023-01-01'));
+        $inactive->markLeft(new \DateTimeImmutable('2024-12-31'));
+        $this->em->persist($active);
+        $this->em->persist($inactive);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $csrfToken = $this->fetchExportCsrfToken();
+        $this->client->request('POST', '/admin/employees/export', ['filter' => 'all', '_token' => $csrfToken]);
+
+        $response = $this->client->getResponse();
+        self::assertResponseIsSuccessful();
+        self::assertStringStartsWith('text/csv', (string) $response->headers->get('Content-Type'));
+        self::assertStringContainsString('mitarbeiter-alle.csv', (string) $response->headers->get('Content-Disposition'));
+        self::assertStringStartsWith("\xEF\xBB\xBF", (string) $response->getContent());
+        self::assertStringContainsString('Anna Aktiv', (string) $response->getContent());
+        self::assertStringContainsString('Berta Beendet', (string) $response->getContent());
+    }
+
+    #[Test]
+    public function exportCsvActiveFiltersOutInactiveEmployees(): void
+    {
+        $company = $this->em->getRepository(Company::class)->findOneBy([]);
+        \assert($company instanceof Company);
+
+        $active = new Employee($company, 'Clara Current', 'EMP-A02', $this->hq, WorkSchedule::standardFullTime(), new \DateTimeImmutable('2024-01-01'));
+        $inactive = new Employee($company, 'Dora Done', 'EMP-I02', $this->hq, WorkSchedule::standardFullTime(), new \DateTimeImmutable('2022-01-01'));
+        $inactive->markLeft(new \DateTimeImmutable('2023-12-31'));
+        $this->em->persist($active);
+        $this->em->persist($inactive);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $csrfToken = $this->fetchExportCsrfToken();
+        $this->client->request('POST', '/admin/employees/export', ['filter' => 'active', '_token' => $csrfToken]);
+
+        $body = (string) $this->client->getResponse()->getContent();
+        self::assertStringContainsString('mitarbeiter-aktive.csv', (string) $this->client->getResponse()->headers->get('Content-Disposition'));
+        self::assertStringContainsString('Clara Current', $body);
+        self::assertStringNotContainsString('Dora Done', $body);
+    }
+
+    #[Test]
+    public function exportCsvInactiveFiltersOutActiveEmployees(): void
+    {
+        $company = $this->em->getRepository(Company::class)->findOneBy([]);
+        \assert($company instanceof Company);
+
+        $active = new Employee($company, 'Emil Engagiert', 'EMP-A03', $this->hq, WorkSchedule::standardFullTime(), new \DateTimeImmutable('2024-01-01'));
+        $inactive = new Employee($company, 'Franz Fort', 'EMP-I03', $this->hq, WorkSchedule::standardFullTime(), new \DateTimeImmutable('2021-01-01'));
+        $inactive->markLeft(new \DateTimeImmutable('2022-06-30'));
+        $this->em->persist($active);
+        $this->em->persist($inactive);
+        $this->em->flush();
+
+        $this->loginAs('admin@leaveflow.test');
+        $csrfToken = $this->fetchExportCsrfToken();
+        $this->client->request('POST', '/admin/employees/export', ['filter' => 'inactive', '_token' => $csrfToken]);
+
+        $body = (string) $this->client->getResponse()->getContent();
+        self::assertStringContainsString('mitarbeiter-inaktive.csv', (string) $this->client->getResponse()->headers->get('Content-Disposition'));
+        self::assertStringContainsString('Franz Fort', $body);
+        self::assertStringNotContainsString('Emil Engagiert', $body);
+    }
+
+    #[Test]
+    public function exportCsvRejectsInvalidCsrfToken(): void
+    {
+        $this->loginAs('admin@leaveflow.test');
+        $this->client->request('POST', '/admin/employees/export', ['filter' => 'all', '_token' => 'invalid-token']);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+    }
+
+    #[Test]
+    public function exportCsvRequiresAdminRole(): void
+    {
+        $this->loginAs('manager@leaveflow.test');
+        // Role check fires before CSRF validation — any token value will do.
+        $this->client->request('POST', '/admin/employees/export', ['filter' => 'all', '_token' => 'irrelevant']);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+    }
+
+    private function fetchExportCsrfToken(): string
+    {
+        $crawler = $this->client->request('GET', '/admin/employees');
+        $token = $crawler->filter('dialog#export-modal input[name="_token"]')->attr('value');
+        self::assertNotEmpty($token, 'CSRF token not found in export modal');
+
+        return (string) $token;
+    }
+
     /**
      * @return array{0: Employee, 1: LeaveRequest}
      */

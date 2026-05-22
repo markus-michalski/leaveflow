@@ -38,7 +38,7 @@ final readonly class PersonalDashboardService
 
         if (null !== $department) {
             $today = $now->setTime(0, 0);
-            $teamToday = $this->requestRepository->findApprovedOverlapping(
+            $teamToday = $this->requestRepository->findActiveOverlapping(
                 company: $employee->getCompany(),
                 rangeStart: $today,
                 rangeEnd: $today,
@@ -71,7 +71,7 @@ final readonly class PersonalDashboardService
         if (null !== $department) {
             $monday = $now->setTime(0, 0)->modify('Monday this week');
             $sunday = $now->setTime(0, 0)->modify('Sunday this week');
-            $weekAbsences = $this->requestRepository->findApprovedOverlapping(
+            $weekAbsences = $this->requestRepository->findActiveOverlapping(
                 company: $manager->getCompany(),
                 rangeStart: $monday,
                 rangeEnd: $sunday,

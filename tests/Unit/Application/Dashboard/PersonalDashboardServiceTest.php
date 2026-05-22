@@ -79,7 +79,7 @@ final class PersonalDashboardServiceTest extends TestCase
 
         $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([$entitlement]);
         $this->requestRepository->method('findActiveAndUpcomingByEmployee')->willReturn([]);
-        $this->requestRepository->method('findApprovedOverlapping')->willReturn([]);
+        $this->requestRepository->method('findActiveOverlapping')->willReturn([]);
 
         $dashboard = $this->service->buildForEmployee($employee);
 
@@ -98,7 +98,7 @@ final class PersonalDashboardServiceTest extends TestCase
         $this->requestRepository
             ->method('findActiveAndUpcomingByEmployee')
             ->willReturn([$request]);
-        $this->requestRepository->method('findApprovedOverlapping')->willReturn([]);
+        $this->requestRepository->method('findActiveOverlapping')->willReturn([]);
 
         $dashboard = $this->service->buildForEmployee($employee);
 
@@ -116,7 +116,7 @@ final class PersonalDashboardServiceTest extends TestCase
         $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->requestRepository->method('findActiveAndUpcomingByEmployee')->willReturn([]);
         $this->requestRepository
-            ->method('findApprovedOverlapping')
+            ->method('findActiveOverlapping')
             ->willReturn([$colleagueRequest]);
 
         $dashboard = $this->service->buildForEmployee($employee);
@@ -154,7 +154,7 @@ final class PersonalDashboardServiceTest extends TestCase
 
         $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([$carryover]);
         $this->requestRepository->method('findActiveAndUpcomingByEmployee')->willReturn([]);
-        $this->requestRepository->method('findApprovedOverlapping')->willReturn([]);
+        $this->requestRepository->method('findActiveOverlapping')->willReturn([]);
 
         $dashboard = $this->service->buildForEmployee($employee);
 
@@ -170,7 +170,7 @@ final class PersonalDashboardServiceTest extends TestCase
 
         $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([$carryover]);
         $this->requestRepository->method('findActiveAndUpcomingByEmployee')->willReturn([]);
-        $this->requestRepository->method('findApprovedOverlapping')->willReturn([]);
+        $this->requestRepository->method('findActiveOverlapping')->willReturn([]);
 
         $dashboard = $this->service->buildForEmployee($employee);
 
@@ -188,7 +188,7 @@ final class PersonalDashboardServiceTest extends TestCase
 
         $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->requestRepository->method('findActiveAndUpcomingByEmployee')->willReturn([]);
-        $this->requestRepository->method('findApprovedOverlapping')->willReturn([]);
+        $this->requestRepository->method('findActiveOverlapping')->willReturn([]);
         $this->requestRepository->method('findActionableByApprover')->willReturn([]);
 
         $dashboard = $this->service->buildForManager($manager);
@@ -205,7 +205,7 @@ final class PersonalDashboardServiceTest extends TestCase
 
         $this->entitlementRepository->method('findByEmployeeAndYear')->willReturn([]);
         $this->requestRepository->method('findActiveAndUpcomingByEmployee')->willReturn([]);
-        $this->requestRepository->method('findApprovedOverlapping')->willReturn([]);
+        $this->requestRepository->method('findActiveOverlapping')->willReturn([]);
         $this->requestRepository
             ->method('findActionableByApprover')
             ->willReturn([$pending]);
@@ -229,7 +229,7 @@ final class PersonalDashboardServiceTest extends TestCase
         // First call (today, employee view): empty; second call (week, manager view): one entry
         $weekRequest = $this->approvedRequest($this->employeeInDept('Anna Absent'), '2026-05-18', '2026-05-20');
         $this->requestRepository
-            ->method('findApprovedOverlapping')
+            ->method('findActiveOverlapping')
             ->willReturnOnConsecutiveCalls([], [$weekRequest]);
 
         $dashboard = $this->service->buildForManager($manager);

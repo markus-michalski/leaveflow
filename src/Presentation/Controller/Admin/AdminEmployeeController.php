@@ -306,7 +306,7 @@ final class AdminEmployeeController extends AbstractController
                 $this->translator->trans('admin.employees.export.csv.joined_at'),
                 $this->translator->trans('admin.employees.export.csv.left_at'),
                 $this->translator->trans('admin.employees.export.csv.login'),
-            ]);
+            ], separator: ',', enclosure: '"', escape: '\\');
 
             foreach ($employees as $employee) {
                 $isInactive = null !== $employee->getLeftAt() && $employee->getLeftAt() <= $day;
@@ -324,7 +324,7 @@ final class AdminEmployeeController extends AbstractController
                         $employee->getLeftAt()?->format('Y-m-d') ?? '',
                         $employee->getUser()?->getEmail() ?? '',
                     ],
-                ));
+                ), separator: ',', enclosure: '"', escape: '\\');
             }
 
             rewind($output);

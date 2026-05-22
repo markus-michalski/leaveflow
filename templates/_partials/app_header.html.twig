@@ -6,12 +6,12 @@
    Mobile (<md viewport): all nav items collapse behind a Flowbite
    data-collapse-toggle hamburger; the user-menu button stays
    visible because the dropdown contains the logout. #}
-<header class="border-b border-gray-200 bg-white">
+<header class="sticky top-0 z-30 border-b border-gray-200 bg-white">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <a href="{{ path('app_dashboard') }}"
            class="inline-flex items-center gap-2 text-base font-semibold text-gray-900 hover:text-blue-700"
            data-testid="app-header-home">
-            <span aria-hidden="true">🏖️</span>
+            <span aria-hidden="true" class="text-3xl leading-none">🏖️</span>
             <span>{{ 'app.name'|trans }}</span>
         </a>
 
@@ -44,48 +44,64 @@
                             </svg>
                         </button>
                         <div id="admin-menu"
-                             class="z-10 hidden w-56 divide-y divide-gray-100 rounded-lg bg-white shadow-lg ring-1 ring-black/5">
-                            <ul class="py-1 text-sm text-gray-700" role="menu" aria-orientation="vertical">
-                                <li>
-                                    <a href="{{ path('app_admin_user_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.users'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_location_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.locations'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_department_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.departments'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_employee_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.employees'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_holiday_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.holidays'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_absence_type_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.absence_types'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_entitlement_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.entitlements'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_leave_request_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.leave_requests'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_blackout_period_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.blackout_periods'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_scheduled_job_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.scheduled_jobs'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_statistics_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.statistics'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_company_settings_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.company_settings'|trans }}</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('app_admin_anonymization_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.anonymization'|trans }}</a>
-                                </li>
-                            </ul>
+                             class="z-10 hidden w-60 divide-y divide-gray-100 rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+                            {# Group: Organisation #}
+                            <div>
+                                <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400" aria-hidden="true">{{ 'nav.admin.group_organisation'|trans }}</p>
+                                <ul class="pb-2 text-sm text-gray-700" role="menu" aria-orientation="vertical">
+                                    <li>
+                                        <a href="{{ path('app_admin_user_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.users'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_employee_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.employees'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_department_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.departments'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_location_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.locations'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_company_settings_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.company_settings'|trans }}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            {# Group: Urlaub & Abwesenheit #}
+                            <div>
+                                <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400" aria-hidden="true">{{ 'nav.admin.group_leave'|trans }}</p>
+                                <ul class="pb-2 text-sm text-gray-700" role="menu" aria-orientation="vertical">
+                                    <li>
+                                        <a href="{{ path('app_admin_entitlement_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.entitlements'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_leave_request_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.leave_requests'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_absence_type_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.absence_types'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_holiday_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.holidays'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_blackout_period_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.blackout_periods'|trans }}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            {# Group: System #}
+                            <div>
+                                <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400" aria-hidden="true">{{ 'nav.admin.group_system'|trans }}</p>
+                                <ul class="pb-2 text-sm text-gray-700" role="menu" aria-orientation="vertical">
+                                    <li>
+                                        <a href="{{ path('app_admin_scheduled_job_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.scheduled_jobs'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_statistics_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.statistics'|trans }}</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('app_admin_anonymization_index') }}" role="menuitem" class="block px-4 py-2 hover:bg-gray-100">{{ 'nav.admin.anonymization'|trans }}</a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 {% endif %}
