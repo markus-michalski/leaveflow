@@ -5,7 +5,7 @@
 {% use 'form_div_layout.html.twig' %}
 
 {%- block date_widget -%}
-    {%- if widget == 'single_text' and not html5 -%}
+    {%- if widget == 'single_text' and type|default('text') != 'date' -%}
         {%- set attr = attr|merge({'data-controller': 'datepicker'}) -%}
     {%- endif -%}
     {{- parent() -}}
