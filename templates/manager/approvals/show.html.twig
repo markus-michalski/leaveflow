@@ -89,7 +89,7 @@
     {% elseif leaveRequest.status.value == 'cancel_requested' %}
         <section class="mt-6 rounded-xl bg-white p-6 shadow-sm" data-testid="approval-actions-cancel-requested">
             <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ 'manager.approvals.actions.cancel_heading'|trans }}</h2>
-            <p class="mb-4 text-sm text-gray-600">{{ 'manager.approvals.actions.cancel_intro'|trans }}</p>
+            <p class="mb-4 text-xs text-gray-600">{{ 'manager.approvals.actions.cancel_intro'|trans }}</p>
             <div class="grid gap-4 md:grid-cols-2 items-stretch">
                 <div class="flex flex-col rounded-md border border-gray-200 bg-gray-50 p-4">
                     <h3 class="mb-3 text-sm font-medium text-gray-800">{{ 'manager.approvals.actions.confirm_cancel_heading'|trans }}</h3>

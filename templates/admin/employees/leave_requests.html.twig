@@ -9,7 +9,7 @@
             <h1 class="text-2xl font-semibold text-gray-900">
                 {{ 'admin.employees.leave_requests.heading'|trans({ '%name%': employee.fullName }) }}
             </h1>
-            <p class="mt-1 text-sm text-gray-500">
+            <p class="mt-1 text-xs text-gray-500">
                 {{ employee.employeeNumber }} · {{ employee.location.name }}
                 {% if employee.department %}
                     · {{ employee.department.name }}
