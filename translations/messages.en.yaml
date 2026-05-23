@@ -52,6 +52,7 @@ nav:
         statistics: Statistics
         company_settings: "Company settings"
         anonymization: "GDPR Anonymization"
+        api_tokens: "API Access Tokens"
     manager:
         approvals: Approvals
     team:
