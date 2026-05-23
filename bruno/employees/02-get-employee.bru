@@ -1,0 +1,22 @@
+meta {
+  name: Get Employee
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/employees/{{employeeId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{apiToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isDefined
+  res.body.name: isDefined
+  res.body.employeeNumber: isDefined
+}

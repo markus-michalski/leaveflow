@@ -1,0 +1,21 @@
+meta {
+  name: Invalid token returns 401
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/v1/employees
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: thisisnotavalidtoken
+}
+
+assert {
+  res.status: eq 401
+  res.headers.www-authenticate: isDefined
+  res.body.error: isDefined
+}

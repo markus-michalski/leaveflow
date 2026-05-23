@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.api_tokens.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-6xl p-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-900">{{ 'admin.api_tokens.heading'|trans }}</h1>
+            <p class="mt-1 max-w-3xl text-xs text-gray-500">{{ 'admin.api_tokens.description'|trans }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard') }}"
+               class="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'nav.home'|trans }}
+            </a>
+            <a href="{{ path('app_admin_api_token_new') }}"
+               class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                {{ 'admin.api_tokens.create'|trans }}
+            </a>
+        </div>
+    </header>
+
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th class="px-6 py-3">{{ 'admin.api_tokens.field.name'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.api_tokens.field.created_at'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.api_tokens.field.last_used_at'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.api_tokens.field.expires_at'|trans }}</th>
+                    <th class="px-6 py-3">{{ 'admin.api_tokens.field.status'|trans }}</th>
+                    <th class="px-6 py-3 text-right">{{ 'admin.api_tokens.field.actions'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white text-sm text-gray-700">
+                {% for token in tokens %}
+                    {% set active = token.isActive(date()) %}
+                    <tr>
+                        <td class="px-6 py-3 font-medium text-gray-900">{{ token.name }}</td>
+                        <td class="px-6 py-3 text-gray-500">{{ token.createdAt|date('d.m.Y') }}</td>
+                        <td class="px-6 py-3 text-gray-500">
+                            {{ token.lastUsedAt ? token.lastUsedAt|date('d.m.Y H:i') : '—' }}
+                        </td>
+                        <td class="px-6 py-3 text-gray-500">
+                            {{ token.expiresAt ? token.expiresAt|date('d.m.Y') : '—' }}
+                        </td>
+                        <td class="px-6 py-3">
+                            {% if token.revokedAt %}
+                                <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                                    {{ 'admin.api_tokens.status.revoked'|trans }}
+                                </span>
+                            {% elseif not active %}
+                                <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                                    {{ 'admin.api_tokens.status.expired'|trans }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                                    {{ 'admin.api_tokens.status.active'|trans }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 text-right">
+                            {% if active %}
+                                <form method="post"
+                                      action="{{ path('app_admin_api_token_revoke', { id: token.id }) }}"
+                                      onsubmit="return confirm('{{ 'admin.api_tokens.confirm_revoke'|trans }}');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('revoke-api-token-' ~ token.id) }}">
+                                    <button type="submit"
+                                            class="inline-flex items-center rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100">
+                                        {{ 'admin.api_tokens.revoke'|trans }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="text-xs text-gray-400">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-6 text-center text-gray-500">
+                            {{ 'admin.api_tokens.empty'|trans }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

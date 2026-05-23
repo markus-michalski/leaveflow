@@ -1,0 +1,34 @@
+meta {
+  name: Create Employee
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/employees
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{apiToken}}
+}
+
+body:json {
+  {
+    "name": "Max Mustermann",
+    "email": "max.mustermann@example.com",
+    "employeeNumber": "EMP-TEST-001",
+    "locationId": 7,
+    "joinedAt": "2026-01-01",
+    "weeklyHours": 40.0,
+    "role": "employee"
+  }
+}
+
+assert {
+  res.status: eq 201
+  res.body.id: isDefined
+  res.body.name: eq Max Mustermann
+  res.body.email: eq max.mustermann@example.com
+}

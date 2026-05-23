@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.api_tokens.generated.title'|trans }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-2xl p-6">
+    <div class="rounded-xl border border-amber-200 bg-amber-50 p-6">
+        <div class="mb-4 flex items-start gap-3">
+            <svg class="mt-0.5 h-6 w-6 flex-shrink-0 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            <div>
+                <h1 class="text-lg font-semibold text-amber-900">{{ 'admin.api_tokens.generated.heading'|trans }}</h1>
+                <p class="mt-1 text-sm text-amber-800">{{ 'admin.api_tokens.generated.warning'|trans }}</p>
+            </div>
+        </div>
+
+        <div class="rounded-lg border border-amber-300 bg-white p-4">
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                {{ 'admin.api_tokens.generated.token_label'|trans }}
+            </p>
+            <div class="flex items-center gap-3">
+                <code id="api-token-value"
+                      class="flex-1 break-all rounded bg-gray-50 px-3 py-2 font-mono text-sm text-gray-900 select-all">{{ raw_token }}</code>
+                <button type="button"
+                        onclick="navigator.clipboard.writeText('{{ raw_token }}').then(() => { this.textContent = '✓'; setTimeout(() => { this.textContent = '{{ 'admin.api_tokens.generated.copy'|trans }}'; }, 1500); })"
+                        class="flex-shrink-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                    {{ 'admin.api_tokens.generated.copy'|trans }}
+                </button>
+            </div>
+        </div>
+
+        <p class="mt-4 text-xs text-amber-700">{{ 'admin.api_tokens.generated.usage_hint'|trans }}</p>
+    </div>
+
+    <div class="mt-6 text-right">
+        <a href="{{ path('app_admin_api_token_index') }}"
+           class="rounded-md bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            {{ 'admin.api_tokens.generated.done'|trans }}
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{
+  "version": "1",
+  "name": "LeaveFlow REST API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ],
+  "size": 0.00262451171875,
+  "filesCount": 9,
+  "presets": {
+    "requestType": "http",
+    "requestUrl": "http://localhost:8080"
+  }
+}

@@ -1,0 +1,21 @@
+meta {
+  name: List Employees
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/employees
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{apiToken}}
+}
+
+assert {
+  res.status: eq 200
+  res.headers.content-type: contains application/json
+  res.body: isArray
+}

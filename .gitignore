@@ -42,6 +42,11 @@
 # Deptrac cache
 /.deptrac.cache
 
+# Bruno local environment and secrets (contain API token — never committed)
+# Copy bruno/environments/local.bru.example → local.bru and fill in your token
+/bruno/.env
+/bruno/environments/local.bru
+
 # Coverage artifacts
 /coverage.xml
 /coverage/

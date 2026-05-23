@@ -1,0 +1,5 @@
+vars {
+  baseUrl: http://localhost:8080
+  employeeId: 1
+  apiToken: your-64-char-hex-token-here
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Admin role blocked (422)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/v1/employees
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{apiToken}}
+}
+
+body:json {
+  {
+    "name": "Hacker Admin",
+    "email": "hacker@example.com",
+    "employeeNumber": "EMP-HACK-001",
+    "locationId": 7,
+    "joinedAt": "2026-01-01",
+    "role": "admin"
+  }
+}
+
+assert {
+  res.status: eq 422
+  res.body.error: eq true
+  res.body.message: contains admin
+}
