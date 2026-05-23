@@ -9,7 +9,7 @@
         <p class="mt-1 text-sm text-gray-500">{{ 'admin.api_tokens.create_description'|trans }}</p>
     </header>
 
-    {{ form_start(form, { attr: { class: 'space-y-5' } }) }}
+    {{ form_start(form, { attr: { class: 'space-y-5', 'data-turbo': 'false' } }) }}
 
         <div>
             {{ form_label(form.name, null, { label_attr: { class: 'block text-sm font-medium text-gray-700 mb-1' } }) }}
@@ -26,7 +26,7 @@
 
         <div class="flex items-center justify-between pt-2">
             <a href="{{ path('app_admin_api_token_index') }}"
-               class="text-sm text-gray-600 hover:text-gray-900">
+               class="rounded-md border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                 {{ 'admin.api_tokens.cancel'|trans }}
             </a>
             <button type="submit"
