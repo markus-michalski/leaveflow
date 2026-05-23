@@ -208,15 +208,6 @@ final class AdminEmployeeController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if (null !== $employee->getLeftAt()) {
-                $this->addFlash('warning', $this->translator->trans(
-                    'admin.employees.flash.already_exited',
-                    ['%name%' => $employee->getFullName()],
-                ));
-
-                return $this->redirectToRoute('app_admin_employee_index');
-            }
-
             /** @var \DateTimeImmutable $exitDate */
             $exitDate = $form->get('exitDate')->getData();
             /** @var ExitLeaveHandling $handling */
