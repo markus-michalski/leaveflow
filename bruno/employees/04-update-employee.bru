@@ -1,0 +1,26 @@
+meta {
+  name: Update Employee (partial)
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/employees/{{employeeId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{apiToken}}
+}
+
+body:json {
+  {
+    "weeklyHours": 32.0
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.weeklyHours: eq 32
+}
