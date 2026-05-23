@@ -538,14 +538,46 @@ Foundation audit (2026-05-14) confirmed: `User.password` is nullable, `UserCheck
 
 ---
 
-### Phase 14 — REST API & v1.0 Release
+### Phase 14 — REST API (abgeschlossen, v0.18.0)
 
-- REST API via API Platform OR handrolled with JWT authentication
-- OpenAPI spec generated + published
+- Machine-to-machine REST API with Bearer token authentication
+- ApiToken management (Admin UI, SHA-256 hashed, soft-revoke, expiry)
+- Employee CRUD endpoints (`/api/v1/employees`)
+- OpenAPI spec via nelmio/api-doc-bundle, Swagger UI at `/api/doc`
+- Bruno API collection for manual testing
+- Company-scoped token authorization
+
+---
+
+### Phase 15 — API Documentation (Wiki.js)
+
+- Publish REST API documentation to Wiki.js (`leaveflow/api`)
+- Bearer authentication guide
+- All 5 employee endpoints with request/response schemas
+- cURL examples
+- Error reference
+
+---
+
+### Phase 16 — Repo Public & Governance
+
+- Make GitHub repository public
+- PolyForm Noncommercial License
+- Contributor License Agreement (CLA) via cla-assistant.io
+- Branch protection rules (main + develop)
+- CONTRIBUTING.md, CODE_OF_CONDUCT.md
+- GitHub Issue + PR templates
+- Security policy (SECURITY.md)
+
+---
+
+### Phase 17 — v1.0.0 Release
+
+- Fix open bugs: #83, #84, #85
 - Official Docker image on GHCR
-- README, CONTRIBUTING.md, LICENSE check
-- Semantic versioning infrastructure
-- v1.0 tag + release announcement
+- README overhaul (installation, quickstart, screenshots)
+- Semantic versioning infrastructure (conventional commits + semantic-release)
+- v1.0.0 tag + GitHub Release with changelog
 
 ---
 
