@@ -1316,3 +1316,41 @@ setup:
         submit: "Verify"
         help: "Lost your authenticator app? Use one of your backup codes. If those are gone too, contact your administrator for a reset."
         cancel: "Cancel and sign out"
+
+admin.api_tokens:
+    title: "API Tokens"
+    heading: "API Tokens"
+    description: "Machine-readable access tokens for external integrations (e.g. HR systems)."
+    create: "Create token"
+    create_description: "The token is shown only once. Store it somewhere safe."
+    generate: "Generate token"
+    cancel: "Cancel"
+    revoke: "Revoke"
+    confirm_revoke: "Really revoke this token? It cannot be used after this."
+    empty: "No API tokens created yet."
+    field:
+        name: "Name"
+        name_placeholder: "e.g. HR System Integration"
+        created_at: "Created"
+        last_used_at: "Last used"
+        expires_at: "Expires"
+        expires_at_hint: "Leave empty for no expiry."
+        status: "Status"
+        actions: "Actions"
+    status:
+        active: "Active"
+        revoked: "Revoked"
+        expired: "Expired"
+    flash:
+        revoked: "Token has been revoked."
+    error:
+        name_required: "Please enter a name."
+        expires_at_future: "The expiry date must be in the future."
+    generated:
+        title: "Token generated"
+        heading: "Token created"
+        warning: "This token is shown only once. Copy it now — it cannot be retrieved after leaving this page."
+        token_label: "Your API token"
+        copy: "Copy"
+        usage_hint: "Send the token as an HTTP header: Authorization: Bearer <token>"
+        done: "Done"

@@ -1319,3 +1319,41 @@ setup:
         submit: "Bestätigen"
         help: "Authenticator-App verloren? Nutze einen deiner Backup-Codes. Sind die auch weg, kontaktiere deinen Administrator zum Zurücksetzen."
         cancel: "Abbrechen und abmelden"
+
+admin.api_tokens:
+    title: "API-Token"
+    heading: "API-Token"
+    description: "Maschinenlesbare Zugangstokens für externe Integrationen (z. B. HR-Systeme)."
+    create: "Token erstellen"
+    create_description: "Der Token wird einmalig angezeigt. Bewahre ihn sicher auf."
+    generate: "Token generieren"
+    cancel: "Abbrechen"
+    revoke: "Widerrufen"
+    confirm_revoke: "Diesen Token wirklich widerrufen? Er kann danach nicht mehr verwendet werden."
+    empty: "Noch keine API-Tokens erstellt."
+    field:
+        name: "Name"
+        name_placeholder: "z. B. HR-System Integration"
+        created_at: "Erstellt am"
+        last_used_at: "Zuletzt verwendet"
+        expires_at: "Läuft ab am"
+        expires_at_hint: "Leer lassen für unbegrenzte Gültigkeit."
+        status: "Status"
+        actions: "Aktionen"
+    status:
+        active: "Aktiv"
+        revoked: "Widerrufen"
+        expired: "Abgelaufen"
+    flash:
+        revoked: "Token wurde widerrufen."
+    error:
+        name_required: "Bitte einen Namen angeben."
+        expires_at_future: "Das Ablaufdatum muss in der Zukunft liegen."
+    generated:
+        title: "Token generiert"
+        heading: "Token wurde erstellt"
+        warning: "Dieser Token wird nur einmal angezeigt. Kopiere ihn jetzt — nach dem Verlassen dieser Seite ist er nicht mehr abrufbar."
+        token_label: "Dein API-Token"
+        copy: "Kopieren"
+        usage_hint: "Sende den Token als HTTP-Header: Authorization: Bearer <token>"
+        done: "Fertig"
