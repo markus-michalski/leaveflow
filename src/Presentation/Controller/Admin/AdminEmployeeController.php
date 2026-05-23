@@ -13,6 +13,7 @@ use App\Domain\Entity\Location;
 use App\Domain\Entity\User;
 use App\Domain\Enum\ExitLeaveHandling;
 use App\Domain\Enum\Weekday;
+use App\Presentation\Form\EmployeeExitFormType;
 use App\Domain\Repository\CompanyRepository;
 use App\Domain\Repository\EmployeeRepository;
 use App\Domain\Repository\LeaveRequestRepository;
@@ -149,10 +150,7 @@ final class AdminEmployeeController extends AbstractController
                     $employee->updateJoinedAt($this->requireDate($form, 'joinedAt'));
 
                     $leftAt = $this->optionalDate($form, 'leftAt');
-                    $exitSummary = null;
-                    if (null === $employee->getLeftAt() && null !== $leftAt) {
-                        $exitSummary = $this->exitService->execute($employee, $leftAt);
-                    } elseif (null !== $leftAt) {
+                    if (null !== $leftAt) {
                         $employee->markLeft($leftAt);
                     }
 
@@ -168,28 +166,10 @@ final class AdminEmployeeController extends AbstractController
 
                     $this->entityManager->flush();
 
-                    if (null !== $exitSummary) {
-                        $this->addFlash('success', $this->translator->trans(
-                            'admin.employees.flash.exited',
-                            ['%name%' => $employee->getFullName(), '%date%' => $exitSummary->exitDate->format('d.m.Y')],
-                        ));
-                        if ($exitSummary->hasRemainingBalance()) {
-                            $handlingLabel = $this->translator->trans($exitSummary->exitLeaveHandling->translationKey());
-                            $this->addFlash('warning', $this->translator->trans(
-                                'admin.employees.flash.exit_remaining_balance',
-                                [
-                                    '%hours%' => number_format($exitSummary->totalRemainingHours, 2, ',', '.'),
-                                    '%handling%' => $handlingLabel,
-                                    '%handlingNote%' => $this->exitHandlingNote($exitSummary->exitLeaveHandling),
-                                ],
-                            ));
-                        }
-                    } else {
-                        $this->addFlash('success', $this->translator->trans(
-                            'admin.employees.flash.updated',
-                            ['%name%' => $employee->getFullName()],
-                        ));
-                    }
+                    $this->addFlash('success', $this->translator->trans(
+                        'admin.employees.flash.updated',
+                        ['%name%' => $employee->getFullName()],
+                    ));
 
                     return $this->redirectToRoute('app_admin_employee_index');
                 } catch (\InvalidArgumentException $e) {
@@ -203,6 +183,74 @@ final class AdminEmployeeController extends AbstractController
             'is_new' => false,
             'employee' => $employee,
             'proRataHint' => $this->buildEmployeeProRataHint($employee),
+        ]);
+    }
+
+    #[Route('/{id}/exit', name: 'exit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    public function exit(Request $request, Employee $employee): Response
+    {
+        $this->assertSameCompany($employee, $this->currentCompany());
+
+        if (null !== $employee->getLeftAt()) {
+            $this->addFlash('warning', $this->translator->trans(
+                'admin.employees.flash.already_exited',
+                ['%name%' => $employee->getFullName()],
+            ));
+
+            return $this->redirectToRoute('app_admin_employee_edit', ['id' => $employee->getId()]);
+        }
+
+        $company = $this->currentCompany();
+        $form = $this->createForm(EmployeeExitFormType::class, null, [
+            'company_default' => $company->getExitLeaveHandling(),
+            'default_exit_date' => $this->clock->now()->setTime(0, 0),
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if (null !== $employee->getLeftAt()) {
+                $this->addFlash('warning', $this->translator->trans(
+                    'admin.employees.flash.already_exited',
+                    ['%name%' => $employee->getFullName()],
+                ));
+
+                return $this->redirectToRoute('app_admin_employee_index');
+            }
+
+            /** @var \DateTimeImmutable $exitDate */
+            $exitDate = $form->get('exitDate')->getData();
+            /** @var ExitLeaveHandling $handling */
+            $handling = $form->get('exitLeaveHandling')->getData();
+
+            try {
+                $exitSummary = $this->exitService->execute($employee, $exitDate, $handling);
+                $this->entityManager->flush();
+
+                $this->addFlash('success', $this->translator->trans(
+                    'admin.employees.flash.exited',
+                    ['%name%' => $employee->getFullName(), '%date%' => $exitSummary->exitDate->format('d.m.Y')],
+                ));
+                if ($exitSummary->hasRemainingBalance()) {
+                    $handlingLabel = $this->translator->trans($exitSummary->exitLeaveHandling->translationKey());
+                    $this->addFlash('warning', $this->translator->trans(
+                        'admin.employees.flash.exit_remaining_balance',
+                        [
+                            '%hours%' => number_format($exitSummary->totalRemainingHours, 2, ',', '.'),
+                            '%handling%' => $handlingLabel,
+                            '%handlingNote%' => $this->exitHandlingNote($exitSummary->exitLeaveHandling),
+                        ],
+                    ));
+                }
+
+                return $this->redirectToRoute('app_admin_employee_index');
+            } catch (\InvalidArgumentException $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        }
+
+        return $this->render('admin/employees/exit.html.twig', [
+            'form' => $form,
+            'employee' => $employee,
         ]);
     }
 

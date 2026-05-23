@@ -61,7 +61,7 @@ final class EmployeeExitServiceTest extends TestCase
         $this->repository->method('findByEmployeeAndYear')->willReturn([]);
         $exitDate = new \DateTimeImmutable('2025-07-15');
 
-        $this->service->execute($this->employee, $exitDate);
+        $this->service->execute($this->employee, $exitDate, ExitLeaveHandling::PayOut);
 
         self::assertEquals($exitDate, $this->employee->getLeftAt());
     }
@@ -74,7 +74,7 @@ final class EmployeeExitServiceTest extends TestCase
         $this->employee->linkUser($user);
         self::assertTrue($user->isActive());
 
-        $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'));
+        $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'), ExitLeaveHandling::PayOut);
 
         self::assertFalse($user->isActive());
     }
@@ -85,7 +85,7 @@ final class EmployeeExitServiceTest extends TestCase
         $this->repository->method('findByEmployeeAndYear')->willReturn([]);
         self::assertNull($this->employee->getUser());
 
-        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'));
+        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'), ExitLeaveHandling::PayOut);
 
         self::assertFalse($summary->userDeactivated);
     }
@@ -95,7 +95,7 @@ final class EmployeeExitServiceTest extends TestCase
     {
         $this->repository->method('findByEmployeeAndYear')->willReturn([]);
 
-        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'));
+        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'), ExitLeaveHandling::PayOut);
 
         self::assertEqualsWithDelta(0.0, $summary->totalRemainingHours, 0.01);
     }
@@ -116,7 +116,7 @@ final class EmployeeExitServiceTest extends TestCase
                 };
             });
 
-        $summary = $this->service->execute($this->employee, $exitDate);
+        $summary = $this->service->execute($this->employee, $exitDate, ExitLeaveHandling::PayOut);
 
         // Regular 240-80=160, carryover expired by Jul 15 (expiresAt=Mar 31) → 0
         self::assertEqualsWithDelta(160.0, $summary->totalRemainingHours, 0.01);
@@ -133,7 +133,7 @@ final class EmployeeExitServiceTest extends TestCase
         $this->repository->method('findByEmployeeAndYear')->willReturn([$regular]);
         $this->repository->method('findUnexpiredCarryoversByEmployeeBeforeYear')->willReturn([$priorYearCarryover]);
 
-        $summary = $this->service->execute($this->employee, $exitDate);
+        $summary = $this->service->execute($this->employee, $exitDate, ExitLeaveHandling::PayOut);
 
         // Regular: 240-80=160, prior-year carryover not yet expired: +20 → 180
         self::assertEqualsWithDelta(180.0, $summary->totalRemainingHours, 0.01);
@@ -150,21 +150,20 @@ final class EmployeeExitServiceTest extends TestCase
         $this->repository->method('findByEmployeeAndYear')->willReturn([$regular]);
         $this->repository->method('findUnexpiredCarryoversByEmployeeBeforeYear')->willReturn([]);
 
-        $summary = $this->service->execute($this->employee, $exitDate);
+        $summary = $this->service->execute($this->employee, $exitDate, ExitLeaveHandling::PayOut);
 
         // Regular: 240-80=160, expired carryover filtered by repo → excluded
         self::assertEqualsWithDelta(160.0, $summary->totalRemainingHours, 0.01);
     }
 
     #[Test]
-    public function executeReturnsCompanyExitHandlingInSummary(): void
+    public function executeReturnsPassedHandlingInSummary(): void
     {
         $this->repository->method('findByEmployeeAndYear')->willReturn([]);
-        $this->company->setExitLeaveHandling(ExitLeaveHandling::MandatoryConsumption);
 
-        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'));
+        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'), ExitLeaveHandling::Freistellung);
 
-        self::assertSame(ExitLeaveHandling::MandatoryConsumption, $summary->exitLeaveHandling);
+        self::assertSame(ExitLeaveHandling::Freistellung, $summary->exitLeaveHandling);
     }
 
     #[Test]
@@ -173,7 +172,7 @@ final class EmployeeExitServiceTest extends TestCase
         $this->repository->method('findByEmployeeAndYear')->willReturn([]);
         $exitDate = new \DateTimeImmutable('2025-09-30');
 
-        $summary = $this->service->execute($this->employee, $exitDate);
+        $summary = $this->service->execute($this->employee, $exitDate, ExitLeaveHandling::PayOut);
 
         self::assertEquals($exitDate, $summary->exitDate);
     }
@@ -185,7 +184,7 @@ final class EmployeeExitServiceTest extends TestCase
         $user = new User($this->company, 'hannah@example.com', UserRole::Employee);
         $this->employee->linkUser($user);
 
-        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'));
+        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-15'), ExitLeaveHandling::PayOut);
 
         self::assertTrue($summary->userDeactivated);
     }
@@ -197,7 +196,7 @@ final class EmployeeExitServiceTest extends TestCase
         $user = new User($this->company, 'hannah@example.com', UserRole::Employee);
         $this->employee->linkUser($user);
 
-        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-16'));
+        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2025-07-16'), ExitLeaveHandling::PayOut);
 
         self::assertFalse($user->isActive());
         self::assertTrue($summary->userDeactivated);
@@ -210,7 +209,7 @@ final class EmployeeExitServiceTest extends TestCase
         $user = new User($this->company, 'hannah@example.com', UserRole::Employee);
         $this->employee->linkUser($user);
 
-        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2026-01-01'));
+        $summary = $this->service->execute($this->employee, new \DateTimeImmutable('2026-01-01'), ExitLeaveHandling::PayOut);
 
         self::assertTrue($user->isActive(), 'User must stay active until the exit date arrives');
         self::assertFalse($summary->userDeactivated);

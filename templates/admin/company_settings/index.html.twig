@@ -87,6 +87,15 @@
                         attr: { class: inputClass ~ ' w-32' },
                     }) }}
                 </div>
+                <div class="sm:col-span-2">
+                    {{ form_row(form.exitLeaveHandling, {
+                        label_attr: { class: labelClass },
+                        attr: { class: inputClass },
+                    }) }}
+                    <p class="mt-1 text-xs text-gray-500">
+                        {{ 'admin.company_settings.profile.exit_leave_handling_help'|trans }}
+                    </p>
+                </div>
             </div>
 
             <div class="mt-6">
