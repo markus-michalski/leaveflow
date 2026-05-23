@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+use App\Application\Api\CompanyAwareUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -12,7 +13,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * Not persisted — created fresh on each request from a valid ApiToken.
  * Carries only the company context and the token ID for logging/audit.
  */
-final readonly class ApiUser implements UserInterface
+final readonly class ApiUser implements UserInterface, CompanyAwareUserInterface
 {
     public function __construct(
         private int $apiTokenId,

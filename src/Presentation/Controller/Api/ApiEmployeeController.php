@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Controller\Api;
 
+use App\Application\Api\CompanyAwareUserInterface;
 use App\Application\Api\Employee\CreateEmployeeRequest;
 use App\Application\Api\Employee\EmployeeApiResource;
 use App\Application\Api\Employee\EmployeeApiService;
@@ -11,7 +12,6 @@ use App\Application\Api\Employee\UpdateEmployeeRequest;
 use App\Domain\Entity\Employee;
 use App\Domain\Repository\CompanyRepository;
 use App\Domain\Repository\EmployeeRepository;
-use App\Infrastructure\Security\ApiUser;
 use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -114,8 +114,8 @@ final class ApiEmployeeController extends AbstractController
     private function requireCompany(): \App\Domain\Entity\Company
     {
         $apiUser = $this->getUser();
-        if (!$apiUser instanceof ApiUser) {
-            throw new \LogicException('Expected ApiUser principal.');
+        if (!$apiUser instanceof CompanyAwareUserInterface) {
+            throw new \LogicException('Expected CompanyAwareUserInterface principal.');
         }
 
         $company = $this->companyRepository->find($apiUser->getCompanyId());
