@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'admin.employees.exit.title'|trans({'%name%': employee.fullName}) }} · {{ 'app.name'|trans }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-lg p-6">
+    <header class="mb-6">
+        <h1 class="text-2xl font-semibold text-gray-900">
+            {{ 'admin.employees.exit.heading'|trans({'%name%': employee.fullName}) }}
+        </h1>
+        <p class="mt-1 text-xs text-gray-500">{{ 'admin.employees.exit.description'|trans }}</p>
+    </header>
+
+    <div class="rounded-xl bg-white p-6 shadow-sm">
+        {{ form_start(form) }}
+
+        <div class="space-y-4">
+            {% set inputClass = 'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500' %}
+            {% set labelClass = 'block text-sm font-medium text-gray-700' %}
+
+            {{ form_row(form.exitDate, {
+                label_attr: { class: labelClass },
+                attr: { class: inputClass },
+            }) }}
+
+            {{ form_row(form.exitLeaveHandling, {
+                label_attr: { class: labelClass },
+                attr: { class: inputClass },
+            }) }}
+        </div>
+
+        <div class="mt-6 flex items-center justify-end gap-3">
+            <a href="{{ path('app_admin_employee_edit', {id: employee.id}) }}"
+               class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ 'admin.employees.back'|trans }}
+            </a>
+            <button type="submit"
+                    class="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                {{ 'admin.employees.exit.confirm'|trans }}
+            </button>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

@@ -117,6 +117,12 @@
                    class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
                     {{ 'admin.employees.back'|trans }}
                 </a>
+                {% if not is_new and employee.leftAt is null %}
+                    <a href="{{ path('app_admin_employee_exit', {id: employee.id}) }}"
+                       class="inline-flex items-center rounded-md border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100">
+                        {{ 'admin.employees.exit_button'|trans }}
+                    </a>
+                {% endif %}
                 <button type="submit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
                     {{ 'admin.employees.save'|trans }}
                 </button>

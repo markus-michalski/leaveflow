@@ -367,11 +367,20 @@ admin:
         save: Speichern
         back: Zurück
         empty: Noch keine Mitarbeiter angelegt.
+        exit_button: "Austreten..."
+        exit:
+            title: "Austritt: %name%"
+            heading: "Austritt: %name%"
+            description: "Setzt das Austrittsdatum und legt die Handhabung des Resturlaubs für diesen Mitarbeitenden fest."
+            exit_date: "Austrittsdatum"
+            handling: "Resturlaub-Regelung"
+            confirm: "Austritt bestätigen"
         flash:
             created: Mitarbeiter %name% wurde angelegt.
             updated: Mitarbeiter %name% wurde aktualisiert.
             exited: "%name% wurde zum %date% ausgetreten und der Account wurde deaktiviert."
             exit_remaining_balance: "Verbleibende Stunden: %hours% h. Konfigurierte Regelung: %handling%. %handlingNote%"
+            already_exited: "%name% ist bereits ausgetreten."
         exit_handling_note:
             pay_out: "Bitte die Abgeltung manuell mit dem Mitarbeitenden klären."
             mandatory_consumption: "Der Urlaub muss vor dem Austrittsdatum genommen werden."
@@ -614,7 +623,8 @@ admin:
             logo_remove_confirm: "Wirklich das aktuelle Logo entfernen?"
             retention_months: "DSGVO-Aufbewahrungsdauer (Monate)"
             escalation_days: "Eskalations-Schwelle (Tage)"
-            exit_leave_handling: "Verbleibender Urlaub bei Austritt"
+            exit_leave_handling: "Standard: Verbleibender Urlaub bei Austritt"
+            exit_leave_handling_help: "Standard-Regelung für Resturlaub bei Mitarbeiteraustritt. Kann im Austritts-Dialog für jeden Mitarbeiter individuell angepasst werden."
             save: "Speichern"
         google:
             heading: "Google Workspace Login"

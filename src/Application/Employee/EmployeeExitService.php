@@ -6,6 +6,7 @@ namespace App\Application\Employee;
 
 use App\Application\Entitlement\EntitlementBalanceReader;
 use App\Domain\Entity\Employee;
+use App\Domain\Enum\ExitLeaveHandling;
 use Symfony\Component\Clock\ClockInterface;
 
 /**
@@ -23,7 +24,7 @@ final readonly class EmployeeExitService
     ) {
     }
 
-    public function execute(Employee $employee, \DateTimeImmutable $exitDate): ExitSummary
+    public function execute(Employee $employee, \DateTimeImmutable $exitDate, ExitLeaveHandling $handling): ExitSummary
     {
         $employee->markLeft($exitDate);
 
@@ -43,7 +44,7 @@ final readonly class EmployeeExitService
 
         return new ExitSummary(
             totalRemainingHours: $totalRemaining,
-            exitLeaveHandling: $employee->getCompany()->getExitLeaveHandling(),
+            exitLeaveHandling: $handling,
             exitDate: $exitDate,
             userDeactivated: $userDeactivated,
         );

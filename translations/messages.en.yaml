@@ -367,11 +367,20 @@ admin:
         save: Save
         back: Back
         empty: No employees yet.
+        exit_button: "Exit employee..."
+        exit:
+            title: "Exit: %name%"
+            heading: "Exit: %name%"
+            description: "Sets the exit date and determines how remaining leave is handled for this employee."
+            exit_date: "Exit date"
+            handling: "Remaining leave policy"
+            confirm: "Confirm exit"
         flash:
             created: Employee %name% has been created.
             updated: Employee %name% has been updated.
             exited: "%name% has exited on %date% and the account has been deactivated."
             exit_remaining_balance: "Remaining balance: %hours% h. Configured handling: %handling%. %handlingNote%"
+            already_exited: "%name% has already exited."
         exit_handling_note:
             pay_out: "Please arrange the payout directly with the employee."
             mandatory_consumption: "The remaining leave must be taken before the exit date."
@@ -611,7 +620,8 @@ admin:
             logo_remove_confirm: "Really remove the current logo?"
             retention_months: "GDPR retention period (months)"
             escalation_days: "Approval escalation threshold (days)"
-            exit_leave_handling: "Remaining leave on employee exit"
+            exit_leave_handling: "Default: Remaining leave on employee exit"
+            exit_leave_handling_help: "Default policy for remaining leave when an employee exits. Can be adjusted individually in the exit dialog."
             save: "Save"
         google:
             heading: "Google Workspace Login"

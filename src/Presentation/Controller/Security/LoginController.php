@@ -38,6 +38,8 @@ final class LoginController extends AbstractController
             'google_oauth_enabled' => null !== $company && $company->isGoogleOAuthEnabled(),
             'entra_oauth_enabled' => null !== $company && $company->isEntraOAuthEnabled(),
             'ldap_enabled' => null !== $company && $company->isLdapEnabled(),
+            'company_logo_path' => $company?->getLogoPath(),
+            'company_name' => $company?->getName(),
         ]);
     }
 

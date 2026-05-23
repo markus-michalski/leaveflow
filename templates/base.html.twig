@@ -19,7 +19,7 @@
             <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
-    <body class="h-full text-gray-900 antialiased">
+    <body class="h-full flex flex-col text-gray-900 antialiased">
         {% block app_header %}
             {# Global header on every authenticated page (logo, nav, admin
                menu, notification bell, user menu). Suppressed on /login,
@@ -61,8 +61,16 @@
             {% endif %}
         {% endblock %}
 
-        <main class="min-h-full">
+        <main class="flex-1">
             {% block body %}{% endblock %}
         </main>
+
+        {% if app.user and is_granted('ROLE_ADMIN') %}
+        <footer class="py-2 text-center text-xs text-gray-400 border-t border-gray-100">
+            Powered by <a href="https://github.com/markus-michalski/leaveflow"
+                          target="_blank" rel="noopener noreferrer"
+                          class="hover:text-gray-600 hover:underline">LeaveFlow</a>
+        </footer>
+        {% endif %}
     </body>
 </html>
