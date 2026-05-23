@@ -6,14 +6,11 @@ API test collection for the LeaveFlow REST API (Phase 14).
 
 1. Install [Bruno](https://www.usebruno.com/) (free, open source)
 2. Open Bruno → **Open Collection** → select the `bruno/` folder
-3. Select the **local** environment
-4. Create `bruno/.env` with your API token:
-   ```
-   apiToken=your-64-char-hex-token-here
-   ```
+3. Copy `environments/local.bru.example` to `environments/local.bru`
+4. Fill in your token in `environments/local.bru` and select the **local** environment.
    Generate a token at `/admin/api-tokens` (Admin → System → API-Zugriffstoken).
 
-The `.env` file is gitignored — your token stays local.
+`local.bru` is gitignored — your token stays local.
 
 ## Requests
 
@@ -34,7 +31,7 @@ The `.env` file is gitignored — your token stays local.
 |----------|-------------|--------|
 | `baseUrl` | Base URL of your instance | `environments/local.bru` |
 | `employeeId` | Employee ID for single-resource requests | `environments/local.bru` |
-| `apiToken` | Bearer token (secret) | `bruno/.env` (gitignored) |
+| `apiToken` | Bearer token | `environments/local.bru` (gitignored, copied from `.example`) |
 
 ## Interactive docs
 
