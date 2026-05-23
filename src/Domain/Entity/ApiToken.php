@@ -86,7 +86,7 @@ class ApiToken
         return $this->revokedAt;
     }
 
-    public function isActive(\DateTimeImmutable $now): bool
+    public function isActive(\DateTimeInterface $now): bool
     {
         if (null !== $this->revokedAt) {
             return false;
