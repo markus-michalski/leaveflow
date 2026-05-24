@@ -50,3 +50,6 @@
 # Coverage artifacts
 /coverage.xml
 /coverage/
+
+# Runtime logs
+/logs/
