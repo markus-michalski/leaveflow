@@ -10,10 +10,20 @@ updates:
     labels:
       - "dependencies"
     open-pull-requests-limit: 10
+    ignore:
+      # Symfony major version bumps require a planned migration phase
+      - dependency-name: "symfony/*"
+        update-types: ["version-update:semver-major"]
+      # Doctrine major version bumps require schema review
+      - dependency-name: "doctrine/*"
+        update-types: ["version-update:semver-major"]
     groups:
       composer-all:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
