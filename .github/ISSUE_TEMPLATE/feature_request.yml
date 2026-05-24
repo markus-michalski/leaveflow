@@ -1,0 +1,80 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. This helps make LeaveFlow better for everyone.
+
+        Remember: LeaveFlow is released under the **PolyForm Noncommercial License 1.0.0**. Proposals must be compatible with non-commercial, self-hosted use cases. Features designed primarily to enable SaaS or commercial deployments are out of scope.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: What type of enhancement is this?
+      options:
+        - Leave Request / Approval Workflow
+        - Holiday Calculation (Bundesurlaubsgesetz / Federal States)
+        - Employee Management
+        - Manager / HR Dashboard
+        - Notifications (Email / Slack / Teams)
+        - REST API
+        - Authentication / OIDC Integration
+        - DSGVO / Data Lifecycle
+        - Reporting / Export
+        - UI / Frontend
+        - Configuration / Setup
+        - CLI / Console Commands
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What problem does this solve? Why do you need it?
+      placeholder: |
+        As an HR manager, I need to export leave requests as CSV for our payroll system. Currently there is no export function.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would this work?
+      placeholder: |
+        Add a "Export CSV" button on the Manager Dashboard that downloads leave requests for a selected date range, with columns for employee, type, start date, end date, days.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Tried other approaches? Why don't they work?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to help implement this?
+      options:
+        - label: I'd be willing to submit a PR for this feature (requires signing the CLA)
+        - label: I can help test if someone else implements it
+        - label: I can provide more detailed requirements if needed
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Examples, mockups, related issues, or anything else
+    validations:
+      required: false

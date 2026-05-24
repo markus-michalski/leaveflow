@@ -2,7 +2,7 @@
     "name": "markus-michalski/leaveflow",
     "description": "Modern open-source leave management for SMBs — built with Symfony",
     "type": "project",
-    "license": "MIT",
+    "license": "PolyForm-Noncommercial-1.0.0",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {

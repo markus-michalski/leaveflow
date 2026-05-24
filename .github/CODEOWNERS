@@ -1,0 +1,21 @@
+# Code Owners for leaveflow
+#
+# These owners will be automatically requested for review when someone
+# opens a pull request that modifies files matching the patterns below.
+
+# Default: everything requires maintainer review
+* @markus-michalski
+
+# Workflow files execute code in CI/CD and must be carefully reviewed
+.github/workflows/* @markus-michalski
+
+# License and governance documents — changes affect legal standing
+LICENSE.md @markus-michalski
+CLA.md @markus-michalski
+CONTRIBUTING.md @markus-michalski
+CODE_OF_CONDUCT.md @markus-michalski
+.github/SECURITY.md @markus-michalski
+.github/CODEOWNERS @markus-michalski
+
+# Core project configuration
+composer.json @markus-michalski

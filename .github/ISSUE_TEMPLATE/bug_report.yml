@@ -1,0 +1,88 @@
+name: Bug Report
+description: Report something that isn't working correctly
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue. Fill out the sections below so this can be reproduced and fixed.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: What part of LeaveFlow is affected?
+      options:
+        - Leave Request (Urlaubsantrag)
+        - Approval Workflow
+        - Holiday Calculator (Urlaubstage)
+        - Employee Management
+        - Manager Dashboard
+        - Employee Dashboard
+        - Notifications (Email / Slack / Teams)
+        - REST API
+        - Authentication / OIDC
+        - DSGVO / Data Lifecycle
+        - CLI / Console Commands
+        - Configuration / Setup
+        - UI / Frontend (Twig / Tailwind)
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Clear description of the issue
+      placeholder: The leave request approval did not trigger an email notification...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+      placeholder: An email should have been sent to the approver after the request was submitted.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can this be reproduced?
+      placeholder: |
+        1. Log in as employee
+        2. Submit a leave request for next week
+        3. Check the approver's inbox — no email received
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: LeaveFlow version
+      description: Version tag or `git rev-parse --short HEAD`
+      placeholder: v0.18.0 or abc1234
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or error messages
+      description: Paste any error messages from the Symfony profiler, application logs, or browser console
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other context, screenshots, or environment details that might help
+    validations:
+      required: false
