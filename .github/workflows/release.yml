@@ -1,0 +1,18 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify-demo-manager:
+    name: Trigger demo-manager update
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Dispatch leaveflow-release to demo-manager
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DEMO_MANAGER_DISPATCH_TOKEN }}
+          repository: markus-michalski/demo-manager
+          event-type: leaveflow-release
+          client-payload: '{"version": "${{ github.event.release.tag_name }}"}'
