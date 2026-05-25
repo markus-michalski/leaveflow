@@ -1,5 +1,5 @@
 # LeaveFlow — unified command surface
-# Same targets work locally (via Docker) and in CI.
+# Same targets work locally (via Docker), inside the container, and in CI.
 #
 # Usage:
 #   make help       — list all targets
@@ -13,14 +13,25 @@
 #   make deptrac    — check architecture boundaries
 #   make ci         — full CI pipeline locally (stan + cs + test + deptrac)
 #   make shell      — open a bash shell inside the app container
+#
+# Container detection: when run inside a container (/.dockerenv or /run/.containerenv),
+# commands execute directly without docker compose. Host-only targets: build, up, down,
+# restart, logs. Note: run make as the app user to avoid cache files owned by root.
 
 SHELL := /bin/bash
 DC    := docker compose
+
+# Detect container context — works for Docker and Podman
+IN_CONTAINER := $(shell [ -f /.dockerenv ] || [ -f /run/.containerenv ] && echo 1 || echo 0)
+ifeq ($(IN_CONTAINER),1)
+EXEC  :=
+RUN   :=
+else
 EXEC  := $(DC) exec -u app app
 RUN   := $(DC) run --rm -u app app
-
 export USER_ID  ?= $(shell id -u)
 export GROUP_ID ?= $(shell id -g)
+endif
 
 .DEFAULT_GOAL := help
 
