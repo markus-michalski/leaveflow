@@ -1,5 +1,5 @@
 import './stimulus_bootstrap.js';
-import './styles/app.css';
+// CSS is loaded via <link> in base.html.twig to avoid unused-preload warnings and a circular @source reference.
 import '@hotwired/turbo';
 import { initFlowbite } from 'flowbite';
 

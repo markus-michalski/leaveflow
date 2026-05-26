@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 import flatpickr from 'flatpickr';
-import 'flatpickr/dist/flatpickr.min.css';
+// flatpickr.min.css is loaded via <link> in base.html.twig — importing it here causes unused-preload warnings.
 
 // Inline German locale — avoids a separate importmap entry for the locale file.
 const german = {
