@@ -18,6 +18,19 @@ $finder = (new PhpCsFixer\Finder())
 return (new PhpCsFixer\Config())
     ->setRiskyAllowed(true)
     ->setRules([
+        'header_comment' => [
+            'header' => <<<'EOF'
+This file is part of LeaveFlow.
+
+(c) Markus Michalski <ich@markus-michalski.net>
+
+For the full copyright and license information, please view the LICENSE.md
+file that was distributed with this source code.
+EOF,
+            'comment_type' => 'comment',
+            'location' => 'after_declare_strict',
+            'separate' => 'both',
+        ],
         '@Symfony' => true,
         '@Symfony:risky' => true,
         '@PHP84Migration' => true,
