@@ -2,7 +2,16 @@
 
 declare(strict_types=1);
 
-/**
+/*
+ * This file is part of LeaveFlow.
+ *
+ * (c) Markus Michalski <ich@markus-michalski.net>
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
+/*
  * Returns the importmap for this application.
  *
  * - "path" is a path inside the asset mapper system. Use the
@@ -11,7 +20,7 @@ declare(strict_types=1);
  * - "entrypoint" (JavaScript only) set to true for any module that will
  *     be used as an "entrypoint" (and passed to the importmap() Twig function).
  *
- * The "importmap:require" command can be used to add new entries to this file.
+ * - The "importmap:require" command can be used to add new entries to this file.
  */
 return [
     'app' => [
