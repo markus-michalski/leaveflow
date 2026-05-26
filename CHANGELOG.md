@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Nothing yet
 
+## [1.0.2] - 2026-05-26
+
+### Fixed
+- move CSS to <link> tags to fix preload warnings (#109) (#110)
+
 ## [1.0.1] - 2026-05-25
 
 ### Changed
@@ -273,7 +278,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Base Symfony 7.4 skeleton with Twig, Tailwind CSS, and Stimulus/Turbo
 ---
 
-[Unreleased]: https://github.com/markus-michalski/leaveflow/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/markus-michalski/leaveflow/compare/v1.0.2...HEAD
 [0.18.0]: https://github.com/markus-michalski/leaveflow/compare/v0.17.1...v0.18.0
 [0.17.1]: https://github.com/markus-michalski/leaveflow/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/markus-michalski/leaveflow/compare/v0.16.0...v0.17.0
@@ -298,3 +303,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/markus-michalski/leaveflow/releases/tag/v0.1.0
 [1.0.0]: https://github.com/markus-michalski/leaveflow/releases/tag/v1.0.0
 [1.0.1]: https://github.com/markus-michalski/leaveflow/releases/tag/v1.0.1
+[1.0.2]: https://github.com/markus-michalski/leaveflow/releases/tag/v1.0.2
