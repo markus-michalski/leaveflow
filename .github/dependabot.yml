@@ -11,10 +11,12 @@ updates:
       - "dependencies"
     open-pull-requests-limit: 10
     ignore:
-      # Symfony major version bumps require a planned migration phase
+      # Symfony 8.x: not planned until at least 8.1. Explicit version
+      # constraint is more reliable than update-types for transitive deps.
       - dependency-name: "symfony/*"
-        update-types: ["version-update:semver-major"]
-      # Doctrine major version bumps require schema review
+        versions: [">=8.0.0"]
+      # Doctrine packages sit on mixed major versions (bundle ^2, orm ^3).
+      # update-types works reliably here since all Doctrine deps are direct.
       - dependency-name: "doctrine/*"
         update-types: ["version-update:semver-major"]
     groups:
