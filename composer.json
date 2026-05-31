@@ -133,6 +133,6 @@
         "symfony/panther": "^2.4",
         "symfony/stopwatch": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*",
-        "symfonycasts/tailwind-bundle": "^0.12.0"
+        "symfonycasts/tailwind-bundle": "^0.13.0"
     }
 }
