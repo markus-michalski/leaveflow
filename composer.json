@@ -49,7 +49,7 @@
         "symfony/scheduler": "7.4.*",
         "symfony/security-bundle": "7.4.*",
         "symfony/serializer": "7.4.*",
-        "symfony/stimulus-bundle": "^2.35",
+        "symfony/stimulus-bundle": "^3.1",
         "symfony/string": "7.4.*",
         "symfony/translation": "7.4.*",
         "symfony/twig-bundle": "7.4.*",
