@@ -19,6 +19,10 @@ updates:
       # Doctrine packages sit on mixed major versions (bundle ^2, orm ^3).
       - dependency-name: "doctrine/*"
         update-types: ["version-update:semver-major"]
+      # tailwind-bundle >=0.13 requires Symfony 8 components — block minor+major
+      # until Symfony 8 migration is done.
+      - dependency-name: "symfonycasts/tailwind-bundle"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
     groups:
       composer-all:
         patterns:
