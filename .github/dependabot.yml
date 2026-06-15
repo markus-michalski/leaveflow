@@ -24,12 +24,15 @@ updates:
       - dependency-name: "symfonycasts/tailwind-bundle"
         update-types: ["version-update:semver-minor", "version-update:semver-major"]
     groups:
+      symfony-updates:
+        patterns:
+          - "symfony/*"
+        update-types:
+          - "minor"
+          - "patch"
       composer-all:
         patterns:
           - "*"
-        # symfony/* excluded: group updates bypass ignore rules for transitive
-        # deps, causing Symfony 8.x to slip in. Individual PRs get correct
-        # ignore-rule filtering.
         exclude-patterns:
           - "symfony/*"
         update-types:
