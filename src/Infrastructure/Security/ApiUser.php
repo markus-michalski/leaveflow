@@ -60,5 +60,6 @@ final readonly class ApiUser implements UserInterface, CompanyAwareUserInterface
     public function eraseCredentials(): void
     {
         // No sensitive data to clear — raw token is never stored here.
+        // Remove this method when upgrading to Symfony 8.0 (eraseCredentials removed from UserInterface).
     }
 }
