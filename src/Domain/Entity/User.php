@@ -208,12 +208,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         $this->locale = null;
     }
 
-    public function eraseCredentials(): void
-    {
-        // No-op — plaintext credentials are never stored on the entity.
-        // Remove this method when upgrading to Symfony 8.0 (eraseCredentials removed from UserInterface).
-    }
-
     public function getAuthSource(): AuthSource
     {
         return $this->authSource;

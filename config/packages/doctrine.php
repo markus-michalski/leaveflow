@@ -10,7 +10,6 @@ return static function (ContainerConfigurator $container): void {
             'url' => '%env(resolve:DATABASE_URL)%',
             // Server version is set in the DATABASE_URL env var (see .env).
             'profiling_collect_backtrace' => '%kernel.debug%',
-            'use_savepoints' => true,
             'charset' => 'utf8mb4',
             'default_table_options' => [
                 'charset' => 'utf8mb4',
@@ -18,9 +17,6 @@ return static function (ContainerConfigurator $container): void {
             ],
         ],
         'orm' => [
-            'auto_generate_proxy_classes' => true,
-            'enable_lazy_ghost_objects' => true,
-            'report_fields_where_declared' => true,
             'validate_xml_mapping' => true,
             'naming_strategy' => 'doctrine.orm.naming_strategy.underscore_number_aware',
             'auto_mapping' => true,
@@ -56,12 +52,8 @@ return static function (ContainerConfigurator $container): void {
     }
 
     if ('prod' === $container->env()) {
-        // TODO(symfony-8.1-migration): remove auto_generate_proxy_classes + proxy_dir
-        // when upgrading doctrine/doctrine-bundle to ^3.x (Phase 7).
         $container->extension('doctrine', [
             'orm' => [
-                'auto_generate_proxy_classes' => false,
-                'proxy_dir' => '%kernel.build_dir%/doctrine/orm/Proxies',
                 'query_cache_driver' => [
                     'type' => 'pool',
                     'pool' => 'doctrine.system_cache_pool',

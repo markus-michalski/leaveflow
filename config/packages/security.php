@@ -10,8 +10,7 @@ return static function (ContainerConfigurator $container): void {
         // Internal SMB tool — surface precise login errors (wrong password vs.
         // deactivated account) so users know whether to reset their password
         // or contact HR/admin. Worth the tiny enumeration risk in context.
-        // NOTE: renamed to expose_security_errors in Symfony 8.0.
-        'hide_user_not_found' => false,
+        'expose_security_errors' => 'all',
 
         'password_hashers' => [
             PasswordAuthenticatedUserInterface::class => 'auto',

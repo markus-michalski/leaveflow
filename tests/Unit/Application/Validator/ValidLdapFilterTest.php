@@ -34,7 +34,7 @@ class ValidLdapFilterTest extends TestCase
     {
         $this->context = $this->createMock(ExecutionContextInterface::class);
         $this->validator = new ValidLdapFilterValidator();
-        $this->validator->initialize($this->context);
+        
     }
 
     #[Test]
@@ -42,7 +42,7 @@ class ValidLdapFilterTest extends TestCase
     {
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate(null, new ValidLdapFilter());
+        $this->validator->validateInContext(null, new ValidLdapFilter(), $this->context);
     }
 
     #[Test]
@@ -51,7 +51,7 @@ class ValidLdapFilterTest extends TestCase
     {
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate($filter, new ValidLdapFilter());
+        $this->validator->validateInContext($filter, new ValidLdapFilter(), $this->context);
     }
 
     /** @return array<string, array{string}> */
@@ -78,7 +78,7 @@ class ValidLdapFilterTest extends TestCase
             ->with($expectedMessage)
             ->willReturn($builder);
 
-        $this->validator->validate($filter, new ValidLdapFilter());
+        $this->validator->validateInContext($filter, new ValidLdapFilter(), $this->context);
     }
 
     /** @return array<string, array{string, string}> */
