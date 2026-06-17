@@ -56,5 +56,4 @@ final readonly class ApiUser implements UserInterface, CompanyAwareUserInterface
     {
         return ['ROLE_API'];
     }
-
 }

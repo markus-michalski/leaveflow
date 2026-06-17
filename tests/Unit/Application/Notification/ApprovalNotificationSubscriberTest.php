@@ -120,6 +120,7 @@ final class ApprovalNotificationSubscriberTest extends TestCase
 
     /**
      * @param array<string, mixed> $context
+     *
      * @return CompletedEvent<LeaveRequest>
      */
     private function buildEvent(string $transitionName, string $from, string $to, array $context = []): CompletedEvent

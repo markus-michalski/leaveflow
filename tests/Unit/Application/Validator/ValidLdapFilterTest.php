@@ -34,7 +34,6 @@ class ValidLdapFilterTest extends TestCase
     {
         $this->context = $this->createMock(ExecutionContextInterface::class);
         $this->validator = new ValidLdapFilterValidator();
-        
     }
 
     #[Test]

@@ -191,6 +191,7 @@ final class ApprovalAuditSubscriberTest extends TestCase
 
     /**
      * @param array<string, mixed> $context
+     *
      * @return CompletedEvent<LeaveRequest>
      */
     private function buildEvent(
