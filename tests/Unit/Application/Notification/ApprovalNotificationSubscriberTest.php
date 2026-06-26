@@ -120,6 +120,8 @@ final class ApprovalNotificationSubscriberTest extends TestCase
 
     /**
      * @param array<string, mixed> $context
+     *
+     * @return CompletedEvent<LeaveRequest>
      */
     private function buildEvent(string $transitionName, string $from, string $to, array $context = []): CompletedEvent
     {
@@ -288,6 +290,7 @@ final class ApprovalNotificationSubscriberTest extends TestCase
             marking: new Marking(['approved' => 1]),
             transition: new Transition('approve', 'pending', 'approved'),
         );
+        // @phpstan-ignore argument.type (intentional stdClass subject to test guard branch)
         ($this->createSubscriber())($event);
     }
 

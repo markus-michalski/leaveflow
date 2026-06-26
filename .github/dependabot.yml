@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: "composer"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     target-branch: "main"
     commit-message:
       prefix: "chore(deps):"
@@ -11,13 +11,12 @@ updates:
       - "dependencies"
     open-pull-requests-limit: 10
     ignore:
-      # Symfony 8.x not planned yet — stay on 7.4.* until all deprecations
-      # are resolved. versions[] is reliable for group updates; update-types
-      # is not (Dependabot bypasses it for transitive deps in groups).
+      # Symfony 8.x upgrade in progress (PR #162 — migration/symfony-8.1).
+      # Remove this block after #162 is merged; update to >=9.0 at that point.
       - dependency-name: "symfony/*"
-        versions: [">=8.0"]
+        versions: [">=8.2"]
       - dependency-name: "symfonycasts/*"
-        versions: [">=8.0"]
+        versions: [">=8.2"]
       # Doctrine packages sit on mixed major versions (bundle ^2, orm ^3).
       - dependency-name: "doctrine/*"
         update-types: ["version-update:semver-major"]
@@ -40,7 +39,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     target-branch: "main"
     commit-message:
       prefix: "chore(deps):"
