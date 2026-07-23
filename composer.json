@@ -68,7 +68,7 @@
         "symfony/twig-bridge": "7.4.*",
         "symfony/twig-bundle": "7.4.*",
         "symfony/type-info": "7.4.*",
-        "symfony/ux-turbo": "^2.35",
+        "symfony/ux-turbo": "^3.3",
         "symfony/validator": "7.4.*",
         "symfony/var-dumper": "7.4.*",
         "symfony/var-exporter": "7.4.*",
