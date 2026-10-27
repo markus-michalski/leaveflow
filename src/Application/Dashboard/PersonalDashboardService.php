@@ -63,6 +63,7 @@ final readonly class PersonalDashboardService
             upcomingRequests: $upcoming,
             teamAbsencesToday: $teamToday,
             hasDepartment: null !== $department,
+            now: $now,
         );
     }
 

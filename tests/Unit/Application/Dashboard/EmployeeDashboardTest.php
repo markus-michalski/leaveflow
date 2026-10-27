@@ -139,6 +139,7 @@ final class EmployeeDashboardTest extends TestCase
             upcomingRequests: $requests,
             teamAbsencesToday: [],
             hasDepartment: false,
+            now: new \DateTimeImmutable('2026-06-15'),
         );
     }
 }

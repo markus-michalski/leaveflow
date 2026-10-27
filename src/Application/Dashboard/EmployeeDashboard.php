@@ -36,6 +36,7 @@ final readonly class EmployeeDashboard
         public array $upcomingRequests,
         public array $teamAbsencesToday,
         public bool $hasDepartment,
+        private \DateTimeImmutable $now,
     ) {
     }
 
@@ -45,8 +46,7 @@ final readonly class EmployeeDashboard
             return false;
         }
 
-        $now = new \DateTimeImmutable('today');
-        $diff = (int) $now->diff($this->balance->nextExpiry)->days;
+        $diff = (int) $this->now->diff($this->balance->nextExpiry)->days;
 
         return $diff <= $daysThreshold;
     }
@@ -57,7 +57,7 @@ final readonly class EmployeeDashboard
             return null;
         }
 
-        return (int) (new \DateTimeImmutable('today'))->diff($this->balance->nextExpiry)->days;
+        return (int) $this->now->diff($this->balance->nextExpiry)->days;
     }
 
     /**
