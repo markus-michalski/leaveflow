@@ -208,11 +208,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TotpTwo
         $this->locale = null;
     }
 
-    public function eraseCredentials(): void
-    {
-        // No-op — plaintext credentials are never stored on the entity.
-    }
-
     public function getAuthSource(): AuthSource
     {
         return $this->authSource;

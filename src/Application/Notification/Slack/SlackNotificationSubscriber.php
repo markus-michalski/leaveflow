@@ -56,10 +56,12 @@ final readonly class SlackNotificationSubscriber
         $this->notifier->postMessage($botToken, $channelId, $blocks, $text);
     }
 
+    /** @param CompletedEvent<LeaveRequest> $event */
     #[AsEventListener(event: 'workflow.leave_request_approval.completed')]
     public function onWorkflowCompleted(CompletedEvent $event): void
     {
         $request = $event->getSubject();
+        // @phpstan-ignore instanceof.alwaysTrue (defence-in-depth guard; event subject is typed via PHPDoc but runtime may differ)
         if (!$request instanceof LeaveRequest) {
             return;
         }

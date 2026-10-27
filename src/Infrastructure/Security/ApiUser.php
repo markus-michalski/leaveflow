@@ -56,9 +56,4 @@ final readonly class ApiUser implements UserInterface, CompanyAwareUserInterface
     {
         return ['ROLE_API'];
     }
-
-    public function eraseCredentials(): void
-    {
-        // No sensitive data to clear — raw token is never stored here.
-    }
 }

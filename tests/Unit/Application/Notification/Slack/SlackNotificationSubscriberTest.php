@@ -238,7 +238,7 @@ class SlackNotificationSubscriberTest extends TestCase
             workflow: null,
             context: [],
         );
-
+        // @phpstan-ignore argument.type (intentional stdClass subject to test guard branch)
         $this->makeSubscriber()->onWorkflowCompleted($event);
     }
 

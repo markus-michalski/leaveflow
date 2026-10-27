@@ -50,9 +50,11 @@ final readonly class ApprovalNotificationSubscriber
     ) {
     }
 
+    /** @param CompletedEvent<LeaveRequest> $event */
     public function __invoke(CompletedEvent $event): void
     {
         $request = $event->getSubject();
+        // @phpstan-ignore instanceof.alwaysTrue (defence-in-depth guard; event subject is typed via PHPDoc but runtime may differ)
         if (!$request instanceof LeaveRequest) {
             return;
         }

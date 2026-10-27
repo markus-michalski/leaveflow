@@ -110,7 +110,9 @@ final class EntitlementBookingSubscriberTest extends TestCase
             context: [],
         );
 
+        // @phpstan-ignore argument.type (intentional stdClass subject to test guard branch)
         $subscriber($event);
+        // @phpstan-ignore argument.type (intentional stdClass subject to test guard branch)
         $subscriber->onConfirmCancel($event);
     }
 
@@ -123,6 +125,7 @@ final class EntitlementBookingSubscriberTest extends TestCase
         );
     }
 
+    /** @return CompletedEvent<LeaveRequest> */
     private function buildEvent(string $name, string $from, string $to): CompletedEvent
     {
         $marking = new Marking([$to => 1]);

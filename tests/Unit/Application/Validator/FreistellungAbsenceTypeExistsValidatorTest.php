@@ -42,7 +42,6 @@ final class FreistellungAbsenceTypeExistsValidatorTest extends TestCase
         $this->context = $this->createMock(ExecutionContextInterface::class);
         $this->repository = $this->createStub(AbsenceTypeRepository::class);
         $this->validator = new FreistellungAbsenceTypeExistsValidator($this->repository);
-        $this->validator->initialize($this->context);
         $this->company = new Company('Acme GmbH');
     }
 
@@ -61,7 +60,7 @@ final class FreistellungAbsenceTypeExistsValidatorTest extends TestCase
             ->with(FreistellungAbsenceTypeExists::MESSAGE)
             ->willReturn($builder);
 
-        $this->validator->validate($this->company, new FreistellungAbsenceTypeExists());
+        $this->validator->validateInContext($this->company, new FreistellungAbsenceTypeExists(), $this->context);
     }
 
     #[Test]
@@ -73,7 +72,7 @@ final class FreistellungAbsenceTypeExistsValidatorTest extends TestCase
 
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate($this->company, new FreistellungAbsenceTypeExists());
+        $this->validator->validateInContext($this->company, new FreistellungAbsenceTypeExists(), $this->context);
     }
 
     #[Test]
@@ -83,7 +82,7 @@ final class FreistellungAbsenceTypeExistsValidatorTest extends TestCase
 
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate($this->company, new FreistellungAbsenceTypeExists());
+        $this->validator->validateInContext($this->company, new FreistellungAbsenceTypeExists(), $this->context);
     }
 
     #[Test]
@@ -91,6 +90,6 @@ final class FreistellungAbsenceTypeExistsValidatorTest extends TestCase
     {
         $this->context->expects($this->never())->method('buildViolation');
 
-        $this->validator->validate(null, new FreistellungAbsenceTypeExists());
+        $this->validator->validateInContext(null, new FreistellungAbsenceTypeExists(), $this->context);
     }
 }

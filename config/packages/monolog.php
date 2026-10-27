@@ -1,0 +1,90 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of LeaveFlow.
+ *
+ * (c) Markus Michalski <ich@markus-michalski.net>
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+
+return static function (ContainerConfigurator $container): void {
+    $container->extension('monolog', [
+        // Deprecations are logged in the dedicated "deprecation" channel when it exists.
+        'channels' => ['deprecation'],
+    ]);
+
+    if ('dev' === $container->env()) {
+        $container->extension('monolog', [
+            'handlers' => [
+                'main' => [
+                    'type' => 'stream',
+                    'path' => '%kernel.logs_dir%/%kernel.environment%.log',
+                    'level' => 'debug',
+                    'channels' => ['!event'],
+                ],
+                'console' => [
+                    'type' => 'console',
+                    'process_psr_3_messages' => false,
+                    'channels' => ['!event', '!doctrine', '!console'],
+                ],
+            ],
+        ]);
+    }
+
+    if ('test' === $container->env()) {
+        $container->extension('monolog', [
+            'handlers' => [
+                'main' => [
+                    'type' => 'fingers_crossed',
+                    'action_level' => 'error',
+                    'handler' => 'nested',
+                    'excluded_http_codes' => [404, 405],
+                    'channels' => ['!event'],
+                ],
+                'nested' => [
+                    'type' => 'stream',
+                    'path' => '%kernel.logs_dir%/%kernel.environment%.log',
+                    'level' => 'debug',
+                ],
+            ],
+        ]);
+    }
+
+    if ('prod' === $container->env()) {
+        $container->extension('monolog', [
+            'handlers' => [
+                'main' => [
+                    'type' => 'fingers_crossed',
+                    'action_level' => 'error',
+                    'handler' => 'nested',
+                    'excluded_http_codes' => [404, 405],
+                    'channels' => ['!deprecation'],
+                    'buffer_size' => 50, // How many messages should be saved? Prevent memory leaks
+                ],
+                'nested' => [
+                    'type' => 'stream',
+                    'path' => 'php://stderr',
+                    'level' => 'debug',
+                    'formatter' => 'monolog.formatter.json',
+                ],
+                'console' => [
+                    'type' => 'console',
+                    'process_psr_3_messages' => false,
+                    'channels' => ['!event', '!doctrine'],
+                ],
+                'deprecation' => [
+                    'type' => 'stream',
+                    'channels' => ['deprecation'],
+                    'path' => 'php://stderr',
+                    'formatter' => 'monolog.formatter.json',
+                ],
+            ],
+        ]);
+    }
+};

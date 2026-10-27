@@ -185,11 +185,14 @@ final class ApprovalAuditSubscriberTest extends TestCase
 
         $entityManager->expects(self::never())->method('persist');
 
+        // @phpstan-ignore argument.type (intentional stdClass subject to test guard branch)
         $subscriber($event);
     }
 
     /**
      * @param array<string, mixed> $context
+     *
+     * @return CompletedEvent<LeaveRequest>
      */
     private function buildEvent(
         string $transitionName,
