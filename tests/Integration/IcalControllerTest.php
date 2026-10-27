@@ -74,7 +74,8 @@ final class IcalControllerTest extends WebTestCase
     public function personalFeedReturnsCalendarForOwnAbsences(): void
     {
         $vacation = $this->seedVacationType();
-        $this->seedApprovedRequest($this->employee, $vacation, '2026-07-06', '2026-07-10');
+        $start = new \DateTimeImmutable('monday next week');
+        $this->seedApprovedRequest($this->employee, $vacation, $start->format('Y-m-d'), $start->modify('+4 days')->format('Y-m-d'));
         $token = $this->user->ensureIcalToken();
         $this->em->flush();
 
@@ -86,7 +87,7 @@ final class IcalControllerTest extends WebTestCase
         $body = (string) $response->getContent();
         self::assertStringContainsString('BEGIN:VCALENDAR', $body);
         self::assertStringContainsString('SUMMARY:Urlaub', $body);
-        self::assertStringContainsString('DTSTART;VALUE=DATE:20260706', $body);
+        self::assertStringContainsString('DTSTART;VALUE=DATE:'.$start->format('Ymd'), $body);
     }
 
     #[Test]
@@ -121,7 +122,8 @@ final class IcalControllerTest extends WebTestCase
     public function teamFeedIncludesEmployeeNameInSummary(): void
     {
         $vacation = $this->seedVacationType();
-        $this->seedApprovedRequest($this->employee, $vacation, '2026-07-06', '2026-07-10');
+        $start = new \DateTimeImmutable('monday next week');
+        $this->seedApprovedRequest($this->employee, $vacation, $start->format('Y-m-d'), $start->modify('+4 days')->format('Y-m-d'));
         $token = $this->user->ensureIcalToken();
         $this->em->flush();
 
